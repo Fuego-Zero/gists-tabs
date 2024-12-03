@@ -31,7 +31,7 @@ const options = {
   mode: process.env.NODE_ENV || 'development',
   entry,
   chromeExtensionBoilerplate: {
-    notHotReload: ['background', 'contentScript', 'devtools'],
+    notHotReload: ['background', 'content', 'devtools'],
   },
   output: {
     filename: '[name].bundle.js',

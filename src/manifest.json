@@ -3,6 +3,7 @@
   "name": "GistTabs",
   "description": "一个基于 gist 存贮数据的 chrome 书签插件",
   "options_page": "options.html",
+  "permissions": ["storage"],
   "background": { "service_worker": "background.bundle.js" },
   "action": {
     "default_popup": "popup.html",
@@ -17,7 +18,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*", "<all_urls>"],
-      "js": ["contentScript.bundle.js"],
+      "js": ["content.bundle.js"],
       "css": ["content.styles.css"]
     }
   ],
