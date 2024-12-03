@@ -16,6 +16,11 @@ const themeProps = {
     token: {
       colorPrimary: '#1677ff',
     },
+    components: {
+      Layout: {
+        headerHeight: 48,
+      },
+    },
   },
   locale: zhCN,
 };
