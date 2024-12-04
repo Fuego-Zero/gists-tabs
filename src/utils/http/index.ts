@@ -11,7 +11,7 @@ const http = axios.create({
 
 http.interceptors.request.use(async (config) => {
   const token = await Storage.getGistsToken();
-  config.headers.Authorization = `Bearer ${token}`;
+  config.headers.Authorization = config.headers.Authorization ?? `Bearer ${token}`;
   return config;
 });
 
