@@ -1,7 +1,7 @@
 {
-  "name": "gist-tabs",
+  "name": "gists-tabs",
   "version": "0.1.0",
-  "description": "一个基于gist存贮数据的chrome书签插件",
+  "description": "一个基于gists存贮数据的chrome书签插件",
   "license": "MIT",
   "repository": {
     "type": "git",
