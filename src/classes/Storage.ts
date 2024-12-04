@@ -12,8 +12,17 @@ class Storage {
     return res.activePageId;
   }
 
+  async getGistsToken(): Promise<string> {
+    const res = await this.get('gistsToken');
+    return res.gistsToken;
+  }
+
   async setActivePageId(pageId: string) {
     return this.set({ activePageId: pageId });
+  }
+
+  async setGistsToken(token: string) {
+    return this.set({ gistsToken: token });
   }
 }
 
