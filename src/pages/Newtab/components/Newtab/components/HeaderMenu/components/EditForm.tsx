@@ -45,7 +45,7 @@ const EditForm = (props: Props) => {
     >
       <Form form={form} layout="vertical" name="form">
         <Form.Item label="页面名称" name="name" rules={[{ required: true, message: '请输入页面名称' }]}>
-          <Input maxLength={20} />
+          <Input autoComplete="off" maxLength={20} />
         </Form.Item>
       </Form>
     </Modal>
