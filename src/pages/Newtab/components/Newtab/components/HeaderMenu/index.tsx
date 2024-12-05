@@ -8,6 +8,7 @@ import {
   MenuOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
+import type { MenuProps } from 'antd';
 import { App, Button, Dropdown, Menu } from 'antd';
 
 import EditForm from './components/EditForm';
@@ -29,68 +30,48 @@ const HeaderMenu = (props: Props) => {
   const { message, modal } = App.useApp();
   const [isOpen, setIsOpen] = useState(false);
 
-  const dropdowns = useMemo(
+  const dropdowns: MenuProps['items'] = useMemo(
     () => [
       {
         key: 'edit',
-        label: (
-          <span
-            className="select-none"
-            onClick={() => {
-              setIsOpen(true);
-            }}
-          >
-            修改名称
-          </span>
-        ),
+        label: <span className="select-none">修改名称</span>,
         icon: <EditOutlined />,
+        onClick: () => {
+          setIsOpen(true);
+        },
       },
       {
         key: 'copy',
-        label: (
-          <span
-            className="select-none"
-            onClick={() => {
-              copyPage(activePageId);
-              message.success('复制成功');
-            }}
-          >
-            复制页面
-          </span>
-        ),
+        label: <span className="select-none">复制页面</span>,
         icon: <CopyOutlined />,
+        onClick: () => {
+          copyPage(activePageId);
+          message.success('复制成功');
+        },
       },
       {
         key: 'del',
         danger: !(pages.length === 1),
         disabled: pages.length === 1,
-        label: (
-          <span
-            className="select-none"
-            onClick={(e) => {
-              if (pages.length === 1) return;
-
-              const { shiftKey } = e;
-              if (shiftKey) return delPage(activePageId);
-
-              modal.confirm({
-                title: '您确定要删除吗?',
-                icon: <ExclamationCircleFilled />,
-                content: '删除后所有数据都会消失',
-                okText: '删除',
-                okType: 'danger',
-                cancelText: '取消',
-                onOk() {
-                  delPage(activePageId);
-                  message.success('删除成功');
-                },
-              });
-            }}
-          >
-            删除页面
-          </span>
-        ),
+        label: <span className="select-none">删除页面</span>,
         icon: <DeleteOutlined />,
+        onClick: ({ domEvent }) => {
+          const { shiftKey } = domEvent;
+          if (shiftKey) return delPage(activePageId);
+
+          modal.confirm({
+            title: '您确定要删除吗?',
+            icon: <ExclamationCircleFilled />,
+            content: '删除后所有数据都会消失',
+            okText: '删除',
+            okType: 'danger',
+            cancelText: '取消',
+            onOk() {
+              delPage(activePageId);
+              message.success('删除成功');
+            },
+          });
+        },
       },
     ],
     [activePageId, copyPage, delPage, message, modal, pages.length],
