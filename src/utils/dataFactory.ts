@@ -19,7 +19,7 @@ const WIDGET_DATA: Record<WidgetType, any> = {
 /**
  * 创建部件
  */
-export const createTool = (
+export const createWidget = (
   name: Widget['name'],
   type: Widget['type'],
   row: Widget['row'],
