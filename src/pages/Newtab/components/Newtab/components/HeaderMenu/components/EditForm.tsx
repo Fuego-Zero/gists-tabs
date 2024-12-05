@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Form, Input, Modal } from 'antd';
 
@@ -14,8 +14,13 @@ const EditForm = (props: Props) => {
   const [form] = Form.useForm();
   const [confirmLoading, setConfirmLoading] = useState(false);
 
+  useEffect(() => {
+    if (open) form.setFieldsValue({ name });
+  }, [form, name, open]);
+
   return (
     <Modal
+      destroyOnClose
       cancelText="取消"
       confirmLoading={confirmLoading}
       okText="确认"
@@ -39,12 +44,7 @@ const EditForm = (props: Props) => {
       }}
     >
       <Form form={form} layout="vertical" name="form">
-        <Form.Item
-          initialValue={name}
-          label="页面名称"
-          name="name"
-          rules={[{ required: true, message: '请输入页面名称' }]}
-        >
+        <Form.Item label="页面名称" name="name" rules={[{ required: true, message: '请输入页面名称' }]}>
           <Input maxLength={20} />
         </Form.Item>
       </Form>
