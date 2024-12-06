@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "GistTabs",
-  "description": "一个基于 gist 存贮数据的 chrome 书签插件",
+  "name": "GistsTabs",
+  "description": "一个基于 gists 存贮数据的 chrome 书签插件",
   "options_page": "options.html",
   "permissions": ["storage"],
   "background": { "service_worker": "background.bundle.js" },
