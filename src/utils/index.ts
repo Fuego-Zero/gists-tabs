@@ -1,1 +1,1 @@
-export const clone = (data: any) => structuredClone(data);
+export const clone = <T = any>(data: T): T => structuredClone(data);
