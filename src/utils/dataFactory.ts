@@ -24,11 +24,12 @@ export const createWidget = (
   type: Widget['type'],
   row: Widget['row'],
   col: Widget['col'],
+  data?: Widget['data'],
 ): Widget => ({
   id: createId(),
   name,
   type,
   row,
   col,
-  data: WIDGET_DATA[type],
+  data: data ?? WIDGET_DATA[type],
 });
