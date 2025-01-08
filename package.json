@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node scripts/dev.js",
-    "build": "node scripts/build.js",
+    "build": "tsc --noEmit && node scripts/build.js",
     "prettier": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'"
   },
   "dependencies": {
