@@ -5,7 +5,7 @@ import { App, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 
-import type { ReactComponent } from '@/types';
+import type { ReactComponent } from '@/types/utils';
 
 import 'dayjs/locale/zh-cn';
 
