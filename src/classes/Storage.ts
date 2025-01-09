@@ -54,7 +54,9 @@ class Storage {
 
       //* 获取云端的 gists 数据
       const cloudData = await getGists(this.gistsTabsId);
-      const localData = await this.getGistsTabs();
+      const localData = init
+        ? (await this.get(storageKeys.gistsTabs))[storageKeys.gistsTabs]
+        : await this.getGistsTabs();
 
       //* 如果是初始化，就直接更新本地数据
       if (init) {
@@ -85,6 +87,7 @@ class Storage {
   }
 
   async getGistsTabs(): Promise<GistsTabs> {
+    await this.init;
     const res = await this.get(storageKeys.gistsTabs);
     return res[storageKeys.gistsTabs];
   }
