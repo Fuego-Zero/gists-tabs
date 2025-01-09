@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { App, Button, Form, Input, Layout, Space } from 'antd';
+import { App, Button, Form, Input, Layout, Space, Switch } from 'antd';
 
-import { checkToken } from '@/api/gists';
 import Storage from '@/classes/Storage';
+import { checkToken } from '@/api/gists'; // eslint-disable-line perfectionist/sort-imports
 import withTheme from '@/theme/withTheme';
 
 const { Content } = Layout;
@@ -36,10 +36,15 @@ const CheckStatusIcon = (props: { status: CheckStatus }) => {
 
 const Options = () => {
   const [token, setToken] = useState('');
+  const [openCloudSync, setOpenCloudSync] = useState(false);
 
   useEffect(() => {
     Storage.getGistsToken().then((res) => {
       setToken(res);
+    });
+
+    Storage.getOpenCloudSync().then((res) => {
+      setOpenCloudSync(res);
     });
   }, []);
 
@@ -72,7 +77,7 @@ const Options = () => {
   return (
     <Layout>
       <Content className="h-[100vh] pt-[100px] px-[20px]">
-        <Form className="w-[650px]">
+        <Form className="w-[650px]" labelCol={{ span: 4 }}>
           <Form.Item label="Gists Token">
             <Space.Compact style={{ width: '100%' }}>
               <Input
@@ -89,6 +94,15 @@ const Options = () => {
                 保存
               </Button>
             </Space.Compact>
+          </Form.Item>
+          <Form.Item label="云同步">
+            <Switch
+              value={openCloudSync}
+              onChange={(e) => {
+                setOpenCloudSync(e);
+                Storage.setOpenCloudSync(e);
+              }}
+            />
           </Form.Item>
         </Form>
       </Content>
