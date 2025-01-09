@@ -1,0 +1,11 @@
+{
+  "cSpell.words": ["antd", "Cascader", "Newtab", "sockjs", "tailwindcss", "xdsdk", "yfsdk"],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "alias-tool.mappings": {
+    "@": "${folder}/src"
+  }
+}
