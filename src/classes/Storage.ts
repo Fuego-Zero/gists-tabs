@@ -12,7 +12,7 @@ enum storageKeys {
 
 class Storage {
   private gistsTabsId: string = '';
-  private init = this.checkGistTabsFile();
+  private init = this.syncGists(true);
 
   /**
    * 检查云端是否存在 gists_tabs_data.json 文件，如果不存在就创建一个
@@ -43,7 +43,7 @@ class Storage {
     return chrome.storage.local.set({ [key]: value });
   }
 
-  private async syncGists() {
+  private async syncGists(init: boolean = false) {
     try {
       //* 检查是否开启了云同步
       const openCloudSync = await this.getOpenCloudSync();
@@ -55,6 +55,12 @@ class Storage {
       //* 获取云端的 gists 数据
       const cloudData = await getGists(this.gistsTabsId);
       const localData = await this.getGistsTabs();
+
+      //* 如果是初始化，就直接更新本地数据
+      if (init) {
+        localData.updateAt = -1;
+        await this.set(storageKeys.gistsTabs, cloudData);
+      }
 
       //* 与本地数据进行比对
       let newData;
@@ -79,7 +85,6 @@ class Storage {
   }
 
   async getGistsTabs(): Promise<GistsTabs> {
-    await this.init;
     const res = await this.get(storageKeys.gistsTabs);
     return res[storageKeys.gistsTabs];
   }
