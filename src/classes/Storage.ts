@@ -7,6 +7,7 @@ enum storageKeys {
   activePageId = 'activePageId',
   gistsTabs = 'gistsTabs',
   gistsToken = 'gistsToken',
+  cloudSync = 'cloudSync',
 }
 
 class Storage {
@@ -44,24 +45,28 @@ class Storage {
 
   private async syncGists() {
     try {
-      //* 0. 检查云端是否存在 gists_tabs_data.json 文件
+      //* 检查是否开启了云同步
+      const openCloudSync = await this.getOpenCloudSync();
+      if (!openCloudSync) return;
+
+      //* 检查云端是否存在 gists_tabs_data.json 文件
       await this.checkGistTabsFile();
 
-      //* 1. 获取云端的 gists 数据
+      //* 获取云端的 gists 数据
       const cloudData = await getGists(this.gistsTabsId);
       const localData = await this.getGistsTabs();
 
-      //* 2. 与本地数据进行比对
+      //* 与本地数据进行比对
       let newData;
       if (cloudData.updateAt > localData.updateAt) {
-        //* 2.1 如果云端数据更新，就更新本地数据
+        //* 如果云端数据更新，就更新本地数据
         newData = cloudData;
       } else {
-        //* 2.2 如果本地数据更新，就更新云端数据
+        //* 如果本地数据更新，就更新云端数据
         newData = localData;
       }
 
-      //* 3. 更新云端数据
+      //* 更新云端数据
       await patchGists(this.gistsTabsId, newData);
     } catch (error) {
       console.error(error);
@@ -84,6 +89,11 @@ class Storage {
     return res[storageKeys.gistsToken];
   }
 
+  async getOpenCloudSync(): Promise<boolean> {
+    const res = await this.get(storageKeys.cloudSync);
+    return res[storageKeys.cloudSync];
+  }
+
   async setActivePageId(pageId: string) {
     return this.set(storageKeys.activePageId, pageId);
   }
@@ -95,6 +105,10 @@ class Storage {
 
   async setGistsToken(token: string) {
     return this.set(storageKeys.gistsToken, token);
+  }
+
+  async setOpenCloudSync(open: boolean) {
+    return this.set(storageKeys.cloudSync, open);
   }
 }
 
