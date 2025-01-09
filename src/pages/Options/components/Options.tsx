@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Layout, Space } from 'antd';
+import { App, Button, Form, Input, Layout, Space } from 'antd';
 
 import { checkToken } from '@/api/gists';
 import Storage from '@/classes/Storage';
@@ -49,8 +49,11 @@ const Options = () => {
     });
   }
 
+  const { message } = App.useApp();
+
   function saveHandler() {
     Storage.setGistsToken(token);
+    message.success('保存成功');
   }
 
   const [checking, setChecking] = useState(CheckStatus.none);
