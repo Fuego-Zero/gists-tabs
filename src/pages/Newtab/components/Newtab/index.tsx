@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 
 import { Layout } from 'antd';
 
-import { MainProvider } from '@/context/MainContext';
 import withTheme from '@/theme/withTheme';
 
 import ContentArea from './components/ContentArea';
@@ -25,16 +24,14 @@ const Newtab = () => {
   const pages = useMemo<Page[]>(() => gistsTabs.pages, [gistsTabs]);
 
   return (
-    <MainProvider>
-      <Layout className="min-h-[100vh]">
-        <Header className="sticky top-0 z-10 w-full flex items-center">
-          <HeaderMenu {...pagesHandler} activePageId={activePageId} pages={pages} setActivePageId={setActivePageId} />
-        </Header>
-        <Content className="p-[16px] min-h-full">
-          <ContentArea {...widgetsHandler} widgets={widgets} />
-        </Content>
-      </Layout>
-    </MainProvider>
+    <Layout className="min-h-[100vh]">
+      <Header className="sticky top-0 z-10 w-full flex items-center">
+        <HeaderMenu {...pagesHandler} activePageId={activePageId} pages={pages} setActivePageId={setActivePageId} />
+      </Header>
+      <Content className="p-[16px] min-h-full">
+        <ContentArea {...widgetsHandler} widgets={widgets} />
+      </Content>
+    </Layout>
   );
 };
 
