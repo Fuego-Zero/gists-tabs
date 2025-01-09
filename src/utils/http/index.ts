@@ -6,7 +6,7 @@ import Storage from '@/classes/Storage';
 
 const http = axios.create({
   baseURL: 'https://api.github.com',
-  timeout: 15000,
+  timeout: 10000,
 });
 
 http.interceptors.request.use(async (config) => {
