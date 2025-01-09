@@ -26,7 +26,7 @@ http.interceptors.response.use(
 
     switch (response.status) {
       case 401:
-        msg = `Token错误 ${response.data.message}`;
+        msg = `Token 错误 ${response.data.message}`;
         break;
       default:
         msg = response.data.message;
