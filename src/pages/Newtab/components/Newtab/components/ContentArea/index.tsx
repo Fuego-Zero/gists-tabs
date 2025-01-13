@@ -41,7 +41,7 @@ const ContentArea = (props: Props) => {
   }, [widgets]);
 
   return (
-    <Row gutter={[16, 16]}>
+    <Row className="px-[8px] py-[16px] mx-0" gutter={[16, 16]}>
       {columns.map((column, index) => (
         <Col key={index} span={8}>
           <Row gutter={[16, 8]}>

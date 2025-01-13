@@ -2,6 +2,8 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const { OUTPUT_PATH } = require('./constant');
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 const CopyPlugin = [
   new CopyWebpackPlugin({
     patterns: [
@@ -10,11 +12,14 @@ const CopyPlugin = [
         to: OUTPUT_PATH,
         force: true,
         transform(content) {
+          content = JSON.parse(content.toString());
+          if (isDevelopment) content.name = `${content.name} (Development)`;
+
           return Buffer.from(
             JSON.stringify({
               description: process.env.npm_package_description,
               version: process.env.npm_package_version,
-              ...JSON.parse(content.toString()),
+              ...content,
             }),
           );
         },

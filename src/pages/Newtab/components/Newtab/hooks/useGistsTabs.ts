@@ -38,5 +38,20 @@ export default function useGistTabs(): [gistsTabs: GistsTabs, setGistsTabs: (dat
     Storage.setGistsTabs(data);
   }, []);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    (async function sync() {
+      await Storage.syncGists();
+      const data = await Storage.getGistsTabs();
+      if (data) setGistsTabs(data);
+      timer = setTimeout(sync, 2000);
+    })();
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
+
   return [gistsTabs, setGistsTabsHandler];
 }
