@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 
 import { Layout } from 'antd';
 
+import ScrollWrap from '@/components/ScrollWrap';
 import withTheme from '@/theme/withTheme';
 
 import ContentArea from './components/ContentArea';
@@ -24,12 +25,14 @@ const Newtab = () => {
   const pages = useMemo<Page[]>(() => gistsTabs.pages, [gistsTabs]);
 
   return (
-    <Layout className="min-h-[100vh]">
+    <Layout className="h-[100vh]">
       <Header className="sticky top-0 z-10 w-full flex items-center">
         <HeaderMenu {...pagesHandler} activePageId={activePageId} pages={pages} setActivePageId={setActivePageId} />
       </Header>
-      <Content className="p-[16px] min-h-full">
-        <ContentArea {...widgetsHandler} widgets={widgets} />
+      <Content className="min-h-0 flex-1">
+        <ScrollWrap>
+          <ContentArea {...widgetsHandler} widgets={widgets} />
+        </ScrollWrap>
       </Content>
     </Layout>
   );
