@@ -29,3 +29,5 @@ export type GistsTabs = {
   pages: Page[];
   updateAt: number;
 };
+
+export type Theme = 'dark' | 'light';
