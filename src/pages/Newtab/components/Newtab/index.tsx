@@ -3,12 +3,12 @@ import React, { useMemo } from 'react';
 import { Layout } from 'antd';
 
 import ScrollWrap from '@/components/ScrollWrap';
+import useGistsTabs from '@/hooks/useGistsTabs';
 import withTheme from '@/theme/withTheme';
 
 import ContentArea from './components/ContentArea';
 import HeaderMenu from './components/HeaderMenu';
 import useActivePage from './hooks/useActivePage';
-import useGistsTabs from './hooks/useGistsTabs';
 import usePagesHandler from './hooks/usePagesHandler';
 import useWidgetsHandler from './hooks/useWidgetsHandler';
 
