@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "GistsTabs",
+  "name": "Gists Tabs",
   "description": "一个基于 gists 存贮数据的 chrome 书签插件",
   "options_page": "options.html",
   "permissions": ["storage"],
