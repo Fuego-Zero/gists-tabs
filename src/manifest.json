@@ -3,7 +3,7 @@
   "name": "Gists Tabs",
   "description": "一个基于 gists 存贮数据的 chrome 书签插件",
   "options_page": "options.html",
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs", "activeTab"],
   "background": { "service_worker": "background.bundle.js" },
   "action": {
     "default_popup": "popup.html",
