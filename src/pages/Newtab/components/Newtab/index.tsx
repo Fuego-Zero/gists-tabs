@@ -17,10 +17,10 @@ import type { Page } from '@/types';
 const { Header, Content } = Layout;
 
 const Newtab = () => {
-  const [gistsTabs, setGistTabs] = useGistsTabs();
+  const [gistsTabs, setGistsTabs] = useGistsTabs();
   const [activePageId, setActivePageId] = useActivePage(gistsTabs);
-  const pagesHandler = usePagesHandler(gistsTabs, setGistTabs);
-  const { widgets, ...widgetsHandler } = useWidgetsHandler(gistsTabs, setGistTabs, activePageId);
+  const pagesHandler = usePagesHandler(gistsTabs, setGistsTabs);
+  const { widgets, ...widgetsHandler } = useWidgetsHandler(gistsTabs, setGistsTabs, activePageId);
 
   const pages = useMemo<Page[]>(() => gistsTabs.pages, [gistsTabs]);
 
