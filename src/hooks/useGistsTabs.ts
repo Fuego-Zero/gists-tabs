@@ -45,7 +45,7 @@ export default function useGistTabs(): [gistsTabs: GistsTabs, setGistsTabs: (dat
       await Storage.syncGists();
       const data = await Storage.getGistsTabs();
       if (data) setGistsTabs(data);
-      timer = setTimeout(sync, 1000 * 60 * 3);
+      timer = setTimeout(sync, 5000);
     })();
 
     return () => {
