@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 
+import { CopyOutlined, DeleteOutlined } from '@ant-design/icons';
+
+import ContextMenu from '@/components/ContextMenu';
+
 import mark from './mark.svg';
 
-import type { Props } from '../../types';
+import type { ContextMenuItems } from '@/components/ContextMenu/types';
+
+import type { BookmarkProps, CopyBookmark, DeleteBookmark } from '../../types';
 
 import styles from './style.module.scss';
 
@@ -22,22 +28,45 @@ const Icon = (props: { src: null | string }) => {
   );
 };
 
-const ShowCard = (props: { data: Props['data'] }) => {
-  const { data } = props;
+enum MenuAction {
+  DELETE = 'delete',
+  COPY = 'copy',
+}
+
+const ITEMS: ContextMenuItems<MenuAction> = [
+  { title: '删除', value: MenuAction.DELETE, icon: <DeleteOutlined className="text-danger" /> },
+  { title: '复制', value: MenuAction.COPY, icon: <CopyOutlined /> },
+];
+
+type Props = {
+  copyBookmark: CopyBookmark;
+  deleteBookmark: DeleteBookmark;
+} & Pick<BookmarkProps, 'data'>;
+
+const ShowCard = (props: Props) => {
+  const { data, deleteBookmark, copyBookmark } = props;
 
   return (
     <ul>
       {data.map((bookmark) => (
-        <li
+        <ContextMenu
           key={bookmark.id}
-          className={styles.link}
-          onClick={() => {
-            window.open(bookmark.url);
+          items={ITEMS}
+          onSelect={(value) => {
+            if (value === MenuAction.DELETE) deleteBookmark(bookmark.id);
+            if (value === MenuAction.COPY) copyBookmark(bookmark.id);
           }}
         >
-          <Icon src={bookmark.icon} />
-          <div className="title">{bookmark.title}</div>
-        </li>
+          <li
+            className={styles.link}
+            onClick={() => {
+              window.open(bookmark.url);
+            }}
+          >
+            <Icon src={bookmark.icon} />
+            <div className="title">{bookmark.title}</div>
+          </li>
+        </ContextMenu>
       ))}
     </ul>
   );
