@@ -11,9 +11,9 @@ import { createBookmark } from './dataFactory';
 import useDetailHandler from './hooks/useDetailHandler';
 import { analyzeURL } from './utils';
 
-import type { BookmarkData, BookmarkId, Props } from './types';
+import type { BookmarkData, BookmarkId, BookmarkProps } from './types';
 
-const Bookmark = (props: Props) => {
+const Bookmark = (props: BookmarkProps) => {
   const { id, name, data, delWidget, copyWidget, editWidget } = props;
   const {
     message,
@@ -115,6 +115,21 @@ const Bookmark = (props: Props) => {
     [data, editWidget, form, id, message, unselectBookmark],
   );
 
+  const copyBookmark = useCallback(
+    (bookmarkId: BookmarkId) => {
+      const target = data.find((item) => item.id === bookmarkId);
+      if (!target) return;
+
+      const copied = createBookmark({ icon: target.icon, title: target.title, url: target.url });
+      data.push(copied);
+
+      editWidget(id, { data });
+
+      message.success('复制成功');
+    },
+    [data, editWidget, id, message],
+  );
+
   return (
     <>
       <Spin spinning={loading} tip="执行中...">
@@ -158,7 +173,7 @@ const Bookmark = (props: Props) => {
             {isEditMode ? (
               <EditCard addBookmark={addBookmark} selectBookmark={selectBookmark} onSave={onSave} />
             ) : (
-              <ShowCard data={data} />
+              <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />
             )}
           </Card>
         </Form>
