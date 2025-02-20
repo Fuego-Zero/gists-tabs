@@ -8,7 +8,7 @@ import type { ContextMenuProps } from './types';
 
 export * from './hook';
 
-const ContextMenu: React.FC<ContextMenuProps> = (props) => {
+function ContextMenu<T = any>(props: ContextMenuProps<T>) {
   const {
     click = false,
     contextmenu = true,
@@ -45,6 +45,6 @@ const ContextMenu: React.FC<ContextMenuProps> = (props) => {
       {children}
     </RC.Wrap>
   );
-};
+}
 
-export default memo(ContextMenu);
+export default memo(ContextMenu) as typeof ContextMenu;

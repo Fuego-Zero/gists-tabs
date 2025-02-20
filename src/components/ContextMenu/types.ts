@@ -50,11 +50,11 @@ type CommonProps<T> = {
   zIndex?: number;
 } & Handler<T>;
 
-export type UseContextMenuParams<T = any> = {
+export type UseContextMenuParams<T> = {
   el?: HTMLElement | Window;
 } & Omit<CommonProps<T>, 'children'>;
 
-export type ContextMenuProps<T = any> = ReactProps<
+export type ContextMenuProps<T> = ReactProps<
   {
     /**
      * 是否开启 click

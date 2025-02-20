@@ -5,7 +5,7 @@ import useContextmenuHandle from './hooks/useContextmenuHandle';
 
 import type { UseContextMenuParams } from './types';
 
-export function useContextMenu(params: UseContextMenuParams) {
+export function useContextMenu<T = any>(params: UseContextMenuParams<T>) {
   const { onSelect, onCancel, onChoose, el = window, zIndex = DEFAULT_Z_INDEX, items = [] } = params;
 
   const onContextmenuHandle = useContextmenuHandle(items, zIndex, onSelect, onCancel, onChoose);
