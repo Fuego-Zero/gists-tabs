@@ -5,11 +5,11 @@ import { App, Button, Col, Divider, Drawer, Form, Input, Row, Space } from 'antd
 
 import type { Bookmark } from '@/types/widget/bookmark';
 
-import type { BookmarkData, BookmarkId } from '../../types';
+import type { BookmarkData, BookmarkId, DeleteBookmark } from '../../types';
 
 type Props = {
   data?: Bookmark;
-  deleteBookmark: (id: BookmarkId) => void;
+  deleteBookmark: DeleteBookmark;
   isOpen: boolean;
   onClose: () => void;
   updateBookmark: (bookmarkId: BookmarkId, newData: BookmarkData) => void;
