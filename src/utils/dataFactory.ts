@@ -1,6 +1,8 @@
+import { uuid } from '.';
+
 import type { Page, Widget, WidgetType } from '@/types';
 
-export const createId = () => new Date().valueOf().toString(32);
+export const createId = () => uuid();
 
 /**
  * 创建页面
