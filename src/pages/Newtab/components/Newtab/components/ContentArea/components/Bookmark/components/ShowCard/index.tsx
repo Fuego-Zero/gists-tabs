@@ -53,8 +53,8 @@ const ShowCard = (props: Props) => {
           key={bookmark.id}
           items={ITEMS}
           onSelect={(value) => {
-            if (value === MenuAction.DELETE) deleteBookmark(bookmark.id);
-            if (value === MenuAction.COPY) copyBookmark(bookmark.id);
+            if (value === MenuAction.DELETE) return deleteBookmark(bookmark.id);
+            if (value === MenuAction.COPY) return copyBookmark(bookmark.id);
           }}
         >
           <li
