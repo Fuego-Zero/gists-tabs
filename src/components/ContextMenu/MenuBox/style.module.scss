@@ -1,0 +1,49 @@
+.MenuBox {
+  position: fixed;
+  user-select: none;
+  padding: 6px;
+  box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease forwards;
+
+  :global {
+    .menuItem {
+      padding: 4px 9px;
+      display: flex;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+
+      .icon {
+        width: 14px;
+
+        .iconfont {
+          font-size: 14px;
+        }
+      }
+
+      .label {
+        white-space: nowrap;
+        margin-left: 5px;
+      }
+
+      &:hover {
+        background-color: #f0f1f1;
+      }
+
+      &.disabled {
+        color: #999;
+        background-color: transparent;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
