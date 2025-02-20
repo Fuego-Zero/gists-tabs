@@ -123,11 +123,12 @@ const Bookmark = (props: BookmarkProps) => {
       const copied = createBookmark({ icon: target.icon, title: target.title, url: target.url });
       data.push(copied);
 
+      form.setFieldValue('data', data);
       editWidget(id, { data });
 
       message.success('复制成功');
     },
-    [data, editWidget, id, message],
+    [data, editWidget, form, id, message],
   );
 
   return (
@@ -179,6 +180,7 @@ const Bookmark = (props: BookmarkProps) => {
         </Form>
       </Spin>
       <EditDetail
+        copyBookmark={copyBookmark}
         data={selectedBookmark}
         deleteBookmark={deleteBookmark}
         isOpen={isOpen}
