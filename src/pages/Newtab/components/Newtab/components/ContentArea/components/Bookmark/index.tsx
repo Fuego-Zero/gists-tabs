@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { DashOutlined, ExclamationCircleFilled, SmallDashOutlined } from '@ant-design/icons';
+import { ExclamationCircleFilled, SmallDashOutlined } from '@ant-design/icons';
 import { App, Card, Form, Input, Spin, notification } from 'antd';
 
 import EditCard from './components/EditCard';
