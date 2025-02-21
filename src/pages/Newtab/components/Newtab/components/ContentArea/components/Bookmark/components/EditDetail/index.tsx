@@ -5,16 +5,13 @@ import { App, Button, Col, Divider, Drawer, Form, Input, Row, Space } from 'antd
 
 import type { Bookmark } from '@/types/widget/bookmark';
 
-import type { CopyBookmark, DeleteBookmark, UpdateBookmark } from '../../types';
+import type { BookmarkHandler } from '../../types';
 
 type Props = {
-  copyBookmark: CopyBookmark;
   data?: Bookmark;
-  deleteBookmark: DeleteBookmark;
   isOpen: boolean;
   onClose: () => void;
-  updateBookmark: UpdateBookmark;
-};
+} & Omit<BookmarkHandler, 'addBookmark'>;
 
 const EditDetail = (props: Props) => {
   const { isOpen, data, onClose, deleteBookmark, copyBookmark, updateBookmark } = props;

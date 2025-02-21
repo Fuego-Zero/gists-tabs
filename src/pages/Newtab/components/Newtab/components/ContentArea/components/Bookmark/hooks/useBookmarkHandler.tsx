@@ -7,7 +7,7 @@ import { App, notification } from 'antd';
 import { createBookmark } from '../dataFactory';
 import { analyzeURL } from '../utils';
 
-import type { BookmarkProps, CopyBookmark, DeleteBookmark, UpdateBookmark } from '../types';
+import type { BookmarkHandler, BookmarkProps } from '../types';
 
 type Params = {
   data: BookmarkProps['data'];
@@ -18,13 +18,20 @@ type Params = {
   unselectBookmark: () => void;
 };
 
-export default function useBookmarkHandler({ editWidget, id, data, form, unselectBookmark, setLoading }: Params) {
+export default function useBookmarkHandler({
+  editWidget,
+  id,
+  data,
+  form,
+  unselectBookmark,
+  setLoading,
+}: Params): BookmarkHandler {
   const {
     message,
     modal: { confirm },
   } = App.useApp();
 
-  const addBookmark = async (url: string) => {
+  const addBookmark: BookmarkHandler['addBookmark'] = async (url) => {
     try {
       setLoading(true);
 
@@ -51,7 +58,7 @@ export default function useBookmarkHandler({ editWidget, id, data, form, unselec
     }
   };
 
-  const deleteBookmark: DeleteBookmark = (bookmarkId, force) => {
+  const deleteBookmark: BookmarkHandler['deleteBookmark'] = (bookmarkId, force) => {
     function onOk() {
       const filteredData = data.bookmarks.filter((item) => item.id !== bookmarkId);
 
@@ -73,7 +80,7 @@ export default function useBookmarkHandler({ editWidget, id, data, form, unselec
     });
   };
 
-  const updateBookmark: UpdateBookmark = (bookmarkId, newData) => {
+  const updateBookmark: BookmarkHandler['updateBookmark'] = (bookmarkId, newData) => {
     const target = data.bookmarks.find((item) => item.id === bookmarkId);
     if (!target) return;
 
@@ -86,7 +93,7 @@ export default function useBookmarkHandler({ editWidget, id, data, form, unselec
     message.success('编辑成功');
   };
 
-  const copyBookmark: CopyBookmark = (bookmarkId) => {
+  const copyBookmark: BookmarkHandler['copyBookmark'] = (bookmarkId) => {
     const target = data.bookmarks.find((item) => item.id === bookmarkId);
     if (!target) return;
 

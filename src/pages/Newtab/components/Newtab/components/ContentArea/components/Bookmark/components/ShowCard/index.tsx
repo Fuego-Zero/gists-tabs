@@ -8,7 +8,7 @@ import mark from './mark.svg';
 
 import type { ContextMenuItems } from '@/components/ContextMenu/types';
 
-import type { BookmarkProps, CopyBookmark, DeleteBookmark } from '../../types';
+import type { BookmarkHandler, BookmarkProps } from '../../types';
 
 import styles from './style.module.scss';
 
@@ -38,10 +38,7 @@ const ITEMS: ContextMenuItems<MenuAction> = [
   { title: '复制', value: MenuAction.COPY, icon: <CopyOutlined /> },
 ];
 
-type Props = {
-  copyBookmark: CopyBookmark;
-  deleteBookmark: DeleteBookmark;
-} & Pick<BookmarkProps, 'data'>;
+type Props = Pick<BookmarkHandler, 'copyBookmark' | 'deleteBookmark'> & Pick<BookmarkProps, 'data'>;
 
 const ShowCard = (props: Props) => {
   const { data, deleteBookmark, copyBookmark } = props;

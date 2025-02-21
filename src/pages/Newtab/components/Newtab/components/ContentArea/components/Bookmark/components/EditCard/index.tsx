@@ -4,11 +4,12 @@ import { App, Button, Divider, Form, Input, Space } from 'antd';
 
 import type { Bookmark } from '@/types/widget/bookmark';
 
+import type { BookmarkHandler } from '../../types';
+
 type Props = {
-  addBookmark: (url: string) => void;
   onSave: () => void;
   selectBookmark: (id: string) => void;
-};
+} & Pick<BookmarkHandler, 'addBookmark'>;
 
 const EditCard = (props: Props) => {
   const { onSave, addBookmark, selectBookmark } = props;
