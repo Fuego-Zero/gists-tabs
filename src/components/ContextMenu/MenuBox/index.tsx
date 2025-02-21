@@ -40,9 +40,9 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
     emitter.emit('destroy');
   }, [emitter]);
 
-  function onSelect(item: ContextMenuItem<T>) {
+  function onSelect(item: ContextMenuItem<T>, event: MouseEvent) {
     if (item.disabled) return;
-    emitter.emit('select', item.value);
+    emitter.emit('select', { value: item.value, event });
     close();
   }
 
@@ -102,13 +102,13 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
           className={classNames('menuItem', {
             disabled: item.disabled,
           })}
-          onClick={() => {
-            onSelect(item);
+          onClick={(event) => {
+            onSelect(item, event.nativeEvent as MouseEvent);
           }}
           onContextMenu={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            onSelect(item);
+            onSelect(item, event.nativeEvent as MouseEvent);
           }}
         >
           <div className="icon">{item.icon}</div>

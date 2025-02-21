@@ -21,7 +21,7 @@ export type ContextMenuItems<T> = ContextMenuItem<T>[];
 
 export type Instance = ContextMenuInstance | null;
 
-export type OnSelect<T> = (value: ContextMenuItem<T>['value']) => void;
+export type OnSelect<T> = (value: ContextMenuItem<T>['value'], event: MouseEvent) => void;
 export type OnCancel = () => void;
 export type OnChoose = () => void;
 
@@ -80,7 +80,7 @@ export type ContextMenuProps<T> = ReactProps<
 export type MenuEventHandler<T> = {
   cancel: OnCancel;
   destroy: () => void;
-  select: OnSelect<T>;
+  select: (params: { event: MouseEvent; value: ContextMenuItem<T>['value'] }) => void;
 };
 
 export type MenuBoxProps<T> = {

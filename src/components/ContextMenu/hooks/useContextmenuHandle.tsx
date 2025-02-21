@@ -49,8 +49,8 @@ export default function useContextmenuHandle<T>(
     }
 
     emitter.once('destroy', destroy);
-    emitter.once('select', (value) => {
-      onSelect?.(value);
+    emitter.once('select', ({ value, event }) => {
+      onSelect?.(value, event);
     });
     emitter.once('cancel', () => {
       onCancel?.();
