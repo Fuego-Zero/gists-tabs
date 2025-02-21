@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { ExclamationCircleFilled } from '@ant-design/icons';
+import { DashOutlined, ExclamationCircleFilled, SmallDashOutlined } from '@ant-design/icons';
 import { App, Card, Form, Input, Spin, notification } from 'antd';
 
 import EditCard from './components/EditCard';
@@ -131,6 +131,11 @@ const Bookmark = (props: BookmarkProps) => {
     [data, editWidget, form, id, message],
   );
 
+  const toggleExpand = useCallback(() => {
+    data.expanded = !data.expanded;
+    editWidget(id, { data });
+  }, [data, editWidget, id]);
+
   return (
     <>
       <Spin spinning={loading} tip="执行中...">
@@ -156,6 +161,8 @@ const Bookmark = (props: BookmarkProps) => {
                 switchMode={() => {
                   setIsEditMode((value) => !value);
                 }}
+                expanded={data.expanded}
+                toggleExpand={toggleExpand}
               />
             }
             title={
@@ -174,7 +181,15 @@ const Bookmark = (props: BookmarkProps) => {
             {isEditMode ? (
               <EditCard addBookmark={addBookmark} selectBookmark={selectBookmark} onSave={onSave} />
             ) : (
-              <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />
+              <>
+                {data.expanded ? (
+                  <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />
+                ) : (
+                  <div className="text-center cursor-pointer" onClick={toggleExpand}>
+                    <SmallDashOutlined />
+                  </div>
+                )}
+              </>
             )}
           </Card>
         </Form>
