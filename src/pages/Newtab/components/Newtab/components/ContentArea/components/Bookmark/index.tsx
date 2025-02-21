@@ -13,7 +13,7 @@ import useDetailHandler from './hooks/useDetailHandler';
 import type { BookmarkProps } from './types';
 
 const Bookmark = (props: BookmarkProps) => {
-  const { id, name, data, delWidget, copyWidget, editWidget } = props;
+  const { id, name, data, delWidget, copyWidget, editWidget, moveWidgetToPageModal } = props;
   const {
     message,
     modal: { confirm },
@@ -87,6 +87,9 @@ const Bookmark = (props: BookmarkProps) => {
                       message.success('删除成功');
                     },
                   });
+                }}
+                moveWidgetToPageModal={() => {
+                  moveWidgetToPageModal(id);
                 }}
                 switchMode={() => {
                   setIsEditMode((value) => !value);

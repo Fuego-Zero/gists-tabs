@@ -5,6 +5,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   MenuOutlined,
+  SwapOutlined,
   VerticalAlignBottomOutlined,
   VerticalAlignTopOutlined,
 } from '@ant-design/icons';
@@ -15,6 +16,7 @@ type Props = {
   copyWidget: () => void;
   delWidget: () => void;
   expanded: boolean;
+  moveWidgetToPageModal: () => void;
   switchMode: () => void;
   toggleExpand: () => void;
 };
@@ -23,18 +25,25 @@ enum MenuAction {
   DELETE = 'delete',
   COPY = 'copy',
   EXPAND = 'expand',
+  MOVE = 'move',
 }
 
 const ExtraCard = (props: Props) => {
-  const { delWidget, copyWidget, switchMode, toggleExpand, expanded } = props;
+  const { delWidget, copyWidget, switchMode, toggleExpand, expanded, moveWidgetToPageModal } = props;
 
   const clickHandler: MenuProps['onClick'] = ({ key }) => {
+    if (key === MenuAction.MOVE) return moveWidgetToPageModal();
     if (key === MenuAction.DELETE) return delWidget();
     if (key === MenuAction.COPY) return copyWidget();
     if (key === MenuAction.EXPAND) return toggleExpand();
   };
 
   const items: MenuProps['items'] = [
+    {
+      key: MenuAction.MOVE,
+      label: '移动',
+      icon: <SwapOutlined />,
+    },
     {
       key: MenuAction.EXPAND,
       label: expanded ? '收起' : '展开',
