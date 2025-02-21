@@ -52,8 +52,8 @@ const ShowCard = (props: Props) => {
         <ContextMenu
           key={bookmark.id}
           items={ITEMS}
-          onSelect={(value) => {
-            if (value === MenuAction.DELETE) return deleteBookmark(bookmark.id);
+          onSelect={(value, { shiftKey }) => {
+            if (value === MenuAction.DELETE) return deleteBookmark(bookmark.id, shiftKey);
             if (value === MenuAction.COPY) return copyBookmark(bookmark.id);
           }}
         >
