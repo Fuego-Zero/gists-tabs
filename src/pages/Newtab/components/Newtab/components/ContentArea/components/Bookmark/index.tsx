@@ -7,11 +7,10 @@ import EditCard from './components/EditCard';
 import EditDetail from './components/EditDetail';
 import ExtraCard from './components/ExtraCard';
 import ShowCard from './components/ShowCard';
-import { createBookmark } from './dataFactory';
+import useBookmarkHandler from './hooks/useBookmarkHandler';
 import useDetailHandler from './hooks/useDetailHandler';
-import { analyzeURL } from './utils';
 
-import type { BookmarkData, BookmarkId, BookmarkProps } from './types';
+import type { BookmarkProps } from './types';
 
 const Bookmark = (props: BookmarkProps) => {
   const { id, name, data, delWidget, copyWidget, editWidget } = props;
@@ -52,84 +51,15 @@ const Bookmark = (props: BookmarkProps) => {
     }
   }
 
-  async function addBookmark(url: string) {
-    try {
-      setLoading(true);
-
-      const { icon, title } = await analyzeURL(url);
-      const bookmark = createBookmark({ title, icon, url });
-
-      data.bookmarks.push(bookmark);
-      editWidget(id, { data });
-      form.setFieldValue('bookmarks', data.bookmarks);
-    } catch (error) {
-      const message = await error;
-
-      notification.error({
-        message: '添加失败',
-        description: message as string,
-      });
-
-      console.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const { isOpen, selectBookmark, unselectBookmark, selectedBookmark } = useDetailHandler(data);
-
-  const deleteBookmark = useCallback(
-    (bookmarkId: BookmarkId) => {
-      confirm({
-        title: '您确定要删除吗?',
-        icon: <ExclamationCircleFilled />,
-        content: '删除后数据消失',
-        okType: 'danger',
-        onOk() {
-          const filteredData = data.bookmarks.filter((item) => item.id !== bookmarkId);
-
-          form.setFieldValue('bookmarks', filteredData);
-          editWidget(id, { data: { ...data, bookmarks: filteredData } });
-
-          unselectBookmark();
-          message.success('删除成功');
-        },
-      });
-    },
-    [confirm, data, editWidget, form, id, message, unselectBookmark],
-  );
-
-  const updateBookmark = useCallback(
-    (bookmarkId: BookmarkId, newData: BookmarkData) => {
-      const target = data.bookmarks.find((item) => item.id === bookmarkId);
-      if (!target) return;
-
-      Object.assign(target, newData);
-
-      form.setFieldValue('bookmarks', data.bookmarks);
-      editWidget(id, { data });
-
-      unselectBookmark();
-      message.success('编辑成功');
-    },
-    [data, editWidget, form, id, message, unselectBookmark],
-  );
-
-  const copyBookmark = useCallback(
-    (bookmarkId: BookmarkId) => {
-      const target = data.bookmarks.find((item) => item.id === bookmarkId);
-      if (!target) return;
-
-      const copied = createBookmark({ icon: target.icon, title: target.title, url: target.url });
-      data.bookmarks.push(copied);
-
-      form.setFieldValue('bookmarks', data.bookmarks);
-      editWidget(id, { data });
-
-      message.success('复制成功');
-    },
-    [data, editWidget, form, id, message],
-  );
+  const { addBookmark, copyBookmark, deleteBookmark, updateBookmark } = useBookmarkHandler({
+    editWidget,
+    id,
+    data,
+    form,
+    unselectBookmark,
+    setLoading,
+  });
 
   const toggleExpand = useCallback(() => {
     data.expanded = !data.expanded;
