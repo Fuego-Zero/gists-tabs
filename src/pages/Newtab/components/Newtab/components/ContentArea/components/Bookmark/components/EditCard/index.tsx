@@ -62,6 +62,7 @@ const EditCard = (props: Props) => {
 
               url = url.startsWith('http') ? url : `https://${url}`;
               addBookmark(url);
+              setInputURLValue('');
             }}
           >
             添加
