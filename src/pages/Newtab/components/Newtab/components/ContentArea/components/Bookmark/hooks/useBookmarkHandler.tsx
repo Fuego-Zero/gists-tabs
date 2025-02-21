@@ -7,7 +7,7 @@ import { App, notification } from 'antd';
 import { createBookmark } from '../dataFactory';
 import { analyzeURL } from '../utils';
 
-import type { BookmarkData, BookmarkId, BookmarkProps } from '../types';
+import type { BookmarkProps, CopyBookmark, DeleteBookmark, UpdateBookmark } from '../types';
 
 type Params = {
   data: BookmarkProps['data'];
@@ -51,25 +51,29 @@ export default function useBookmarkHandler({ editWidget, id, data, form, unselec
     }
   };
 
-  const deleteBookmark = (bookmarkId: BookmarkId) => {
+  const deleteBookmark: DeleteBookmark = (bookmarkId, force) => {
+    function onOk() {
+      const filteredData = data.bookmarks.filter((item) => item.id !== bookmarkId);
+
+      form.setFieldValue('bookmarks', filteredData);
+      editWidget(id, { data: { ...data, bookmarks: filteredData } });
+
+      unselectBookmark();
+      message.success('删除成功');
+    }
+
+    if (force) return onOk();
+
     confirm({
       title: '您确定要删除吗?',
       icon: <ExclamationCircleFilled />,
       content: '删除后数据消失',
       okType: 'danger',
-      onOk() {
-        const filteredData = data.bookmarks.filter((item) => item.id !== bookmarkId);
-
-        form.setFieldValue('bookmarks', filteredData);
-        editWidget(id, { data: { ...data, bookmarks: filteredData } });
-
-        unselectBookmark();
-        message.success('删除成功');
-      },
+      onOk,
     });
   };
 
-  const updateBookmark = (bookmarkId: BookmarkId, newData: BookmarkData) => {
+  const updateBookmark: UpdateBookmark = (bookmarkId, newData) => {
     const target = data.bookmarks.find((item) => item.id === bookmarkId);
     if (!target) return;
 
@@ -82,7 +86,7 @@ export default function useBookmarkHandler({ editWidget, id, data, form, unselec
     message.success('编辑成功');
   };
 
-  const copyBookmark = (bookmarkId: BookmarkId) => {
+  const copyBookmark: CopyBookmark = (bookmarkId) => {
     const target = data.bookmarks.find((item) => item.id === bookmarkId);
     if (!target) return;
 
