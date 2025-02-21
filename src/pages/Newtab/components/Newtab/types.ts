@@ -14,5 +14,5 @@ export type WidgetsHandler = {
   copyWidget: (widgetId: Widget['id']) => void;
   delWidget: (widgetId: Widget['id']) => void;
   editWidget: (widgetId: Widget['id'], data: Partial<Omit<Widget, 'id'>>) => void;
-  moveWidgetToPage: (widgetId: Widget['id'], newPageId: PageId) => void;
+  moveWidgetToPage: (widgetId: Widget['id'], pageId: PageId) => void;
 };
