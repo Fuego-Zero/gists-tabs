@@ -11,5 +11,6 @@ export type BookmarkProps = {
   name: string;
 } & Omit<WidgetsHandler, 'addWidget'>;
 
-export type DeleteBookmark = (id: BookmarkId) => void;
+export type DeleteBookmark = (id: BookmarkId, force?: boolean) => void;
 export type CopyBookmark = (id: BookmarkId) => void;
+export type UpdateBookmark = (bookmarkId: BookmarkId, newData: BookmarkData) => void;
