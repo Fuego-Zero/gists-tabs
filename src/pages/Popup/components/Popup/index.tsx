@@ -64,7 +64,7 @@ const Popup = () => {
         title: values.title,
         url: values.url,
       });
-      widget.data.push(bookmark);
+      widget.data.bookmarks.push(bookmark);
 
       setGistsTabs(gistsTabs);
       window.close();

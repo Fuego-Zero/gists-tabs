@@ -48,7 +48,7 @@ const ShowCard = (props: Props) => {
 
   return (
     <ul>
-      {data.map((bookmark) => (
+      {data.bookmarks.map((bookmark) => (
         <ContextMenu
           key={bookmark.id}
           items={ITEMS}

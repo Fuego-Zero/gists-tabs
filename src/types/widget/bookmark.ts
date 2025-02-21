@@ -5,4 +5,7 @@ export type Bookmark = {
   url: string;
 };
 
-export type Bookmarks = Bookmark[];
+export type Bookmarks = {
+  bookmarks: Bookmark[];
+  expanded: boolean;
+};

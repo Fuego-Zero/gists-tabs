@@ -10,14 +10,24 @@ type Props = {
   switchMode: () => void;
 };
 
+enum MenuAction {
+  DELETE = 'delete',
+  COPY = 'copy',
+}
+
 const ITEMS: MenuProps['items'] = [
+  // {
+  //   key: 'copy',
+  //   label: '复制',
+  //   icon: <CopyOutlined />,
+  // },
   {
-    key: 'copy',
+    key: MenuAction.COPY,
     label: '复制',
     icon: <CopyOutlined />,
   },
   {
-    key: 'delete',
+    key: MenuAction.DELETE,
     danger: true,
     label: '删除',
     icon: <DeleteOutlined />,
@@ -28,8 +38,8 @@ const ExtraCard = (props: Props) => {
   const { delWidget, copyWidget, switchMode } = props;
 
   const clickHandler: MenuProps['onClick'] = ({ key }) => {
-    if (key === 'delete') return delWidget();
-    if (key === 'copy') return copyWidget();
+    if (key === MenuAction.DELETE) return delWidget();
+    if (key === MenuAction.COPY) return copyWidget();
   };
 
   return (

@@ -1,17 +1,17 @@
 import type { Bookmarks } from './widget/bookmark';
 import type { Clocks } from './widget/clock';
 
-type WidgetTypeMap = {
+export type WidgetDataMap = {
   bookmarks: Bookmarks;
   clocks: Clocks;
 };
 
-export type WidgetType = keyof WidgetTypeMap;
+export type WidgetType = keyof WidgetDataMap;
 
 export type Widget = {
   [K in WidgetType]: {
     col: number;
-    data: WidgetTypeMap[K];
+    data: WidgetDataMap[K];
     id: string;
     name: string;
     row: number;
@@ -28,6 +28,7 @@ export type Page = {
 export type GistsTabs = {
   pages: Page[];
   updateAt: number;
+  version: number;
 };
 
 export type Theme = 'dark' | 'light';

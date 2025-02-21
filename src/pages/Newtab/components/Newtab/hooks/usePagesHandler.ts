@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { createPage } from '@/utils/dataFactory';
+import { createPage } from '@/utils/data/factory';
 
 import type { GistsTabs, Page } from '@/types';
 

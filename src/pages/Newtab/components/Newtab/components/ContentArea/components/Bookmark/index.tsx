@@ -59,9 +59,9 @@ const Bookmark = (props: BookmarkProps) => {
       const { icon, title } = await analyzeURL(url);
       const bookmark = createBookmark({ title, icon, url });
 
-      data.push(bookmark);
+      data.bookmarks.push(bookmark);
       editWidget(id, { data });
-      form.setFieldsValue({ data });
+      form.setFieldValue('bookmarks', data.bookmarks);
     } catch (error) {
       const message = await error;
 
@@ -86,10 +86,10 @@ const Bookmark = (props: BookmarkProps) => {
         content: '删除后数据消失',
         okType: 'danger',
         onOk() {
-          const filteredData = data.filter((item) => item.id !== bookmarkId);
+          const filteredData = data.bookmarks.filter((item) => item.id !== bookmarkId);
 
-          form.setFieldValue('data', filteredData);
-          editWidget(id, { data: filteredData });
+          form.setFieldValue('bookmarks', filteredData);
+          editWidget(id, { data: { ...data, bookmarks: filteredData } });
 
           unselectBookmark();
           message.success('删除成功');
@@ -101,12 +101,12 @@ const Bookmark = (props: BookmarkProps) => {
 
   const updateBookmark = useCallback(
     (bookmarkId: BookmarkId, newData: BookmarkData) => {
-      const target = data.find((item) => item.id === bookmarkId);
+      const target = data.bookmarks.find((item) => item.id === bookmarkId);
       if (!target) return;
 
       Object.assign(target, newData);
 
-      form.setFieldValue('data', data);
+      form.setFieldValue('bookmarks', data.bookmarks);
       editWidget(id, { data });
 
       unselectBookmark();
@@ -117,13 +117,13 @@ const Bookmark = (props: BookmarkProps) => {
 
   const copyBookmark = useCallback(
     (bookmarkId: BookmarkId) => {
-      const target = data.find((item) => item.id === bookmarkId);
+      const target = data.bookmarks.find((item) => item.id === bookmarkId);
       if (!target) return;
 
       const copied = createBookmark({ icon: target.icon, title: target.title, url: target.url });
-      data.push(copied);
+      data.bookmarks.push(copied);
 
-      form.setFieldValue('data', data);
+      form.setFieldValue('bookmarks', data.bookmarks);
       editWidget(id, { data });
 
       message.success('复制成功');
@@ -134,7 +134,7 @@ const Bookmark = (props: BookmarkProps) => {
   return (
     <>
       <Spin spinning={loading} tip="执行中...">
-        <Form form={form} initialValues={{ name, data }}>
+        <Form form={form} initialValues={{ name, bookmarks: data.bookmarks }}>
           <Card
             extra={
               <ExtraCard

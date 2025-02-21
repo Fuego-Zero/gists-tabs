@@ -21,7 +21,7 @@ const EditCard = (props: Props) => {
 
   return (
     <div>
-      <Form.List name="data">
+      <Form.List name="bookmarks">
         {(fields) =>
           fields.map((field) => (
             <Space.Compact key={field.key} block className="mb-[10px]">
@@ -35,7 +35,7 @@ const EditCard = (props: Props) => {
               </Form.Item>
               <Button
                 onClick={() => {
-                  const row = form.getFieldValue(['data', field.name]) as Bookmark;
+                  const row = form.getFieldValue(['bookmarks', field.name]) as Bookmark;
                   selectBookmark(row.id);
                 }}
               >

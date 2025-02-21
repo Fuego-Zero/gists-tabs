@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
 
 import { clone } from '@/utils';
-import { createId, createWidget } from '@/utils/dataFactory';
+import { createId, createWidget } from '@/utils/data/factory';
 
-import type { GistsTabs, Page, Widget, WidgetType } from '@/types';
+import type { GistsTabs, Page, Widget, WidgetDataMap, WidgetType } from '@/types';
 
 export type WidgetsHandler = {
   addWidget: (type: WidgetType, col: number, row: number) => void;
@@ -51,9 +51,16 @@ export default function useWidgetsHandler(
       const { col, data, name, row, type } = source;
 
       const newData: Widget['data'] = clone(data);
-      newData.forEach((item) => {
-        item.id = createId();
-      });
+
+      if (type === 'bookmarks') {
+        (newData as WidgetDataMap['bookmarks']).bookmarks.forEach((item) => {
+          item.id = createId();
+        });
+      } else if (type === 'clocks') {
+        (newData as WidgetDataMap['clocks']).clocks.forEach((item) => {
+          item.id = createId();
+        });
+      }
 
       const target = createWidget(`${name} 复制`, type, row + 1, col, newData);
       const sortedWidgets = widgets.filter((widget) => widget.col === col).sort((a, b) => a.row - b.row);
