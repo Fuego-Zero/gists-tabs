@@ -1,6 +1,6 @@
 import type { Page } from '@/types';
 
-import type { PagesHandler } from '../../hooks/usePagesHandler';
+import type { PagesHandler } from '../../types';
 
 export type Props = {
   activePageId: string;

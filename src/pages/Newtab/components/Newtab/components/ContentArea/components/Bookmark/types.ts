@@ -1,6 +1,6 @@
 import type { Bookmark, Bookmarks } from '@/types/widget/bookmark';
 
-import type { WidgetsHandler } from '../../../../hooks/useWidgetsHandler';
+import type { WidgetsHandler } from '../../../../types';
 
 export type BookmarkId = Bookmark['id'];
 export type BookmarkData = Omit<Bookmark, 'id'>;
