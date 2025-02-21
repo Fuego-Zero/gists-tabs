@@ -1,3 +1,4 @@
+import type { Widget } from '@/types';
 import type { Bookmark, Bookmarks } from '@/types/widget/bookmark';
 
 import type { WidgetsHandler } from '../../../../types';
@@ -7,7 +8,8 @@ export type BookmarkData = Omit<Bookmark, 'id'>;
 
 export type BookmarkProps = {
   data: Bookmarks;
-  id: string;
+  id: Widget['id'];
+  moveWidgetToPageModal: (widgetId: Widget['id']) => void;
   name: string;
 } & Omit<WidgetsHandler, 'addWidget'>;
 
