@@ -41,7 +41,9 @@ const ITEMS: ContextMenuItems<MenuAction> = [
 const ShowUrl = (props: { url: string }) => {
   const { url } = props;
   if (!url) return null;
-  return <div className="fixed bottom-0 left-0 bg-zinc-300 px-[5px] rounded-r truncate max-w-[75%]">{url}</div>;
+  return (
+    <div className="fixed z-[1000] bottom-0 left-0 bg-zinc-300 px-[5px] rounded-r truncate max-w-[75%]">{url}</div>
+  );
 };
 
 type Props = Pick<BookmarkHandler, 'copyBookmark' | 'deleteBookmark'> & Pick<BookmarkProps, 'data'>;
