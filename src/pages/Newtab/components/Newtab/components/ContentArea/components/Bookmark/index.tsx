@@ -32,7 +32,7 @@ const Bookmark = (props: BookmarkProps) => {
     try {
       setLoading(true);
       const fields = await form.validateFields();
-      editWidget(id, fields);
+      editWidget(id, { name: fields.name, data: { ...data, bookmarks: fields.bookmarks } });
       setIsEditMode(false);
       message.success('保存成功');
     } catch (error) {
