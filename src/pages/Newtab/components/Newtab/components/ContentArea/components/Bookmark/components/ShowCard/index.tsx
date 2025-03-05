@@ -38,34 +38,50 @@ const ITEMS: ContextMenuItems<MenuAction> = [
   { title: '复制', value: MenuAction.COPY, icon: <CopyOutlined /> },
 ];
 
+const ShowUrl = (props: { url: string }) => {
+  const { url } = props;
+  if (!url) return null;
+  return <div className="fixed bottom-0 left-0 bg-zinc-300 px-[5px] rounded-r truncate max-w-[75%]">{url}</div>;
+};
+
 type Props = Pick<BookmarkHandler, 'copyBookmark' | 'deleteBookmark'> & Pick<BookmarkProps, 'data'>;
 
 const ShowCard = (props: Props) => {
   const { data, deleteBookmark, copyBookmark } = props;
+  const [showUrl, setShowUrl] = useState('');
 
   return (
-    <ul>
-      {data.bookmarks.map((bookmark) => (
-        <ContextMenu
-          key={bookmark.id}
-          items={ITEMS}
-          onSelect={(value, { shiftKey }) => {
-            if (value === MenuAction.DELETE) return deleteBookmark(bookmark.id, shiftKey);
-            if (value === MenuAction.COPY) return copyBookmark(bookmark.id);
-          }}
-        >
-          <li
-            className={styles.link}
-            onClick={() => {
-              window.open(bookmark.url);
+    <>
+      <ul>
+        {data.bookmarks.map((bookmark) => (
+          <ContextMenu
+            key={bookmark.id}
+            items={ITEMS}
+            onSelect={(value, { shiftKey }) => {
+              if (value === MenuAction.DELETE) return deleteBookmark(bookmark.id, shiftKey);
+              if (value === MenuAction.COPY) return copyBookmark(bookmark.id);
             }}
           >
-            <Icon src={bookmark.icon} />
-            <div className="title">{bookmark.title}</div>
-          </li>
-        </ContextMenu>
-      ))}
-    </ul>
+            <li
+              className={styles.link}
+              onClick={() => {
+                window.open(bookmark.url);
+              }}
+              onMouseEnter={() => {
+                setShowUrl(bookmark.url);
+              }}
+              onMouseLeave={() => {
+                setShowUrl('');
+              }}
+            >
+              <Icon src={bookmark.icon} />
+              <div className="title">{bookmark.title}</div>
+            </li>
+          </ContextMenu>
+        ))}
+      </ul>
+      <ShowUrl url={showUrl} />
+    </>
   );
 };
 
