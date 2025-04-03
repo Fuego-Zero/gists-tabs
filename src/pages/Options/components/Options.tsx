@@ -112,26 +112,28 @@ const Options = () => {
               }}
             />
           </Form.Item>
-          <Form.Item label="云同步频率">
-            <Slider
-              marks={[5, 10, 15, 20, 25, 30].reduce(
-                (acc, cur) => {
-                  acc[cur] = `${cur}秒`;
-                  return acc;
-                },
-                {} as Record<number, string>,
-              )}
-              max={30}
-              min={5}
-              step={1}
-              tooltip={{ formatter: (value) => `${value}秒` }}
-              value={cloudSyncInterval}
-              onChange={(value) => {
-                setCloudSyncInterval(value);
-                Storage.setCloudSyncInterval(value);
-              }}
-            />
-          </Form.Item>
+          {openCloudSync && (
+            <Form.Item label="云同步频率">
+              <Slider
+                marks={[5, 150, 300, 450, 600].reduce(
+                  (acc, cur) => {
+                    acc[cur] = `${cur}秒`;
+                    return acc;
+                  },
+                  {} as Record<number, string>,
+                )}
+                max={600}
+                min={5}
+                step={1}
+                tooltip={{ formatter: (value) => `${value}秒` }}
+                value={cloudSyncInterval}
+                onChange={(value) => {
+                  setCloudSyncInterval(value);
+                  Storage.setCloudSyncInterval(value);
+                }}
+              />
+            </Form.Item>
+          )}
         </Form>
       </Content>
     </Layout>
