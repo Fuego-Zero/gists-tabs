@@ -53,13 +53,14 @@ export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (da
     (async function sync() {
       await Storage.syncGists();
       const data = await Storage.getGistsTabs();
+      const syncInterval = await Storage.getCloudSyncInterval();
 
       if (data && data.updateAt !== lastData?.updateAt) {
         lastData = data;
         setGistsTabs(data);
       }
 
-      timer = setTimeout(sync, 5000);
+      timer = setTimeout(sync, syncInterval * 1000);
     })();
 
     return () => {

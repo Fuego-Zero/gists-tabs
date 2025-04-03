@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { App, Button, Form, Input, Layout, Space, Switch } from 'antd';
+import { App, Button, Form, Input, Layout, Slider, Space, Switch } from 'antd';
 
 import Storage from '@/classes/Storage';
 import { checkToken } from '@/api/gists'; // eslint-disable-line perfectionist/sort-imports
@@ -34,9 +34,12 @@ const CheckStatusIcon = (props: { status: CheckStatus }) => {
   }
 };
 
+const BASE_INTERVAL = 5; // seconds
+
 const Options = () => {
   const [token, setToken] = useState('');
   const [openCloudSync, setOpenCloudSync] = useState(false);
+  const [cloudSyncInterval, setCloudSyncInterval] = useState(BASE_INTERVAL);
 
   useEffect(() => {
     Storage.getGistsToken().then((res) => {
@@ -45,6 +48,11 @@ const Options = () => {
 
     Storage.getOpenCloudSync().then((res) => {
       setOpenCloudSync(res);
+    });
+
+    Storage.getCloudSyncInterval().then((res) => {
+      if (res === undefined) Storage.setCloudSyncInterval(BASE_INTERVAL);
+      setCloudSyncInterval((prev) => res ?? prev);
     });
   }, []);
 
@@ -101,6 +109,26 @@ const Options = () => {
               onChange={(e) => {
                 setOpenCloudSync(e);
                 Storage.setOpenCloudSync(e);
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="云同步频率">
+            <Slider
+              marks={[5, 10, 15, 20, 25, 30].reduce(
+                (acc, cur) => {
+                  acc[cur] = `${cur}秒`;
+                  return acc;
+                },
+                {} as Record<number, string>,
+              )}
+              max={30}
+              min={5}
+              step={1}
+              tooltip={{ formatter: (value) => `${value}秒` }}
+              value={cloudSyncInterval}
+              onChange={(value) => {
+                setCloudSyncInterval(value);
+                Storage.setCloudSyncInterval(value);
               }}
             />
           </Form.Item>
