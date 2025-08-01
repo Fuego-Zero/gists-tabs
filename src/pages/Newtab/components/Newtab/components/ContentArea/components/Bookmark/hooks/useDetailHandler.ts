@@ -8,7 +8,7 @@ export default function useDetailHandler(data: Bookmarks) {
 
   const bookmarkMap = useMemo<Map<string, Bookmark>>(
     () =>
-      data.reduce((map, item) => {
+      data.bookmarks.reduce((map, item) => {
         map.set(item.id, item);
         return map;
       }, new Map()),

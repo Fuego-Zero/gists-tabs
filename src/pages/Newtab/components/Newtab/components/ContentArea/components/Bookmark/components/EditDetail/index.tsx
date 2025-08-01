@@ -5,18 +5,16 @@ import { App, Button, Col, Divider, Drawer, Form, Input, Row, Space } from 'antd
 
 import type { Bookmark } from '@/types/widget/bookmark';
 
-import type { BookmarkData, BookmarkId } from '../../types';
+import type { BookmarkHandler } from '../../types';
 
 type Props = {
   data?: Bookmark;
-  deleteBookmark: (id: BookmarkId) => void;
   isOpen: boolean;
   onClose: () => void;
-  updateBookmark: (bookmarkId: BookmarkId, newData: BookmarkData) => void;
-};
+} & Omit<BookmarkHandler, 'addBookmark'>;
 
 const EditDetail = (props: Props) => {
-  const { isOpen, data, onClose, deleteBookmark, updateBookmark } = props;
+  const { isOpen, data, onClose, deleteBookmark, copyBookmark, updateBookmark } = props;
 
   const [form] = Form.useForm();
   const { message } = App.useApp();
@@ -87,7 +85,7 @@ const EditDetail = (props: Props) => {
           block
           icon={<CopyOutlined />}
           onClick={() => {
-            message.info('开发中...');
+            if (data?.id) copyBookmark(data.id);
           }}
         >
           复制书签

@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 
+import { CopyOutlined, DeleteOutlined } from '@ant-design/icons';
+
+import ContextMenu from '@/components/ContextMenu';
+
 import mark from './mark.svg';
 
-import type { Props } from '../../types';
+import type { ContextMenuItems } from '@/components/ContextMenu/types';
+
+import type { BookmarkHandler, BookmarkProps } from '../../types';
 
 import styles from './style.module.scss';
 
@@ -22,24 +28,62 @@ const Icon = (props: { src: null | string }) => {
   );
 };
 
-const ShowCard = (props: { data: Props['data'] }) => {
-  const { data } = props;
+enum MenuAction {
+  DELETE = 'delete',
+  COPY = 'copy',
+}
+
+const ITEMS: ContextMenuItems<MenuAction> = [
+  { title: '删除', value: MenuAction.DELETE, icon: <DeleteOutlined className="text-danger" /> },
+  { title: '复制', value: MenuAction.COPY, icon: <CopyOutlined /> },
+];
+
+const ShowUrl = (props: { url: string }) => {
+  const { url } = props;
+  if (!url) return null;
+  return (
+    <div className="fixed z-[1000] bottom-0 left-0 bg-zinc-300 px-[5px] rounded-r truncate max-w-[75%]">{url}</div>
+  );
+};
+
+type Props = Pick<BookmarkHandler, 'copyBookmark' | 'deleteBookmark'> & Pick<BookmarkProps, 'data'>;
+
+const ShowCard = (props: Props) => {
+  const { data, deleteBookmark, copyBookmark } = props;
+  const [showUrl, setShowUrl] = useState('');
 
   return (
-    <ul>
-      {data.map((bookmark) => (
-        <li
-          key={bookmark.id}
-          className={styles.link}
-          onClick={() => {
-            window.open(bookmark.url);
-          }}
-        >
-          <Icon src={bookmark.icon} />
-          <div className="title">{bookmark.title}</div>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul>
+        {data.bookmarks.map((bookmark) => (
+          <ContextMenu
+            key={bookmark.id}
+            items={ITEMS}
+            onSelect={(value, { shiftKey }) => {
+              if (value === MenuAction.DELETE) return deleteBookmark(bookmark.id, shiftKey);
+              if (value === MenuAction.COPY) return copyBookmark(bookmark.id);
+            }}
+          >
+            <li
+              className={styles.link}
+              onClick={() => {
+                window.open(bookmark.url);
+              }}
+              onMouseEnter={() => {
+                setShowUrl(bookmark.url);
+              }}
+              onMouseLeave={() => {
+                setShowUrl('');
+              }}
+            >
+              <Icon src={bookmark.icon} />
+              <div className="title">{bookmark.title}</div>
+            </li>
+          </ContextMenu>
+        ))}
+      </ul>
+      <ShowUrl url={showUrl} />
+    </>
   );
 };
 

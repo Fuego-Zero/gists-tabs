@@ -1,17 +1,10 @@
 import { useCallback } from 'react';
 
-import { createPage } from '@/utils/dataFactory';
+import { createPage } from '@/utils/data/factory';
 
 import type { GistsTabs, Page } from '@/types';
 
-type PageId = Page['id'];
-
-export type PagesHandler = {
-  addPage: () => void;
-  copyPage: (pageId: PageId) => void;
-  delPage: (pageId: PageId) => void;
-  editPage: (pageId: PageId, name: PageId) => void;
-};
+import type { PageId, PagesHandler } from '../types';
 
 export default function usePagesHandler(gistsTabs: GistsTabs, setGistsTabs: (data: GistsTabs) => void): PagesHandler {
   const addPage = useCallback(() => {

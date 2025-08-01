@@ -1,4 +1,4 @@
-import { createId } from '@/utils/dataFactory';
+import { createId } from '@/utils/data/factory';
 
 import type { Bookmark } from '@/types/widget/bookmark';
 
