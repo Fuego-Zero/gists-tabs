@@ -9,6 +9,7 @@ enum storageKeys {
   gistsTabs = 'gistsTabs',
   gistsToken = 'gistsToken',
   cloudSync = 'cloudSync',
+  cloudSyncInterval = 'cloudSyncInterval',
 }
 
 class Storage {
@@ -57,6 +58,11 @@ class Storage {
     return res[storageKeys.activePageId];
   }
 
+  async getCloudSyncInterval(): Promise<number> {
+    const res = await this.get(storageKeys.cloudSyncInterval);
+    return res[storageKeys.cloudSyncInterval];
+  }
+
   async getGistsTabs(): Promise<GistsTabs> {
     const res = await this.get(storageKeys.gistsTabs);
     return res[storageKeys.gistsTabs];
@@ -74,6 +80,10 @@ class Storage {
 
   async setActivePageId(pageId: string) {
     return this.set(storageKeys.activePageId, pageId);
+  }
+
+  async setCloudSyncInterval(interval: number) {
+    return this.set(storageKeys.cloudSyncInterval, interval);
   }
 
   async setGistsTabs(data: GistsTabs) {

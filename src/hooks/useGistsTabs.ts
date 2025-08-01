@@ -2,15 +2,25 @@ import { useCallback, useEffect, useState } from 'react';
 
 import Storage from '@/classes/Storage';
 import { clone } from '@/utils';
-import { createPage } from '@/utils/dataFactory';
+import { createPage } from '@/utils/data/factory';
+import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
 
 import type { GistsTabs } from '@/types';
 
-export default function useGistTabs(): [gistsTabs: GistsTabs, setGistsTabs: (data: GistsTabs) => void] {
+const VERSION = 1;
+
+export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (data: GistsTabs) => void] {
   const [gistsTabs, setGistsTabs] = useState<GistsTabs>({
     pages: [],
     updateAt: -1,
+    version: VERSION,
   });
+
+  const setGistsTabsHandler = useCallback((data: GistsTabs) => {
+    data.updateAt = Date.now();
+    setGistsTabs(clone(data));
+    Storage.setGistsTabs(data);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -23,29 +33,34 @@ export default function useGistTabs(): [gistsTabs: GistsTabs, setGistsTabs: (dat
         data = {
           pages: [createPage('首页')],
           updateAt: Date.now(),
+          version: VERSION,
         };
 
         await Storage.setGistsTabs(data);
       }
 
-      setGistsTabs(data);
-    })();
-  }, []);
+      if (data.version === VERSION) return setGistsTabs(data);
 
-  const setGistsTabsHandler = useCallback((data: GistsTabs) => {
-    data.updateAt = Date.now();
-    setGistsTabs(clone(data));
-    Storage.setGistsTabs(data);
-  }, []);
+      data = upgradeGistsTabsToV1(data);
+      setGistsTabsHandler(data);
+    })();
+  }, [setGistsTabsHandler]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
+    let lastData: GistsTabs | undefined;
 
     (async function sync() {
       await Storage.syncGists();
       const data = await Storage.getGistsTabs();
-      if (data) setGistsTabs(data);
-      timer = setTimeout(sync, 5000);
+      const syncInterval = await Storage.getCloudSyncInterval();
+
+      if (data && data.updateAt !== lastData?.updateAt) {
+        lastData = data;
+        setGistsTabs(data);
+      }
+
+      timer = setTimeout(sync, syncInterval * 1000);
     })();
 
     return () => {

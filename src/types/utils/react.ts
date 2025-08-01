@@ -31,3 +31,8 @@ type ReactPropsOnlyChildren<P extends object | undefined = undefined> = Pick<
 export type ReactProps<T extends object = never, P extends object | undefined = undefined> = [T] extends [never]
   ? ReactPropsOnlyChildren
   : GetElementProps<T> & ReactPropsOnlyChildren<P>;
+
+/**
+ * 获取通过 forwardRef 函数定义的组件元素类型
+ */
+export type ForwardRefHTML<T> = T extends React.ForwardRefExoticComponent<React.RefAttributes<infer R>> ? R : never;

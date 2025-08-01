@@ -5,4 +5,4 @@
  * - HTTPException 通讯异常
  * - BreakException 阻断异常
  */
-export type ExceptionName = 'APIException' | 'BizException' | 'HTTPException' | 'BreakException';
+export type ExceptionName = 'APIException' | 'BizException' | 'BreakException' | 'HTTPException';
