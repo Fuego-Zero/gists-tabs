@@ -9,7 +9,8 @@ enum storageKeys {
   gistsTabs = 'gistsTabs',
   gistsToken = 'gistsToken',
   cloudSync = 'cloudSync',
-  cloudSyncInterval = 'cloudSyncInterval',
+  autoSync = 'autoSync',
+  autoSyncInterval = 'autoSyncInterval',
 }
 
 class Storage {
@@ -58,9 +59,19 @@ class Storage {
     return res[storageKeys.activePageId];
   }
 
-  async getCloudSyncInterval(): Promise<number> {
-    const res = await this.get(storageKeys.cloudSyncInterval);
-    return res[storageKeys.cloudSyncInterval];
+  async getAutoSync(): Promise<boolean> {
+    const res = await this.get(storageKeys.autoSync);
+    return res[storageKeys.autoSync];
+  }
+
+  async getAutoSyncInterval(): Promise<number> {
+    const res = await this.get(storageKeys.autoSyncInterval);
+    return res[storageKeys.autoSyncInterval];
+  }
+
+  async getCloudSync(): Promise<boolean> {
+    const res = await this.get(storageKeys.cloudSync);
+    return res[storageKeys.cloudSync];
   }
 
   async getGistsTabs(): Promise<GistsTabs> {
@@ -73,17 +84,20 @@ class Storage {
     return res[storageKeys.gistsToken];
   }
 
-  async getOpenCloudSync(): Promise<boolean> {
-    const res = await this.get(storageKeys.cloudSync);
-    return res[storageKeys.cloudSync];
-  }
-
   async setActivePageId(pageId: string) {
     return this.set(storageKeys.activePageId, pageId);
   }
 
-  async setCloudSyncInterval(interval: number) {
-    return this.set(storageKeys.cloudSyncInterval, interval);
+  async setAutoSync(open: boolean) {
+    return this.set(storageKeys.autoSync, open);
+  }
+
+  async setAutoSyncInterval(interval: number) {
+    return this.set(storageKeys.autoSyncInterval, interval);
+  }
+
+  async setCloudSync(open: boolean) {
+    return this.set(storageKeys.cloudSync, open);
   }
 
   async setGistsTabs(data: GistsTabs) {
@@ -95,17 +109,13 @@ class Storage {
     return this.set(storageKeys.gistsToken, token);
   }
 
-  async setOpenCloudSync(open: boolean) {
-    return this.set(storageKeys.cloudSync, open);
-  }
-
   async syncGists(init: boolean = false) {
     try {
       //* 如果没有初始化完成，就不执行
       if (!init && !this.initialized) return;
 
       //* 检查是否开启了云同步
-      const openCloudSync = await this.getOpenCloudSync();
+      const openCloudSync = await this.getCloudSync();
       if (!openCloudSync) return;
 
       //* 检查云端是否满足条件
@@ -144,8 +154,12 @@ class Storage {
         newData = localData;
       }
 
-      //* 更新云端数据
-      await patchGists(this.gistsTabsId, newData);
+      if (cloudData.updateAt !== newData.updateAt) {
+        //* 更新云端数据
+        await patchGists(this.gistsTabsId, newData);
+      }
+
+      await this.set(storageKeys.gistsTabs, newData);
     } catch (error) {
       if (isBreakException(error)) return;
       console.error(error);

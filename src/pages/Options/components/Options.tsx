@@ -38,21 +38,26 @@ const BASE_INTERVAL = 5; // seconds
 
 const Options = () => {
   const [token, setToken] = useState('');
-  const [openCloudSync, setOpenCloudSync] = useState(false);
-  const [cloudSyncInterval, setCloudSyncInterval] = useState(BASE_INTERVAL);
+  const [cloudSync, setCloudSync] = useState(false);
+  const [autoSync, setAutoSync] = useState(false);
+  const [autoSyncInterval, setAutoSyncInterval] = useState(BASE_INTERVAL);
 
   useEffect(() => {
     Storage.getGistsToken().then((res) => {
       setToken(res);
     });
 
-    Storage.getOpenCloudSync().then((res) => {
-      setOpenCloudSync(res);
+    Storage.getCloudSync().then((res) => {
+      setCloudSync(res);
     });
 
-    Storage.getCloudSyncInterval().then((res) => {
-      if (res === undefined) Storage.setCloudSyncInterval(BASE_INTERVAL);
-      setCloudSyncInterval((prev) => res ?? prev);
+    Storage.getAutoSync().then((res) => {
+      setAutoSync(res);
+    });
+
+    Storage.getAutoSyncInterval().then((res) => {
+      if (res === undefined) Storage.setAutoSyncInterval(BASE_INTERVAL);
+      setAutoSyncInterval((prev) => res ?? prev);
     });
   }, []);
 
@@ -105,15 +110,24 @@ const Options = () => {
           </Form.Item>
           <Form.Item label="云同步">
             <Switch
-              value={openCloudSync}
+              value={cloudSync}
               onChange={(e) => {
-                setOpenCloudSync(e);
-                Storage.setOpenCloudSync(e);
+                setCloudSync(e);
+                Storage.setCloudSync(e);
               }}
             />
           </Form.Item>
-          {openCloudSync && (
-            <Form.Item label="云同步频率">
+          <Form.Item label="自动同步">
+            <Switch
+              value={autoSync}
+              onChange={(e) => {
+                setAutoSync(e);
+                Storage.setAutoSync(e);
+              }}
+            />
+          </Form.Item>
+          {autoSync && (
+            <Form.Item label="自动同步频率">
               <Slider
                 marks={[5, 150, 300, 450, 600].reduce(
                   (acc, cur) => {
@@ -126,10 +140,10 @@ const Options = () => {
                 min={5}
                 step={1}
                 tooltip={{ formatter: (value) => `${value}秒` }}
-                value={cloudSyncInterval}
+                value={autoSyncInterval}
                 onChange={(value) => {
-                  setCloudSyncInterval(value);
-                  Storage.setCloudSyncInterval(value);
+                  setAutoSyncInterval(value);
+                  Storage.setAutoSyncInterval(value);
                 }}
               />
             </Form.Item>

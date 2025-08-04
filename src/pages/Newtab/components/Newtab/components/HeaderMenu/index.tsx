@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import {
+  CloudSyncOutlined,
   CopyOutlined,
   DeleteOutlined,
   EditOutlined,
@@ -10,6 +11,8 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { App, Button, Dropdown, Menu } from 'antd';
+
+import Storage from '@/classes/Storage';
 
 import EditForm from './components/EditForm';
 
@@ -71,6 +74,15 @@ const HeaderMenu = (props: Props) => {
               message.success('删除成功');
             },
           });
+        },
+      },
+      {
+        key: 'sync',
+        label: <span className="select-none">同步数据</span>,
+        icon: <CloudSyncOutlined />,
+        onClick: async () => {
+          await Storage.syncGists();
+          message.success('同步成功');
         },
       },
     ],
