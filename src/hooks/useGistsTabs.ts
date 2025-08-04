@@ -48,19 +48,33 @@ export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (da
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
+
+    (async function sync() {
+      const autoSync = await Storage.getAutoSync();
+      if (autoSync) await Storage.syncGists();
+
+      const syncInterval = await Storage.getAutoSyncInterval();
+      timer = setTimeout(sync, syncInterval * 1000);
+    })();
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
     let lastData: GistsTabs | undefined;
 
     (async function sync() {
-      await Storage.syncGists();
       const data = await Storage.getGistsTabs();
-      const syncInterval = await Storage.getCloudSyncInterval();
 
       if (data && data.updateAt !== lastData?.updateAt) {
         lastData = data;
         setGistsTabs(data);
       }
 
-      timer = setTimeout(sync, syncInterval * 1000);
+      timer = setTimeout(sync, 200);
     })();
 
     return () => {
