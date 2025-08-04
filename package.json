@@ -8,8 +8,9 @@
     "url": "https://github.com/Fuego-Zero/gist-tabs.git"
   },
   "scripts": {
-    "dev": "node scripts/dev.js",
-    "build": "tsc --noEmit && node scripts/build.js",
+    "dev": "yarn clean && node scripts/dev.js",
+    "build": "tsc --noEmit && yarn clean && node scripts/build.js",
+    "clean": " rimraf build",
     "prettier": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
     "lint": "tsc --noEmit && eslint src --ext .ts,.tsx"
   },
@@ -52,6 +53,7 @@
     "postcss-loader": "8.1.1",
     "react-refresh": "^0.14.0",
     "react-refresh-typescript": "^2.0.7",
+    "rimraf": "6.0.1",
     "sass": "^1.80.6",
     "sass-loader": "^16.0.3",
     "source-map-loader": "^3.0.1",
