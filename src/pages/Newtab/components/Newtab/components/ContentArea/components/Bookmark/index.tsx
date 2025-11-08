@@ -106,7 +106,7 @@ const Bookmark = (props: BookmarkProps) => {
                   </Form.Item>
                 </div>
               ) : (
-                name
+                <div onDoubleClick={toggleExpand}>{name}</div>
               )
             }
             size="small"

@@ -16,6 +16,7 @@ enum storageKeys {
 class Storage {
   private gistsTabsId: string = '';
   private initialized = false;
+  private syncGistsTimer: any = null;
 
   constructor() {
     this.syncGists(true);
@@ -44,6 +45,14 @@ class Storage {
     }
 
     this.gistsTabsId = gists.id;
+  }
+
+  private debounceSyncGists(delay = 3000) {
+    if (this.syncGistsTimer) clearTimeout(this.syncGistsTimer);
+    this.syncGistsTimer = setTimeout(() => {
+      this.syncGists();
+      this.syncGistsTimer = null;
+    }, delay);
   }
 
   private get(keys: string | string[]) {
@@ -102,7 +111,7 @@ class Storage {
 
   async setGistsTabs(data: GistsTabs) {
     await this.set(storageKeys.gistsTabs, data);
-    this.syncGists();
+    this.debounceSyncGists();
   }
 
   async setGistsToken(token: string) {
@@ -162,6 +171,8 @@ class Storage {
       await this.set(storageKeys.gistsTabs, newData);
     } catch (error) {
       if (isBreakException(error)) return;
+      console.log('TCL: -> syncGists -> error:', error);
+      debugger;
       console.error(error);
     }
   }
