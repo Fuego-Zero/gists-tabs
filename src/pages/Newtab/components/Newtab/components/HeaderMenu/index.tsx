@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 
 import {
+  CloudDownloadOutlined,
   CloudSyncOutlined,
+  CloudUploadOutlined,
   CopyOutlined,
   DeleteOutlined,
   EditOutlined,
@@ -13,12 +15,16 @@ import type { MenuProps } from 'antd';
 import { App, Button, Dropdown, Menu } from 'antd';
 
 import Storage from '@/classes/Storage';
+import useGistsTabs from '@/hooks/useGistsTabs';
+import { downloadFile, uploadFile } from '@/utils/file';
 
 import EditForm from './components/EditForm';
 
 import type { Props } from './types';
 
 const HeaderMenu = (props: Props) => {
+  const [gistsTabs, setGistsTabs] = useGistsTabs();
+
   const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage } = props;
 
   const menus = useMemo(
@@ -85,8 +91,59 @@ const HeaderMenu = (props: Props) => {
           message.success('同步成功');
         },
       },
+      {
+        key: 'export',
+        label: <span className="select-none">导出数据</span>,
+        icon: <CloudDownloadOutlined />,
+        onClick: async () => {
+          if (!gistsTabs) {
+            message.warning('暂无数据可导出');
+            return;
+          }
+
+          try {
+            await downloadFile(gistsTabs, `gists-tabs-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+            message.success('导出成功');
+          } catch (error) {
+            console.error('导出数据失败', error);
+            message.error('导出失败，请稍后重试');
+          }
+        },
+      },
+      {
+        key: 'import',
+        danger: true,
+        label: <span className="select-none">导入数据</span>,
+        icon: <CloudUploadOutlined />,
+        onClick: async () => {
+          modal.confirm({
+            title: '危险！',
+            icon: <ExclamationCircleFilled />,
+            content: '导入数据会覆盖当前所有数据，且不可恢复，是否继续？',
+            okText: '继续',
+            okType: 'danger',
+            cancelText: '取消',
+            onOk: async () => {
+              try {
+                const file = await uploadFile();
+                if (!file) return;
+
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                // TODO 未来需要强校验结构 —— 现在先偷懒了
+                setGistsTabs(data);
+                message.success('导入成功');
+              } catch (error) {
+                console.error('导入数据失败', error);
+                message.error('导入失败，文件内容有误');
+              }
+            },
+          });
+        },
+      },
     ],
-    [activePageId, copyPage, delPage, message, modal, pages.length],
+    [activePageId, copyPage, delPage, gistsTabs, message, modal, pages.length, setGistsTabs],
   );
 
   const currentPageName = useMemo(() => pages.find((page) => page.id === activePageId)?.name, [activePageId, pages]);

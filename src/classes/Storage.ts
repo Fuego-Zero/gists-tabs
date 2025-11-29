@@ -172,7 +172,6 @@ class Storage {
     } catch (error) {
       if (isBreakException(error)) return;
       console.log('TCL: -> syncGists -> error:', error);
-      debugger;
       console.error(error);
     }
   }
