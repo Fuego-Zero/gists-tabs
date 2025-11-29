@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { ExclamationCircleFilled, SmallDashOutlined } from '@ant-design/icons';
-import { App, Button, Card, Form, Input, Spin, notification } from 'antd';
+import { ExclamationCircleFilled } from '@ant-design/icons';
+import { App, Card, Form, Input, Spin, notification } from 'antd';
 
 import EditCard from './components/EditCard';
 import EditDetail from './components/EditDetail';
@@ -125,13 +125,7 @@ const Bookmark = (props: BookmarkProps) => {
               <EditCard addBookmark={addBookmark} selectBookmark={selectBookmark} onSave={onSave} />
             ) : (
               <>
-                {data.expanded ? (
-                  <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />
-                ) : (
-                  <div className="text-center">
-                    <Button icon={<SmallDashOutlined />} shape="circle" type="text" onClick={handleExpandToggle} />
-                  </div>
-                )}
+                {data.expanded && <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />}
               </>
             )}
           </Card>
