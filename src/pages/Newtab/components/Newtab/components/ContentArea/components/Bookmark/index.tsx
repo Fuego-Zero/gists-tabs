@@ -61,10 +61,20 @@ const Bookmark = (props: BookmarkProps) => {
     setLoading,
   });
 
-  const toggleExpand = useCallback(() => {
+  const handleExpandToggle = useCallback(() => {
     data.expanded = !data.expanded;
     editWidget(id, { data });
   }, [data, editWidget, id]);
+
+  const handleTitleDoubleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) selection.removeAllRanges();
+      handleExpandToggle();
+    },
+    [handleExpandToggle],
+  );
 
   return (
     <>
@@ -95,7 +105,7 @@ const Bookmark = (props: BookmarkProps) => {
                   setIsEditMode((value) => !value);
                 }}
                 expanded={data.expanded}
-                toggleExpand={toggleExpand}
+                toggleExpand={handleExpandToggle}
               />
             }
             title={
@@ -106,7 +116,7 @@ const Bookmark = (props: BookmarkProps) => {
                   </Form.Item>
                 </div>
               ) : (
-                <div onDoubleClick={toggleExpand}>{name}</div>
+                <div onDoubleClick={handleTitleDoubleClick}>{name}</div>
               )
             }
             size="small"
@@ -119,7 +129,7 @@ const Bookmark = (props: BookmarkProps) => {
                   <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />
                 ) : (
                   <div className="text-center">
-                    <Button icon={<SmallDashOutlined />} shape="circle" type="text" onClick={toggleExpand} />
+                    <Button icon={<SmallDashOutlined />} shape="circle" type="text" onClick={handleExpandToggle} />
                   </div>
                 )}
               </>
