@@ -75,7 +75,7 @@ export const patchGists = (id: string, content: GistsTabs) =>
     data: {
       files: {
         [GISTS_FILE_NAME]: {
-          content: JSON.stringify(content),
+          content: JSON.stringify(content, null, 2),
         },
       },
     },

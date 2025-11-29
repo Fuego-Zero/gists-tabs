@@ -24,7 +24,6 @@ type Props = {
 enum MenuAction {
   DELETE = 'delete',
   COPY = 'copy',
-  EXPAND = 'expand',
   MOVE = 'move',
 }
 
@@ -35,7 +34,6 @@ const ExtraCard = (props: Props) => {
     if (key === MenuAction.MOVE) return moveWidgetToPageModal();
     if (key === MenuAction.DELETE) return delWidget();
     if (key === MenuAction.COPY) return copyWidget();
-    if (key === MenuAction.EXPAND) return toggleExpand();
   };
 
   const items: MenuProps['items'] = [
@@ -43,11 +41,6 @@ const ExtraCard = (props: Props) => {
       key: MenuAction.MOVE,
       label: '移动',
       icon: <SwapOutlined />,
-    },
-    {
-      key: MenuAction.EXPAND,
-      label: expanded ? '收起' : '展开',
-      icon: expanded ? <VerticalAlignTopOutlined /> : <VerticalAlignBottomOutlined />,
     },
     {
       key: MenuAction.COPY,
@@ -65,7 +58,15 @@ const ExtraCard = (props: Props) => {
   return (
     <>
       <Button
-        icon={<EditOutlined className="!text-[12px]" />}
+        icon={expanded ? <VerticalAlignTopOutlined /> : <VerticalAlignBottomOutlined />}
+        size="small"
+        type="text"
+        onClick={() => {
+          toggleExpand();
+        }}
+      />
+      <Button
+        icon={<EditOutlined />}
         size="small"
         type="text"
         onClick={() => {
@@ -73,7 +74,7 @@ const ExtraCard = (props: Props) => {
         }}
       />
       <Dropdown menu={{ items, onClick: clickHandler }} trigger={['hover']}>
-        <Button icon={<MenuOutlined className="!text-[12px]" />} size="small" type="text" />
+        <Button icon={<MenuOutlined />} size="small" type="text" />
       </Dropdown>
     </>
   );

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { ExclamationCircleFilled, SmallDashOutlined } from '@ant-design/icons';
-import { App, Button, Card, Form, Input, Spin, notification } from 'antd';
+import { ExclamationCircleFilled } from '@ant-design/icons';
+import { App, Card, Form, Input, Spin, notification } from 'antd';
 
 import EditCard from './components/EditCard';
 import EditDetail from './components/EditDetail';
@@ -61,10 +61,20 @@ const Bookmark = (props: BookmarkProps) => {
     setLoading,
   });
 
-  const toggleExpand = useCallback(() => {
+  const handleExpandToggle = useCallback(() => {
     data.expanded = !data.expanded;
     editWidget(id, { data });
   }, [data, editWidget, id]);
+
+  const handleTitleDoubleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) selection.removeAllRanges();
+      handleExpandToggle();
+    },
+    [handleExpandToggle],
+  );
 
   return (
     <>
@@ -95,7 +105,7 @@ const Bookmark = (props: BookmarkProps) => {
                   setIsEditMode((value) => !value);
                 }}
                 expanded={data.expanded}
-                toggleExpand={toggleExpand}
+                toggleExpand={handleExpandToggle}
               />
             }
             title={
@@ -106,7 +116,7 @@ const Bookmark = (props: BookmarkProps) => {
                   </Form.Item>
                 </div>
               ) : (
-                <div onDoubleClick={toggleExpand}>{name}</div>
+                <div onDoubleClick={handleTitleDoubleClick}>{name}</div>
               )
             }
             size="small"
@@ -115,13 +125,7 @@ const Bookmark = (props: BookmarkProps) => {
               <EditCard addBookmark={addBookmark} selectBookmark={selectBookmark} onSave={onSave} />
             ) : (
               <>
-                {data.expanded ? (
-                  <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />
-                ) : (
-                  <div className="text-center">
-                    <Button icon={<SmallDashOutlined />} shape="circle" type="text" onClick={toggleExpand} />
-                  </div>
-                )}
+                {data.expanded && <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />}
               </>
             )}
           </Card>
