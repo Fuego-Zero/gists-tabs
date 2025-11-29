@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { App, Button, Form, Input, Layout, Slider, Space, Switch } from 'antd';
+import { App, Button, Form, Input, Layout, Space, Switch } from 'antd';
 
 import Storage from '@/classes/Storage';
 import { checkToken } from '@/api/gists'; // eslint-disable-line perfectionist/sort-imports
@@ -34,13 +34,13 @@ const CheckStatusIcon = (props: { status: CheckStatus }) => {
   }
 };
 
-const BASE_INTERVAL = 5; // seconds
+// const BASE_INTERVAL = 5; // seconds
 
 const Options = () => {
   const [token, setToken] = useState('');
   const [cloudSync, setCloudSync] = useState(false);
-  const [autoSync, setAutoSync] = useState(false);
-  const [autoSyncInterval, setAutoSyncInterval] = useState(BASE_INTERVAL);
+  // const [autoSync, setAutoSync] = useState(false);
+  // const [autoSyncInterval, setAutoSyncInterval] = useState(BASE_INTERVAL);
 
   useEffect(() => {
     Storage.getGistsToken().then((res) => {
@@ -51,14 +51,14 @@ const Options = () => {
       setCloudSync(res);
     });
 
-    Storage.getAutoSync().then((res) => {
-      setAutoSync(res);
-    });
+    // Storage.getAutoSync().then((res) => {
+    // setAutoSync(res);
+    // });
 
-    Storage.getAutoSyncInterval().then((res) => {
-      if (res === undefined) Storage.setAutoSyncInterval(BASE_INTERVAL);
-      setAutoSyncInterval((prev) => res ?? prev);
-    });
+    // Storage.getAutoSyncInterval().then((res) => {
+    //   if (res === undefined) Storage.setAutoSyncInterval(BASE_INTERVAL);
+    // setAutoSyncInterval((prev) => res ?? prev);
+    // });
   }, []);
 
   function resetHandler() {
@@ -117,7 +117,7 @@ const Options = () => {
               }}
             />
           </Form.Item>
-          <Form.Item label="自动同步">
+          {/* <Form.Item label="自动同步">
             <Switch
               value={autoSync}
               onChange={(e) => {
@@ -147,7 +147,7 @@ const Options = () => {
                 }}
               />
             </Form.Item>
-          )}
+          )} */}
         </Form>
       </Content>
     </Layout>
