@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { clone } from '@/utils';
 import { createId, createWidget } from '@/utils/data/factory';
 
+import { moveWidgetPositionInList } from '../utils/widgetPosition';
+
 import type { GistsTabs, Page, Widget, WidgetDataMap, WidgetType } from '@/types';
 
 import type { PageId, WidgetsHandler } from '../types';
@@ -91,5 +93,49 @@ export default function useWidgetsHandler(
     setGistsTabs(gistsTabs);
   };
 
-  return { widgets, addWidget, delWidget, copyWidget, editWidget, moveWidgetToPage };
+  const moveWidgetPosition: WidgetsHandler['moveWidgetPosition'] = (sourceId, targetId, insertPosition) => {
+    const nextWidgets = moveWidgetPositionInList(widgets, sourceId, targetId, insertPosition);
+    if (nextWidgets === widgets) return;
+
+    const page = gistsTabs.pages.find((item) => item.id === activePageId);
+    if (!page) return;
+
+    page.widgets = nextWidgets;
+    setGistsTabs(gistsTabs);
+  };
+
+  const saveWidgetPositions: WidgetsHandler['saveWidgetPositions'] = (positions) => {
+    const page = gistsTabs.pages.find((item) => item.id === activePageId);
+    if (!page) return;
+
+    const positionMap = new Map(positions.map(({ col, id, row }) => [id, { col, row }]));
+    let hasChanged = false;
+
+    page.widgets.forEach((widget) => {
+      const position = positionMap.get(widget.id);
+      if (!position) return;
+
+      if (widget.col !== position.col || widget.row !== position.row) {
+        hasChanged = true;
+      }
+
+      widget.col = position.col;
+      widget.row = position.row;
+    });
+
+    if (!hasChanged) return;
+
+    setGistsTabs(gistsTabs);
+  };
+
+  return {
+    widgets,
+    addWidget,
+    delWidget,
+    copyWidget,
+    editWidget,
+    moveWidgetPosition,
+    moveWidgetToPage,
+    saveWidgetPositions,
+  };
 }

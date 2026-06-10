@@ -1,19 +1,40 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useDrop } from 'react-dnd';
 
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import { App, Card, Form, Input, Spin, notification } from 'antd';
+
+import classNames from 'classnames';
 
 import EditCard from './components/EditCard';
 import EditDetail from './components/EditDetail';
 import ExtraCard from './components/ExtraCard';
 import ShowCard from './components/ShowCard';
+import { BOOKMARK_DRAG_TYPE } from './dnd';
 import useBookmarkHandler from './hooks/useBookmarkHandler';
 import useDetailHandler from './hooks/useDetailHandler';
 
+import type { BookmarkDragItem } from './dnd';
 import type { BookmarkProps } from './types';
 
 const Bookmark = (props: BookmarkProps) => {
-  const { id, name, data, delWidget, copyWidget, editWidget, moveWidgetToPageModal } = props;
+  const {
+    containerRef,
+    id,
+    name,
+    data,
+    delWidget,
+    copyWidget,
+    editWidget,
+    forceCollapsed,
+    isTitleDragging,
+    moveBookmark,
+    moveWidgetToPageModal,
+    onBookmarkDragEnd,
+    onBookmarkDragStart,
+    onTitleMouseDown,
+    titleRef,
+  } = props;
   const {
     message,
     modal: { confirm },
@@ -62,9 +83,11 @@ const Bookmark = (props: BookmarkProps) => {
   });
 
   const handleExpandToggle = useCallback(() => {
+    if (forceCollapsed) return;
+
     data.expanded = !data.expanded;
     editWidget(id, { data });
-  }, [data, editWidget, id]);
+  }, [data, editWidget, forceCollapsed, id]);
 
   const handleTitleDoubleClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -76,61 +99,127 @@ const Bookmark = (props: BookmarkProps) => {
     [handleExpandToggle],
   );
 
+  const effectiveExpanded = !forceCollapsed && data.expanded;
+  const showContent = !forceCollapsed && (isEditMode || data.expanded);
+
+  const [, dropBookmark] = useDrop<BookmarkDragItem>(
+    () => ({
+      accept: BOOKMARK_DRAG_TYPE,
+      drop: (item, monitor) => {
+        if (monitor.didDrop()) return;
+
+        const lastBookmark = data.bookmarks[data.bookmarks.length - 1];
+        if (item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) return;
+
+        moveBookmark({
+          bookmarkId: item.bookmarkId,
+          sourceWidgetId: item.sourceWidgetId,
+          targetWidgetId: id,
+        });
+
+        item.sourceWidgetId = id;
+
+        return { handled: true };
+      },
+    }),
+    [data.bookmarks, id, moveBookmark],
+  );
+
+  const setContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      dropBookmark(node);
+
+      if (typeof containerRef === 'function') {
+        containerRef(node);
+      } else if (containerRef) {
+        (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }
+    },
+    [containerRef, dropBookmark],
+  );
+
   return (
     <>
-      <Spin spinning={loading} tip="执行中...">
-        <Form form={form} initialValues={{ name, bookmarks: data.bookmarks }}>
-          <Card
-            extra={
-              <ExtraCard
-                copyWidget={() => {
-                  copyWidget(id);
-                }}
-                delWidget={() => {
-                  confirm({
-                    title: '您确定要删除吗?',
-                    icon: <ExclamationCircleFilled />,
-                    content: '删除后所有数据都会消失',
-                    okType: 'danger',
-                    async onOk() {
-                      delWidget(id);
-                      message.success('删除成功');
-                    },
-                  });
-                }}
-                moveWidgetToPageModal={() => {
-                  moveWidgetToPageModal(id);
-                }}
-                switchMode={() => {
-                  setIsEditMode((value) => !value);
-                }}
-                expanded={data.expanded}
-                toggleExpand={handleExpandToggle}
-              />
-            }
-            title={
-              isEditMode ? (
-                <div className="mr-[5px]">
-                  <Form.Item noStyle name="name">
-                    <Input autoComplete="off" placeholder="请输入名称" />
-                  </Form.Item>
-                </div>
-              ) : (
-                <div onDoubleClick={handleTitleDoubleClick}>{name}</div>
-              )
-            }
-            size="small"
-          >
-            {isEditMode ? (
-              <EditCard addBookmark={addBookmark} selectBookmark={selectBookmark} onSave={onSave} />
-            ) : (
-              <>
-                {data.expanded && <ShowCard copyBookmark={copyBookmark} data={data} deleteBookmark={deleteBookmark} />}
-              </>
-            )}
-          </Card>
-        </Form>
-      </Spin>
+      <div ref={setContainerRef}>
+        <Spin spinning={loading} tip="执行中...">
+          <Form form={form} initialValues={{ name, bookmarks: data.bookmarks }}>
+            <Card
+              extra={
+                <ExtraCard
+                  copyWidget={() => {
+                    copyWidget(id);
+                  }}
+                  delWidget={() => {
+                    confirm({
+                      title: '您确定要删除吗?',
+                      icon: <ExclamationCircleFilled />,
+                      content: '删除后所有数据都会消失',
+                      okType: 'danger',
+                      async onOk() {
+                        delWidget(id);
+                        message.success('删除成功');
+                      },
+                    });
+                  }}
+                  moveWidgetToPageModal={() => {
+                    moveWidgetToPageModal(id);
+                  }}
+                  switchMode={() => {
+                    setIsEditMode((value) => !value);
+                  }}
+                  actionDisabled={forceCollapsed}
+                  expanded={effectiveExpanded}
+                  toggleDisabled={forceCollapsed}
+                  toggleExpand={handleExpandToggle}
+                />
+              }
+              title={
+                isEditMode ? (
+                  <div className="mr-[5px]">
+                    <Form.Item noStyle name="name">
+                      <Input autoComplete="off" placeholder="请输入名称" />
+                    </Form.Item>
+                  </div>
+                ) : (
+                  <div
+                    ref={titleRef}
+                    className={classNames(
+                      'mx-[-8px] my-[-4px] rounded-[6px] px-[8px] py-[4px] transition-colors duration-150 select-none',
+                      {
+                        'cursor-grab active:cursor-grabbing': titleRef,
+                        'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.08)]': isTitleDragging,
+                      },
+                    )}
+                    onDoubleClick={handleTitleDoubleClick}
+                    onMouseDown={onTitleMouseDown}
+                  >
+                    {name}
+                  </div>
+                )
+              }
+              size="small"
+            >
+              {showContent && (
+                <>
+                  {isEditMode ? (
+                    <EditCard addBookmark={addBookmark} selectBookmark={selectBookmark} onSave={onSave} />
+                  ) : (
+                    <ShowCard
+                      copyBookmark={copyBookmark}
+                      data={data}
+                      deleteBookmark={deleteBookmark}
+                      id={id}
+                      moveBookmark={moveBookmark}
+                      onBookmarkDragEnd={onBookmarkDragEnd}
+                      onBookmarkDragStart={onBookmarkDragStart}
+                    />
+                  )}
+                </>
+              )}
+            </Card>
+          </Form>
+        </Spin>
+      </div>
       <EditDetail
         copyBookmark={copyBookmark}
         data={selectedBookmark}

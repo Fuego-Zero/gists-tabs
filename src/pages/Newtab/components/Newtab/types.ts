@@ -1,6 +1,8 @@
 import type { Page, Widget, WidgetType } from '@/types';
 
 export type PageId = Page['id'];
+export type WidgetColumnEdgePosition = 'bottom' | 'top';
+export type WidgetInsertPosition = 'after' | 'before';
 
 export type PagesHandler = {
   addPage: () => void;
@@ -14,5 +16,7 @@ export type WidgetsHandler = {
   copyWidget: (widgetId: Widget['id']) => void;
   delWidget: (widgetId: Widget['id']) => void;
   editWidget: (widgetId: Widget['id'], data: Partial<Omit<Widget, 'id'>>) => void;
+  moveWidgetPosition: (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => void;
   moveWidgetToPage: (widgetId: Widget['id'], pageId: PageId) => void;
+  saveWidgetPositions: (positions: Pick<Widget, 'col' | 'id' | 'row'>[]) => void;
 };

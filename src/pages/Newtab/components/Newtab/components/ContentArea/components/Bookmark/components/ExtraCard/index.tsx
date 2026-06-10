@@ -13,11 +13,13 @@ import type { MenuProps } from 'antd';
 import { Button, Dropdown } from 'antd';
 
 type Props = {
+  actionDisabled?: boolean;
   copyWidget: () => void;
   delWidget: () => void;
   expanded: boolean;
   moveWidgetToPageModal: () => void;
   switchMode: () => void;
+  toggleDisabled?: boolean;
   toggleExpand: () => void;
 };
 
@@ -28,7 +30,16 @@ enum MenuAction {
 }
 
 const ExtraCard = (props: Props) => {
-  const { delWidget, copyWidget, switchMode, toggleExpand, expanded, moveWidgetToPageModal } = props;
+  const {
+    actionDisabled,
+    delWidget,
+    copyWidget,
+    switchMode,
+    toggleDisabled,
+    toggleExpand,
+    expanded,
+    moveWidgetToPageModal,
+  } = props;
 
   const clickHandler: MenuProps['onClick'] = ({ key }) => {
     if (key === MenuAction.MOVE) return moveWidgetToPageModal();
@@ -58,6 +69,7 @@ const ExtraCard = (props: Props) => {
   return (
     <>
       <Button
+        disabled={toggleDisabled || actionDisabled}
         icon={expanded ? <VerticalAlignTopOutlined /> : <VerticalAlignBottomOutlined />}
         size="small"
         type="text"
@@ -66,6 +78,7 @@ const ExtraCard = (props: Props) => {
         }}
       />
       <Button
+        disabled={actionDisabled}
         icon={<EditOutlined />}
         size="small"
         type="text"
@@ -73,8 +86,8 @@ const ExtraCard = (props: Props) => {
           switchMode();
         }}
       />
-      <Dropdown menu={{ items, onClick: clickHandler }} trigger={['hover']}>
-        <Button icon={<MenuOutlined />} size="small" type="text" />
+      <Dropdown disabled={actionDisabled} menu={{ items, onClick: clickHandler }} trigger={['hover']}>
+        <Button disabled={actionDisabled} icon={<MenuOutlined />} size="small" type="text" />
       </Dropdown>
     </>
   );

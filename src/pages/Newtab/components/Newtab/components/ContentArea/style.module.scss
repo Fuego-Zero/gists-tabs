@@ -1,0 +1,18 @@
+.widgetVisual {
+  will-change: transform;
+}
+
+.dropPlaceholder {
+  transform-origin: center;
+  animation: dropPlaceholderEnter 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes dropPlaceholderEnter {
+  from {
+    opacity: 0.62;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
