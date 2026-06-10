@@ -8,6 +8,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleFilled,
+  HolderOutlined,
   MenuOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
@@ -25,7 +26,7 @@ import type { Props } from './types';
 const HeaderMenu = (props: Props) => {
   const [gistsTabs, setGistsTabs] = useGistsTabs();
 
-  const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage } = props;
+  const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage, onSortModeStart } = props;
 
   const menus = useMemo(
     () =>
@@ -170,6 +171,14 @@ const HeaderMenu = (props: Props) => {
           addPage();
           message.success('新增成功');
         }}
+      />
+      <Button
+        ghost
+        className="mr-[10px]"
+        icon={<HolderOutlined />}
+        shape="circle"
+        size="small"
+        onClick={onSortModeStart}
       />
       <Dropdown menu={{ items: dropdowns }} trigger={['click']}>
         <Button ghost icon={<MenuOutlined />} shape="circle" size="small" />
