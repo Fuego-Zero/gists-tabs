@@ -1,6 +1,6 @@
 {
   "name": "gists-tabs",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "一个基于gists存贮数据的chrome书签插件",
   "license": "MIT",
   "repository": {
@@ -21,6 +21,8 @@
     "classnames": "2.5.1",
     "dayjs": "1.11.13",
     "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
