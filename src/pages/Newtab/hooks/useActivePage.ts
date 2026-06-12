@@ -10,6 +10,7 @@ export default function useActivePage(
   const [activePageId, setActivePageId] = useState('');
 
   useEffect(() => {
+    // active page 独立持久化，刷新新标签页后保持用户上次所在页面。
     Storage.getActivePageId().then((data) => {
       setActivePageId(data);
     });
@@ -21,7 +22,7 @@ export default function useActivePage(
   }, []);
 
   useEffect(() => {
-    //* 用于处理当前激活的页面被删除的情况
+    //* 当前激活页面被删除时，自动回退到第一个页面，避免内容区空白。
     (async () => {
       if (gistTabs.pages.length === 0) return;
       if (gistTabs.pages.find((page) => page.id === activePageId)) return;

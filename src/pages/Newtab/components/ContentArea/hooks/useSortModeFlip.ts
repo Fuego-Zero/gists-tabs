@@ -27,6 +27,7 @@ const useSortModeFlip = (params: Params) => {
     if (!sourceWidget || !targetWidget) return [];
 
     if (sourceWidget.col === targetWidget.col) {
+      // 同列移动只会影响两个 row 之间的卡片，缩小测量范围能减少拖拽卡顿。
       const startRow = Math.min(sourceWidget.row, targetWidget.row);
       const endRow = Math.max(sourceWidget.row, targetWidget.row);
 
@@ -35,6 +36,7 @@ const useSortModeFlip = (params: Params) => {
         .map(({ id }) => id);
     }
 
+    // 跨列移动会影响源列被移除位置之后、目标列插入位置之后的卡片。
     return currentWidgets
       .filter(({ col, row }) => {
         if (col === sourceWidget.col) return row >= sourceWidget.row;
@@ -49,6 +51,7 @@ const useSortModeFlip = (params: Params) => {
     (sourceId: Widget['id'], targetId: Widget['id']) => {
       const rects = new Map<Widget['id'], Pick<DOMRect, 'left' | 'top'>>();
 
+      // FLIP 的 First：提交排序前记录受影响元素的旧位置。
       getAffectedWidgetIds(sourceId, targetId).forEach((widgetId) => {
         const node = itemRefs.current.get(widgetId);
         if (!node) return;
@@ -83,6 +86,7 @@ const useSortModeFlip = (params: Params) => {
 
   useLayoutEffect(() => {
     if (!isSortMode || !draggingWidgetId) {
+      // 离开 sort mode 或拖拽结束时清掉遗留动画，避免下一次拖拽继承旧位移。
       previousItemRectsRef.current = new Map();
       runningAnimationsRef.current.forEach((animation) => {
         animation.cancel();
@@ -111,6 +115,7 @@ const useSortModeFlip = (params: Params) => {
 
       runningAnimationsRef.current.get(widgetId)?.cancel();
 
+      // FLIP 的 Invert + Play：先反向位移到旧位置，再过渡回新布局位置。
       const animation = node.animate(
         [{ transform: `translate3d(${deltaX}px, ${deltaY}px, 0)` }, { transform: 'translate3d(0, 0, 0)' }],
         {

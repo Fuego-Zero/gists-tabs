@@ -39,6 +39,7 @@ const DraggableWidget = (props: Props) => {
   const [{ isDragging }, drag, preview] = useDrag<WidgetDragItem, void, { isDragging: boolean }>(
     () => ({
       type: WIDGET_DRAG_TYPE,
+      // 只有标题区域 mouse down 后才允许拖拽，避免点击卡片内容时误进入 sort mode。
       canDrag: () => canDragRef.current,
       item: () => {
         const itemStartedAt = performance.now();
@@ -49,6 +50,7 @@ const DraggableWidget = (props: Props) => {
           setIsSourcePreviewHidden(true);
         }
 
+        // 先让浏览器创建 drag item，再下一帧进入 sort mode，避免首帧源卡片预览断掉。
         dragStartFrameIdRef.current = window.requestAnimationFrame(() => {
           dragStartFrameIdRef.current = null;
           onDragStart(widgetId);
@@ -101,6 +103,7 @@ const DraggableWidget = (props: Props) => {
   );
 
   useEffect(() => {
+    // 使用自定义 DragLayer 预览，隐藏 HTML5 backend 默认截图。
     preview(getEmptyImage(), { captureDraggingState: false });
   }, [preview]);
 
@@ -120,6 +123,7 @@ const DraggableWidget = (props: Props) => {
         const hoverClientY = clientOffset.y - hoverRect.top;
         const insertPosition: WidgetInsertPosition = hoverClientY > hoverMiddleY ? 'after' : 'before';
 
+        // React DnD hover 会高频触发，同一目标同一落点不重复通知上层。
         if (item.lastTargetId === widgetId && item.lastInsertPosition === insertPosition) return;
 
         item.lastTargetId = widgetId;
@@ -165,6 +169,7 @@ const DraggableWidget = (props: Props) => {
       const clearCanDrag = () => {
         canDragRef.current = false;
 
+        // 只是按下但没有形成拖拽时，要还原临时状态，避免卡片透明度残留。
         if (!didStartDragRef.current) {
           pointerDownAtRef.current = null;
           setIsSourcePreviewHidden(false);

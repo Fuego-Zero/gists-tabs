@@ -67,6 +67,7 @@ const HeaderMenu = (props: Props) => {
         icon: <DeleteOutlined />,
         onClick: ({ domEvent }) => {
           const { shiftKey } = domEvent;
+          // 按住 Shift 删除时跳过确认弹窗，保留给高频整理页面的快捷操作。
           if (shiftKey) return delPage(activePageId);
 
           modal.confirm({
@@ -132,6 +133,7 @@ const HeaderMenu = (props: Props) => {
                 const file = await uploadFile();
                 if (!file) return;
 
+                // 导入是全量覆盖当前本地数据，所以必须放在二次确认之后执行。
                 const text = await file.text();
                 const data = JSON.parse(text);
 

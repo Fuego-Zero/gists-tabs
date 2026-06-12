@@ -86,6 +86,7 @@ const Bookmark = (props: BookmarkProps) => {
   const handleExpandToggle = useCallback(() => {
     if (forceCollapsed) return;
 
+    // 这里沿用现有数据写法：展开状态属于 widget data，立即写回外部存储。
     data.expanded = !data.expanded;
     editWidget(id, { data });
   }, [data, editWidget, forceCollapsed, id]);
@@ -107,12 +108,15 @@ const Bookmark = (props: BookmarkProps) => {
     () => ({
       accept: BOOKMARK_DRAG_TYPE,
       drop: (item, monitor) => {
+        // 子级 li 已经处理过 drop 时，父级 card 不再兜底，避免重复保存。
         if (monitor.didDrop()) return;
 
+        // 父级 drop 只处理“落在 card 空白区域”的兜底场景；优先复用行级 hover 记录的精确落点。
         const hasRecordedTarget = item.lastTargetWidgetId === id;
         const targetBookmarkId = hasRecordedTarget ? item.lastTargetBookmarkId : undefined;
         const insertPosition = hasRecordedTarget ? item.lastInsertPosition : undefined;
         const lastBookmark = data.bookmarks[data.bookmarks.length - 1];
+        // 同 card 拖起最后一项又落回尾部属于 no-op，但仍要结束草稿拖拽状态。
         if (!targetBookmarkId && item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) {
           onBookmarkDragEnd();
 
@@ -246,6 +250,7 @@ const Bookmark = (props: BookmarkProps) => {
 const isEqualInSortMode = (prevProps: BookmarkProps, nextProps: BookmarkProps) => {
   if (!prevProps.forceCollapsed || !nextProps.forceCollapsed) return false;
 
+  // sort mode 下 Bookmark 永远收起，只比较标题拖拽相关字段，避免内部大列表参与重渲染。
   return (
     prevProps.id === nextProps.id &&
     prevProps.name === nextProps.name &&

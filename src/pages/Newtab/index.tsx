@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
-import Newtab from './components/Newtab';
+import Newtab from './Newtab';
 
 import './index.scss';
 

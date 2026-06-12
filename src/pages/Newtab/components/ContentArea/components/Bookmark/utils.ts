@@ -1,6 +1,7 @@
 import { notification } from 'antd';
 
 function extractFavicon(htmlText: string): null | string {
+  // 只做轻量解析，优先识别常见 icon/shortcut icon，失败时回退默认图标。
   const pattern = /<link[^>]*rel=["'](?:shortcut\s+icon|icon)["'][^>]*href=["']([^"']+)["'][^>]*>/i;
   const matches = htmlText.match(pattern);
   if (matches && matches[1]) return matches[1];
@@ -23,6 +24,7 @@ export const analyzeURL = async (url: string) => {
     icon = extractFavicon(htmlText);
 
     if (icon && !icon.startsWith('http')) {
+      // favicon 可能是相对路径，需要根据原 URL 补成可直接访问的绝对地址。
       const base = new URL(icon, url);
       icon = base.href;
     }

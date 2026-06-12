@@ -134,6 +134,7 @@ const BookmarkItem = (props: BookmarkItemProps) => {
   );
 
   useEffect(() => {
+    // Bookmark item 使用独立行内预览，隐藏 HTML5 backend 默认截图。
     preview(getEmptyImage(), { captureDraggingState: false });
   }, [preview]);
 
@@ -151,6 +152,7 @@ const BookmarkItem = (props: BookmarkItemProps) => {
         const hoverMiddleY = (hoverRect.bottom - hoverRect.top) / 2;
         const hoverClientY = clientOffset.y - hoverRect.top;
         const insertPosition = hoverClientY > hoverMiddleY ? 'after' : 'before';
+        // hover 阶段只更新落点预览和 drag item 元数据，不移动真实数据，避免拖拽源组件被卸载。
         const nextDropPreview: BookmarkDropPreview = {
           insertPosition,
           sourceBookmarkId: item.bookmarkId,
@@ -175,6 +177,7 @@ const BookmarkItem = (props: BookmarkItemProps) => {
       },
       drop: (item, monitor) => {
         setDropPreview(null);
+        // 拖起后放回原 li，属于 no-op；仍要通知上层结束草稿拖拽。
         if (item.sourceWidgetId === id && item.bookmarkId === bookmark.id) {
           onBookmarkDragEnd();
 
@@ -184,6 +187,7 @@ const BookmarkItem = (props: BookmarkItemProps) => {
         const element = itemRef.current;
         const clientOffset = monitor.getClientOffset();
         const hoverRect = element?.getBoundingClientRect();
+        // drop 时重新计算一次 before/after，兜住最后一帧 hover 没触发的情况。
         let insertPosition =
           item.lastTargetWidgetId === id && item.lastTargetBookmarkId === bookmark.id
             ? item.lastInsertPosition
@@ -220,6 +224,7 @@ const BookmarkItem = (props: BookmarkItemProps) => {
   const isSourcePlaceholder = isDragging && !isDropPreviewSource;
 
   if (isDropPreviewSource) {
+    // 当源位置已经渲染显式占位时，原 li 只保留布局信息，避免看到双份内容。
     itemStyle = { opacity: 0, pointerEvents: 'none', position: 'absolute' };
   }
 
@@ -285,6 +290,7 @@ const ShowCard = (props: Props) => {
       accept: BOOKMARK_DRAG_TYPE,
       hover: (item, monitor) => {
         if (!monitor.isOver({ shallow: true })) return;
+        // 有具体 li 时由 li 自己计算落点；列表级 hover 只服务空列表承接。
         if (data.bookmarks.length > 0) return;
 
         const lastBookmark = data.bookmarks[data.bookmarks.length - 1];
@@ -317,6 +323,7 @@ const ShowCard = (props: Props) => {
 
         if (monitor.didDrop()) return;
 
+        // 行级 drop 没命中时，列表级 drop 用最近一次 hover 记录的落点兜底，避免跨 card 默认追加到尾部。
         const hasRecordedTarget = item.lastTargetWidgetId === id;
         const targetBookmarkId = hasRecordedTarget ? item.lastTargetBookmarkId : undefined;
         const insertPosition = hasRecordedTarget ? item.lastInsertPosition : undefined;
@@ -355,6 +362,7 @@ const ShowCard = (props: Props) => {
   useEffect(() => {
     if (!isBookmarkDragging) return;
 
+    // 跨 card 拖拽时禁用普通 hover/url 展示，避免悬浮样式和落点占位混在一起。
     setHoveredBookmarkId(null);
     setShowUrl('');
   }, [isBookmarkDragging]);

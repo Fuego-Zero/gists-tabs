@@ -42,6 +42,7 @@ export default function useWidgetsHandler(
 
     const newData: Widget['data'] = clone(data);
 
+    // 复制 widget 时内部 item 必须重新生成 id，否则后续拖拽/编辑会把原件和副本混在一起。
     if (type === 'bookmarks') {
       (newData as WidgetDataMap['bookmarks']).bookmarks.forEach((item) => {
         item.id = createId();
@@ -55,6 +56,7 @@ export default function useWidgetsHandler(
     const target = createWidget(`${name} 复制`, type, row + 1, col, newData);
     const sortedWidgets = widgets.filter((widget) => widget.col === col).sort((a, b) => a.row - b.row);
 
+    // 副本插到原卡片下一行；如果后面已有卡片，逐个向下顺延 row。
     let lastRow = target.row;
     sortedWidgets.forEach((item) => {
       if (item.row !== lastRow) return;
@@ -78,6 +80,7 @@ export default function useWidgetsHandler(
     const dataMap = new Map(widgetsData.map(({ data, id }) => [id, data]));
     let hasChanged = false;
 
+    // 只保存 widget.data，供 Bookmark 内部拖拽这类局部数据变更使用。
     widgets.forEach((widget) => {
       const data = dataMap.get(widget.id);
       if (!data || widget.data === data) return;
@@ -103,6 +106,7 @@ export default function useWidgetsHandler(
       1,
     );
 
+    // 跨页面移动保留原列，row 放到目标页对应列末尾。
     const filteredData = page.widgets.filter(({ col }) => col === widget.col);
     widget.row = filteredData.length;
     page.widgets.push(widget);
@@ -125,6 +129,7 @@ export default function useWidgetsHandler(
     const page = gistsTabs.pages.find((item) => item.id === activePageId);
     if (!page) return;
 
+    // sort mode 保存只写回位置，避免覆盖排序过程中其它组件产生的数据变更。
     const positionMap = new Map(positions.map(({ col, id, row }) => [id, { col, row }]));
     let hasChanged = false;
 

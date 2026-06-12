@@ -2,6 +2,7 @@ import type { Page, Widget } from '@/types';
 
 import type { SortModeWidget, WidgetColumnEdgePosition, WidgetInsertPosition } from '../types';
 
+// sort mode 只需要轻量字段，避免渲染 Bookmark 内部大列表带来的性能压力。
 export const createSortModeWidgets = (widgets: Page['widgets']): SortModeWidget[] =>
   widgets.map(({ col, id, name, row, type }) => ({ col, id, name, row, type }));
 
@@ -31,6 +32,7 @@ const applyColumnRows = <T extends SortModeWidget>(
   columnWidgets: T[],
   col: Widget['col'],
 ) =>
+  // row 是列内连续序号，任何移动后都按当前列顺序重新压实，避免留下空洞。
   columnWidgets.reduce(
     (hasChanged, widget, row) => applyWidgetPosition(nextWidgets, widgetIndexMap, widget, col, row) || hasChanged,
     false,
@@ -56,6 +58,7 @@ export const moveWidgetPositionInList = <T extends SortModeWidget>(
   const widgetIndexMap = buildWidgetIndexMap(widgets);
   const sourceCol = source.col;
   const targetCol = target.col;
+  // 先从目标列移除 source，再按 before/after 插入，兼容同列和跨列移动。
   const targetColumn = getColumnWidgets(widgets, targetCol, sourceId);
   const targetIndex = targetColumn.findIndex((widget) => widget.id === targetId);
 
@@ -66,6 +69,7 @@ export const moveWidgetPositionInList = <T extends SortModeWidget>(
   let hasPositionChanged = applyColumnRows(nextWidgets, widgetIndexMap, targetColumn, targetCol);
 
   if (sourceCol !== targetCol) {
+    // 跨列移动时，源列被拿走一个元素，也需要重新计算 row。
     hasPositionChanged =
       applyColumnRows(nextWidgets, widgetIndexMap, getColumnWidgets(widgets, sourceCol, sourceId), sourceCol) ||
       hasPositionChanged;
@@ -110,6 +114,7 @@ export const moveWidgetToColumnInList = <T extends SortModeWidget>(
   const nextWidgets = [...widgets];
   const widgetIndexMap = buildWidgetIndexMap(widgets);
   const sourceCol = source.col;
+  // 空列承接区没有具体 target，统一把拖入的卡片放到目标列尾部。
   const targetColumn = getColumnWidgets(widgets, targetCol, widgetId);
 
   targetColumn.push(source);

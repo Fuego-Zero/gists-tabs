@@ -61,6 +61,7 @@ const EditCard = (props: Props) => {
               let url = inputURLValue.trim();
               if (!url) return message.warning('请输入网址');
 
+              // 用户通常不会手输协议，默认补 https 让 URL 解析和打开行为一致。
               url = url.startsWith('http') ? url : `https://${url}`;
               addBookmark(url);
               setInputURLValue('');

@@ -37,6 +37,7 @@ const Newtab = () => {
   const [activePageId, setActivePageId] = useActivePage(gistsTabs);
   const pagesHandler = usePagesHandler(gistsTabs, setGistsTabs);
   const { widgets, ...widgetsHandler } = useWidgetsHandler(gistsTabs, setGistsTabs, activePageId);
+  // sortModeWidgets 是排序模式的轻量草稿，只保存位置字段；用户点击“保存”前不写回真实 widgets。
   const [sortModeWidgets, setSortModeWidgets] = useState<SortModeWidget[] | null>(null);
 
   const pages = useMemo<Page[]>(() => gistsTabs.pages, [gistsTabs]);
@@ -50,6 +51,7 @@ const Newtab = () => {
     (reason: SortModeStartReason = 'manual'): SortModeStartResult => {
       const startedAt = performance.now();
 
+      // 拖拽触发排序时可能已经处于 sort mode，直接复用草稿，避免重复创建导致首帧卡顿。
       if (sortModeWidgets) {
         return {
           alreadySortMode: true,
@@ -61,6 +63,7 @@ const Newtab = () => {
       }
 
       const createDraftStartedAt = performance.now();
+      // 只克隆排序需要的字段，避免 Bookmark 大数据参与 sort mode 渲染。
       const nextSortModeWidgets = createSortModeWidgets(widgets);
       const createDraftMs = performance.now() - createDraftStartedAt;
 
@@ -79,6 +82,7 @@ const Newtab = () => {
 
   const moveSortWidgetPosition = useCallback(
     (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => {
+      // 排序过程只改草稿，退出可无损丢弃；保存时才同步到外部数据。
       setSortModeWidgets((current) =>
         moveWidgetPositionInList(current ?? createSortModeWidgets(widgets), sourceId, targetId, insertPosition),
       );
@@ -111,6 +115,7 @@ const Newtab = () => {
   const saveSortMode = useCallback(() => {
     if (!sortModeWidgets) return;
 
+    // 真实 widget 数据只需要更新 col/row，避免覆盖排序期间可能变化的业务 data。
     widgetsHandler.saveWidgetPositions(sortModeWidgets.map(({ col, id, row }) => ({ col, id, row })));
     setSortModeWidgets(null);
     message.success('排序已保存');
@@ -119,6 +124,7 @@ const Newtab = () => {
   function moveWidgetToPageModal(widgetId: Widget['id']) {
     const options = pages.map((page) => ({ value: page.id, label: <span>{page.name}</span> }));
 
+    // 默认选中当前页，用户可直接确认或切到其他页。
     form.setFieldsValue({ pageId: activePageId });
 
     modal.confirm({

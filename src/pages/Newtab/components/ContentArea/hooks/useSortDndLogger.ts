@@ -58,6 +58,7 @@ const useSortDndLogger = (params: Params) => {
 
   const beginDrag = useCallback(
     (widgetId: Widget['id'], startResult: SortModeStartResult, requestedAt = performance.now()) => {
+      // 新一轮拖拽开始时清掉上一次 end 的延迟任务，避免连续拖拽时状态被晚到的 timer 清空。
       if (endTimerRef.current !== null) {
         window.clearTimeout(endTimerRef.current);
         endTimerRef.current = null;
@@ -119,6 +120,7 @@ const useSortDndLogger = (params: Params) => {
         cancelAnimationFrame(frameIdRef.current);
       }
 
+      // hover 同步耗时和下一帧耗时分开记录，方便定位是计算慢还是渲染慢。
       frameIdRef.current = requestAnimationFrame(() => {
         frameIdRef.current = null;
 
@@ -183,6 +185,7 @@ const useSortDndLogger = (params: Params) => {
       { verbose: true },
     );
 
+    // 拖拽结束清理放到宏任务里，让 drop 的最后一次数据提交先完成，减少动画/保存互相抢帧。
     endTimerRef.current = window.setTimeout(() => {
       endTimerRef.current = null;
 
