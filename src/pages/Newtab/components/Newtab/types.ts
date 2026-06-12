@@ -1,6 +1,15 @@
 import type { Page, Widget, WidgetType } from '@/types';
 
 export type PageId = Page['id'];
+export type SortModeStartReason = 'drag' | 'manual';
+export type SortModeStartResult = {
+  alreadySortMode: boolean;
+  createDraftMs: number;
+  reason: SortModeStartReason;
+  syncMs: number;
+  widgetCount: number;
+};
+export type SortModeWidget = Pick<Widget, 'col' | 'id' | 'name' | 'row' | 'type'>;
 export type WidgetColumnEdgePosition = 'bottom' | 'top';
 export type WidgetInsertPosition = 'after' | 'before';
 
@@ -19,4 +28,5 @@ export type WidgetsHandler = {
   moveWidgetPosition: (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => void;
   moveWidgetToPage: (widgetId: Widget['id'], pageId: PageId) => void;
   saveWidgetPositions: (positions: Pick<Widget, 'col' | 'id' | 'row'>[]) => void;
+  saveWidgetsData: (widgetsData: { data: Widget['data']; id: Widget['id'] }[]) => void;
 };

@@ -25,15 +25,16 @@ const Bookmark = (props: BookmarkProps) => {
     data,
     delWidget,
     copyWidget,
+    dragHandleRef,
     editWidget,
     forceCollapsed,
+    isBookmarkDragging,
     isTitleDragging,
     moveBookmark,
     moveWidgetToPageModal,
     onBookmarkDragEnd,
     onBookmarkDragStart,
     onTitleMouseDown,
-    titleRef,
   } = props;
   const {
     message,
@@ -108,21 +109,30 @@ const Bookmark = (props: BookmarkProps) => {
       drop: (item, monitor) => {
         if (monitor.didDrop()) return;
 
+        const hasRecordedTarget = item.lastTargetWidgetId === id;
+        const targetBookmarkId = hasRecordedTarget ? item.lastTargetBookmarkId : undefined;
+        const insertPosition = hasRecordedTarget ? item.lastInsertPosition : undefined;
         const lastBookmark = data.bookmarks[data.bookmarks.length - 1];
-        if (item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) return;
+        if (!targetBookmarkId && item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) {
+          onBookmarkDragEnd();
+
+          return { handled: true };
+        }
 
         moveBookmark({
           bookmarkId: item.bookmarkId,
+          insertPosition,
           sourceWidgetId: item.sourceWidgetId,
+          targetBookmarkId,
           targetWidgetId: id,
         });
 
-        item.sourceWidgetId = id;
+        onBookmarkDragEnd();
 
         return { handled: true };
       },
     }),
-    [data.bookmarks, id, moveBookmark],
+    [data.bookmarks, id, moveBookmark, onBookmarkDragEnd],
   );
 
   const setContainerRef = useCallback(
@@ -182,11 +192,11 @@ const Bookmark = (props: BookmarkProps) => {
                   </div>
                 ) : (
                   <div
-                    ref={titleRef}
+                    ref={dragHandleRef}
                     className={classNames(
                       'mx-[-8px] my-[-4px] rounded-[6px] px-[8px] py-[4px] transition-colors duration-150 select-none',
                       {
-                        'cursor-grab active:cursor-grabbing': titleRef,
+                        'cursor-grab active:cursor-grabbing': dragHandleRef,
                         'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.08)]': isTitleDragging,
                       },
                     )}
@@ -209,6 +219,7 @@ const Bookmark = (props: BookmarkProps) => {
                       data={data}
                       deleteBookmark={deleteBookmark}
                       id={id}
+                      isBookmarkDragging={isBookmarkDragging}
                       moveBookmark={moveBookmark}
                       onBookmarkDragEnd={onBookmarkDragEnd}
                       onBookmarkDragStart={onBookmarkDragStart}
@@ -232,4 +243,16 @@ const Bookmark = (props: BookmarkProps) => {
   );
 };
 
-export default Bookmark;
+const isEqualInSortMode = (prevProps: BookmarkProps, nextProps: BookmarkProps) => {
+  if (!prevProps.forceCollapsed || !nextProps.forceCollapsed) return false;
+
+  return (
+    prevProps.id === nextProps.id &&
+    prevProps.name === nextProps.name &&
+    prevProps.isTitleDragging === nextProps.isTitleDragging &&
+    prevProps.onTitleMouseDown === nextProps.onTitleMouseDown &&
+    prevProps.dragHandleRef === nextProps.dragHandleRef
+  );
+};
+
+export default React.memo(Bookmark, isEqualInSortMode);

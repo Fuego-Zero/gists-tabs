@@ -12,8 +12,10 @@ export type BookmarkData = Omit<Bookmark, 'id'>;
 export type BookmarkProps = {
   containerRef?: Ref<HTMLDivElement>;
   data: Bookmarks;
+  dragHandleRef?: Ref<HTMLDivElement>;
   forceCollapsed?: boolean;
   id: Widget['id'];
+  isBookmarkDragging?: boolean;
   isTitleDragging?: boolean;
   moveBookmark: (params: MoveBookmarkParams) => void;
   moveWidgetToPageModal: (widgetId: Widget['id']) => void;
@@ -21,7 +23,6 @@ export type BookmarkProps = {
   onBookmarkDragEnd: () => void;
   onBookmarkDragStart: () => void;
   onTitleMouseDown?: MouseEventHandler<HTMLDivElement>;
-  titleRef?: Ref<HTMLDivElement>;
 } & Pick<WidgetsHandler, 'copyWidget' | 'delWidget' | 'editWidget'>;
 
 export type BookmarkHandler = {

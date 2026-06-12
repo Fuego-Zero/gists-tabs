@@ -1,9 +1,10 @@
-import { clone } from '@/utils';
-
 import type { Page, Widget } from '@/types';
 
 import type { BookmarkId } from '../components/ContentArea/components/Bookmark/types';
 import type { WidgetInsertPosition } from '../types';
+
+type BookmarkWidget = Extract<Widget, { type: 'bookmarks' }>;
+type BookmarkList = BookmarkWidget['data']['bookmarks'];
 
 export type MoveBookmarkParams = {
   bookmarkId: BookmarkId;
@@ -13,31 +14,33 @@ export type MoveBookmarkParams = {
   targetWidgetId: Widget['id'];
 };
 
-const getBookmarkIds = (widget: Widget) => {
-  if (widget.type !== 'bookmarks') return '';
+const getBookmarkIds = (bookmarks: BookmarkList) => bookmarks.map(({ id }) => id).join('|');
 
-  return widget.data.bookmarks.map(({ id }) => id).join('|');
-};
+const isSameBookmarkOrder = (currentBookmarks: BookmarkList, nextBookmarks: BookmarkList) =>
+  getBookmarkIds(currentBookmarks) === getBookmarkIds(nextBookmarks);
 
 export const moveBookmarkInWidgets = (widgets: Page['widgets'], params: MoveBookmarkParams): Page['widgets'] => {
   const { bookmarkId, insertPosition = 'after', sourceWidgetId, targetBookmarkId, targetWidgetId } = params;
 
   if (sourceWidgetId === targetWidgetId && bookmarkId === targetBookmarkId) return widgets;
 
-  const nextWidgets = clone(widgets);
-  const sourceWidget = nextWidgets.find((widget) => widget.id === sourceWidgetId);
-  const targetWidget = nextWidgets.find((widget) => widget.id === targetWidgetId);
+  const sourceWidgetIndex = widgets.findIndex((widget) => widget.id === sourceWidgetId);
+  const targetWidgetIndex = widgets.findIndex((widget) => widget.id === targetWidgetId);
 
+  if (sourceWidgetIndex === -1 || targetWidgetIndex === -1) return widgets;
+
+  const sourceWidget = widgets[sourceWidgetIndex];
+  const targetWidget = widgets[targetWidgetIndex];
   if (sourceWidget?.type !== 'bookmarks' || targetWidget?.type !== 'bookmarks') return widgets;
 
-  const previousBookmarkIds = new Map(nextWidgets.map((widget) => [widget.id, getBookmarkIds(widget)]));
   const sourceBookmarks = sourceWidget.data.bookmarks;
   const sourceIndex = sourceBookmarks.findIndex((bookmark) => bookmark.id === bookmarkId);
 
   if (sourceIndex === -1) return widgets;
 
-  const [bookmark] = sourceBookmarks.splice(sourceIndex, 1);
-  const targetBookmarks = targetWidget.data.bookmarks;
+  const bookmark = sourceBookmarks[sourceIndex];
+  const nextSourceBookmarks = sourceBookmarks.filter((item) => item.id !== bookmarkId);
+  const targetBookmarks = sourceWidgetIndex === targetWidgetIndex ? nextSourceBookmarks : targetWidget.data.bookmarks;
   let targetIndex = targetBookmarks.length;
 
   if (targetBookmarkId) {
@@ -46,9 +49,39 @@ export const moveBookmarkInWidgets = (widgets: Page['widgets'], params: MoveBook
     if (insertPosition === 'after') targetIndex += 1;
   }
 
-  targetBookmarks.splice(targetIndex, 0, bookmark);
+  const nextTargetBookmarks = [...targetBookmarks];
+  nextTargetBookmarks.splice(targetIndex, 0, bookmark);
 
-  const hasChanged = nextWidgets.some((widget) => previousBookmarkIds.get(widget.id) !== getBookmarkIds(widget));
+  if (sourceWidgetIndex === targetWidgetIndex) {
+    if (isSameBookmarkOrder(sourceBookmarks, nextTargetBookmarks)) return widgets;
 
-  return hasChanged ? nextWidgets : widgets;
+    const nextWidgets = [...widgets];
+    nextWidgets[sourceWidgetIndex] = {
+      ...sourceWidget,
+      data: {
+        ...sourceWidget.data,
+        bookmarks: nextTargetBookmarks,
+      },
+    };
+
+    return nextWidgets;
+  }
+
+  const nextWidgets = [...widgets];
+  nextWidgets[sourceWidgetIndex] = {
+    ...sourceWidget,
+    data: {
+      ...sourceWidget.data,
+      bookmarks: nextSourceBookmarks,
+    },
+  };
+  nextWidgets[targetWidgetIndex] = {
+    ...targetWidget,
+    data: {
+      ...targetWidget.data,
+      bookmarks: nextTargetBookmarks,
+    },
+  };
+
+  return nextWidgets;
 };

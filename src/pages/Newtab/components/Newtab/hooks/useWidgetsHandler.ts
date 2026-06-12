@@ -74,6 +74,23 @@ export default function useWidgetsHandler(
     setGistsTabs(gistsTabs);
   };
 
+  const saveWidgetsData: WidgetsHandler['saveWidgetsData'] = (widgetsData) => {
+    const dataMap = new Map(widgetsData.map(({ data, id }) => [id, data]));
+    let hasChanged = false;
+
+    widgets.forEach((widget) => {
+      const data = dataMap.get(widget.id);
+      if (!data || widget.data === data) return;
+
+      widget.data = data as Widget['data'];
+      hasChanged = true;
+    });
+
+    if (!hasChanged) return;
+
+    setGistsTabs(gistsTabs);
+  };
+
   const moveWidgetToPage = (widgetId: Widget['id'], pageId: PageId) => {
     const widget = widgets.find((item) => item.id === widgetId);
     if (!widget) return;
@@ -134,6 +151,7 @@ export default function useWidgetsHandler(
     delWidget,
     copyWidget,
     editWidget,
+    saveWidgetsData,
     moveWidgetPosition,
     moveWidgetToPage,
     saveWidgetPositions,

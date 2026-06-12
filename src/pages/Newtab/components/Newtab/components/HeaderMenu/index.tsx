@@ -84,6 +84,9 @@ const HeaderMenu = (props: Props) => {
         },
       },
       {
+        type: 'divider',
+      },
+      {
         key: 'sync',
         label: <span className="select-none">同步数据</span>,
         icon: <CloudSyncOutlined />,
@@ -178,7 +181,9 @@ const HeaderMenu = (props: Props) => {
         icon={<HolderOutlined />}
         shape="circle"
         size="small"
-        onClick={onSortModeStart}
+        onClick={() => {
+          onSortModeStart('manual');
+        }}
       />
       <Dropdown menu={{ items: dropdowns }} trigger={['click']}>
         <Button ghost icon={<MenuOutlined />} shape="circle" size="small" />

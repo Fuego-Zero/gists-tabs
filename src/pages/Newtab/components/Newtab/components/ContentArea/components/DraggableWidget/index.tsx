@@ -1,76 +1,107 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
+
+import { WIDGET_DRAG_TYPE } from '../../dnd';
+import { infoSortDndLog, roundMs } from '../../utils/sortDndLog';
 
 import type { Widget } from '@/types';
 
 import type { WidgetInsertPosition } from '../../../../types';
-
-const WIDGET_DRAG_TYPE = 'widget';
-
-type WidgetDragItem = {
-  id: Widget['id'];
-  lastInsertPosition?: WidgetInsertPosition;
-  lastTargetId?: Widget['id'];
-  width: number;
-};
+import type { WidgetDragItem } from '../../dnd';
 
 type Props = {
   children: (params: {
     containerRef: React.RefCallback<HTMLDivElement>;
+    dragHandleRef: React.RefCallback<HTMLDivElement>;
     isDragging: boolean;
+    isSourcePreviewHidden: boolean;
     onTitleMouseDown: React.MouseEventHandler<HTMLDivElement>;
-    titleRef: React.RefCallback<HTMLDivElement>;
   }) => React.ReactNode;
+  hideSourcePreviewOnDragStart: boolean;
   onDragEnd: () => void;
   onDragHover: (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => void;
   onDragStart: (widgetId: Widget['id']) => void;
+  previewTitle: string;
   widgetId: Widget['id'];
 };
 
 const DraggableWidget = (props: Props) => {
-  const { children, onDragEnd, onDragHover, onDragStart, widgetId } = props;
+  const { children, hideSourcePreviewOnDragStart, onDragEnd, onDragHover, onDragStart, previewTitle, widgetId } = props;
+  const [isSourcePreviewHidden, setIsSourcePreviewHidden] = useState(false);
   const canDragRef = useRef(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const didStartDragRef = useRef(false);
+  const dragHandleRef = useRef<HTMLDivElement | null>(null);
   const dragStartFrameIdRef = useRef<null | number>(null);
-  const titleRef = useRef<HTMLDivElement | null>(null);
+  const pointerDownAtRef = useRef<null | number>(null);
 
   const [{ isDragging }, drag, preview] = useDrag<WidgetDragItem, void, { isDragging: boolean }>(
     () => ({
       type: WIDGET_DRAG_TYPE,
       canDrag: () => canDragRef.current,
       item: () => {
+        const itemStartedAt = performance.now();
+        const width = containerRef.current?.getBoundingClientRect().width ?? 320;
+
+        didStartDragRef.current = true;
+        if (hideSourcePreviewOnDragStart) {
+          setIsSourcePreviewHidden(true);
+        }
+
         dragStartFrameIdRef.current = window.requestAnimationFrame(() => {
           dragStartFrameIdRef.current = null;
           onDragStart(widgetId);
         });
 
-        return { id: widgetId, width: containerRef.current?.getBoundingClientRect().width ?? 320 };
+        infoSortDndLog(
+          'drag backend item',
+          {
+            itemSetupMs: roundMs(performance.now() - itemStartedAt),
+            sincePointerDownMs:
+              pointerDownAtRef.current === null ? null : roundMs(itemStartedAt - pointerDownAtRef.current),
+            width: roundMs(width),
+            widgetId,
+          },
+          { verbose: true },
+        );
+
+        return { id: widgetId, title: previewTitle, width };
       },
       end: () => {
+        const endStartedAt = performance.now();
+
         if (dragStartFrameIdRef.current) {
           window.cancelAnimationFrame(dragStartFrameIdRef.current);
           dragStartFrameIdRef.current = null;
         }
 
         canDragRef.current = false;
+        didStartDragRef.current = false;
+        pointerDownAtRef.current = null;
+        setIsSourcePreviewHidden(false);
         onDragEnd();
+
+        infoSortDndLog(
+          'drag backend end',
+          { cleanupSyncMs: roundMs(performance.now() - endStartedAt), widgetId },
+          { verbose: true },
+        );
       },
       isDragging: (monitor) => monitor.getItem()?.id === widgetId,
       collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
+        isDragging: monitor.getItem()?.id === widgetId && monitor.isDragging(),
       }),
       previewOptions: {
         anchorX: 0,
         anchorY: 0,
-        captureDraggingState: true,
       },
     }),
-    [onDragEnd, onDragStart, widgetId],
+    [hideSourcePreviewOnDragStart, onDragEnd, onDragStart, previewTitle, widgetId],
   );
 
   useEffect(() => {
-    preview(getEmptyImage(), { captureDraggingState: true });
+    preview(getEmptyImage(), { captureDraggingState: false });
   }, [preview]);
 
   const [, drop] = useDrop<WidgetDragItem>(
@@ -107,30 +138,54 @@ const DraggableWidget = (props: Props) => {
     [drag, drop],
   );
 
-  const setTitleRef = useCallback((node: HTMLDivElement | null) => {
-    titleRef.current = node;
+  const setDragHandleRef = useCallback((node: HTMLDivElement | null) => {
+    dragHandleRef.current = node;
   }, []);
 
-  const handleTitleMouseDown = useCallback<React.MouseEventHandler<HTMLDivElement>>((event) => {
-    if (event.button !== 0) return;
+  const handleTitleMouseDown = useCallback<React.MouseEventHandler<HTMLDivElement>>(
+    (event) => {
+      if (event.button !== 0) return;
 
-    canDragRef.current = true;
+      const pointerDownAt = performance.now();
 
-    const clearCanDrag = () => {
-      canDragRef.current = false;
-      window.removeEventListener('mouseup', clearCanDrag);
-    };
+      pointerDownAtRef.current = pointerDownAt;
+      canDragRef.current = true;
+      didStartDragRef.current = false;
 
-    window.addEventListener('mouseup', clearCanDrag, { once: true });
-  }, []);
+      infoSortDndLog(
+        'pointer down',
+        {
+          previewSetupMs: roundMs(performance.now() - pointerDownAt),
+          previewStrategy: 'custom-layer',
+          widgetId,
+        },
+        { verbose: true },
+      );
+
+      const clearCanDrag = () => {
+        canDragRef.current = false;
+
+        if (!didStartDragRef.current) {
+          pointerDownAtRef.current = null;
+          setIsSourcePreviewHidden(false);
+        }
+
+        window.removeEventListener('mouseup', clearCanDrag);
+      };
+
+      window.addEventListener('mouseup', clearCanDrag, { once: true });
+    },
+    [widgetId],
+  );
 
   return (
     <>
       {children({
         containerRef: setContainerRef,
+        dragHandleRef: setDragHandleRef,
         isDragging,
+        isSourcePreviewHidden,
         onTitleMouseDown: handleTitleMouseDown,
-        titleRef: setTitleRef,
       })}
     </>
   );

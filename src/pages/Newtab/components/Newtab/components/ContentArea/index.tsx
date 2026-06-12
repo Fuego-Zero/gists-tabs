@@ -1,25 +1,27 @@
-import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useDragLayer } from 'react-dnd';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { EditOutlined, MenuOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import { Button, Col, Dropdown, Row } from 'antd';
-
-import classNames from 'classnames';
+import { Button, Col, Row } from 'antd';
 
 import { clone } from '@/utils';
 
 import { moveBookmarkInWidgets } from '../../utils/bookmarkPosition';
 import Bookmark from './components/Bookmark';
+import BookmarkDragPreview from './components/Bookmark/components/BookmarkDragPreview';
 import DraggableWidget from './components/DraggableWidget';
+import DropPlaceholder from './components/DropPlaceholder';
+import EmptyColumnDropZone from './components/EmptyColumnDropZone';
+import SortModeCard from './components/SortModeCard';
+import SortModeContextMenu from './components/SortModeContextMenu';
+import WidgetDragPreview from './components/WidgetDragPreview';
+import useSortContextMenu from './hooks/useSortContextMenu';
+import useSortDndLogger from './hooks/useSortDndLogger';
+import useSortModeFlip from './hooks/useSortModeFlip';
 
 import type { Page, Widget } from '@/types';
 
-import type { WidgetColumnEdgePosition, WidgetInsertPosition } from '../../types';
+import type { SortModeWidget, WidgetInsertPosition } from '../../types';
 import type { MoveBookmarkParams } from '../../utils/bookmarkPosition';
 import type { Props } from './types';
-
-import styles from './style.module.scss';
 
 type DropPreview = {
   insertPosition: WidgetInsertPosition;
@@ -27,69 +29,7 @@ type DropPreview = {
   targetId: Widget['id'];
 };
 
-type WidgetDragItem = {
-  id: Widget['id'];
-  width: number;
-};
-
-const sortContextMenuItems: MenuProps['items'] = [
-  {
-    key: 'top',
-    label: '置顶',
-    icon: <VerticalAlignTopOutlined />,
-  },
-  {
-    key: 'bottom',
-    label: '置底',
-    icon: <VerticalAlignBottomOutlined />,
-  },
-];
-
-const DropPlaceholder = () => (
-  <Col span={24}>
-    <div
-      className={`${styles.dropPlaceholder} flex h-[52px] items-center rounded-[8px] border-2 border-dashed border-[#1677ff] bg-[#e6f4ff] px-[12px] shadow-[0_0_0_3px_rgba(22,119,255,0.12),inset_0_0_0_1px_rgba(22,119,255,0.2)]`}
-    >
-      <div className="h-[8px] w-full rounded-full bg-[rgba(22,119,255,0.24)]" />
-    </div>
-  </Col>
-);
-
-const DragLayerPreview = (props: { widgets: Widget[] }) => {
-  const { widgets } = props;
-  const { currentOffset, item, isDragging } = useDragLayer((monitor) => ({
-    currentOffset: monitor.getSourceClientOffset(),
-    item: monitor.getItem<WidgetDragItem | null>(),
-    isDragging: monitor.isDragging(),
-  }));
-
-  const widget = widgets.find(({ id }) => id === item?.id);
-
-  if (!isDragging || !currentOffset || !widget) return null;
-
-  const previewWidth = item?.width ?? 320;
-
-  return (
-    <div
-      className="fixed left-0 top-0 z-[9999] pointer-events-none"
-      style={{ transform: `translate3d(${currentOffset.x}px, ${currentOffset.y}px, 0)` }}
-    >
-      <div
-        className="overflow-hidden rounded-[8px] border border-[rgba(5,5,5,0.06)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] ring-1 ring-[rgba(22,119,255,0.2)]"
-        style={{ width: previewWidth }}
-      >
-        <div className="flex h-[61px] items-center justify-between border-b border-[rgba(5,5,5,0.06)] px-[12px]">
-          <div className="min-w-0 flex-1 truncate font-medium text-[rgba(0,0,0,0.88)]">{widget.name}</div>
-          <div className="ml-[12px] flex items-center gap-[8px] text-[rgba(0,0,0,0.45)]">
-            <VerticalAlignBottomOutlined />
-            <EditOutlined />
-            <MenuOutlined />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+type DragOriginWidget = Pick<SortModeWidget, 'col' | 'id' | 'row'>;
 
 const ContentArea = (props: Props) => {
   const {
@@ -100,127 +40,48 @@ const ContentArea = (props: Props) => {
     editWidget,
     isSortMode,
     moveWidgetPosition,
+    moveWidgetToColumn,
     moveWidgetToColumnEdge,
     moveWidgetToPageModal,
     onSortModeStart,
+    saveWidgetsData,
+    sortModeWidgets,
   } = props;
+  const [dragOriginWidget, setDragOriginWidget] = useState<DragOriginWidget | null>(null);
   const [draggingWidgetId, setDraggingWidgetId] = useState<Widget['id'] | null>(null);
   const [dropPreview, setDropPreview] = useState<DropPreview | null>(null);
   const [bookmarkDragWidgets, setBookmarkDragWidgets] = useState<Page['widgets'] | null>(null);
-  const itemRefs = useRef(new Map<Widget['id'], HTMLDivElement>());
-  const visualRefs = useRef(new Map<Widget['id'], HTMLDivElement>());
-  const previousItemRectsRef = useRef(new Map<Widget['id'], Pick<DOMRect, 'left' | 'top'>>());
-  const animationFrameIdsRef = useRef<number[]>([]);
+  const bookmarkDragBaseWidgetsRef = useRef<Page['widgets'] | null>(null);
   const bookmarkDragWidgetsRef = useRef<Page['widgets'] | null>(null);
-  const displayWidgets = bookmarkDragWidgets ?? widgets;
+  const hoverFrameIdRef = useRef<null | number>(null);
+  const pendingHoverRef = useRef<DropPreview | null>(null);
+  const displayWidgets = useMemo<SortModeWidget[]>(() => {
+    if (isSortMode) return sortModeWidgets ?? [];
 
-  const snapshotItemRects = useCallback(() => {
-    const rects = new Map<Widget['id'], Pick<DOMRect, 'left' | 'top'>>();
+    return bookmarkDragWidgets ?? widgets;
+  }, [bookmarkDragWidgets, isSortMode, sortModeWidgets, widgets]);
 
-    itemRefs.current.forEach((node, widgetId) => {
-      const { left, top } = node.getBoundingClientRect();
-      rects.set(widgetId, { left, top });
-    });
+  const renderWidgets = useMemo<SortModeWidget[]>(() => {
+    if (!dragOriginWidget || dragOriginWidget.id !== draggingWidgetId) return displayWidgets;
 
-    previousItemRectsRef.current = rects;
-  }, []);
-
-  const handleDragStart = useCallback(
-    (widgetId: Widget['id']) => {
-      onSortModeStart();
-      setDraggingWidgetId(widgetId);
-      setDropPreview(null);
-    },
-    [onSortModeStart],
-  );
-
-  const handleDragEnd = useCallback(() => {
-    setDraggingWidgetId(null);
-    setDropPreview(null);
-  }, []);
-
-  const handleDragHover = useCallback(
-    (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => {
-      if (sourceId === targetId) return;
-
-      snapshotItemRects();
-      moveWidgetPosition(sourceId, targetId, insertPosition);
-
-      setDropPreview((preview) => {
-        if (
-          preview?.sourceId === sourceId &&
-          preview.targetId === targetId &&
-          preview.insertPosition === insertPosition
-        ) {
-          return preview;
-        }
-
-        return { sourceId, targetId, insertPosition };
-      });
-    },
-    [moveWidgetPosition, snapshotItemRects],
-  );
-
-  const handleBookmarkDragStart = useCallback(() => {
-    setBookmarkDragWidgets((current) => {
-      if (current) return current;
-
-      const nextWidgets = clone(widgets);
-      bookmarkDragWidgetsRef.current = nextWidgets;
-
-      return nextWidgets;
-    });
-  }, [widgets]);
-
-  const handleBookmarkMove = useCallback(
-    (params: MoveBookmarkParams) => {
-      setBookmarkDragWidgets((current) => {
-        const currentWidgets = current ?? clone(widgets);
-        const nextWidgets = moveBookmarkInWidgets(currentWidgets, params);
-
-        bookmarkDragWidgetsRef.current = nextWidgets;
-
-        return nextWidgets;
-      });
-    },
-    [widgets],
-  );
-
-  const handleBookmarkDragEnd = useCallback(() => {
-    const draftWidgets = bookmarkDragWidgetsRef.current;
-
-    bookmarkDragWidgetsRef.current = null;
-
-    if (!draftWidgets) {
-      setBookmarkDragWidgets(null);
-
-      return;
-    }
-
-    draftWidgets.forEach((widget) => {
-      if (widget.type !== 'bookmarks') return;
-
-      const sourceWidget = widgets.find((item) => item.id === widget.id);
-      if (sourceWidget?.type !== 'bookmarks') return;
-
-      const sourceBookmarkIds = sourceWidget.data.bookmarks.map(({ id }) => id).join('|');
-      const draftBookmarkIds = widget.data.bookmarks.map(({ id }) => id).join('|');
-
-      if (sourceBookmarkIds === draftBookmarkIds) return;
-
-      editWidget(widget.id, { data: widget.data });
-    });
-
-    setBookmarkDragWidgets(null);
-  }, [editWidget, widgets]);
+    return displayWidgets.map((widget) =>
+      widget.id === dragOriginWidget.id
+        ? {
+            ...widget,
+            col: dragOriginWidget.col,
+            row: dragOriginWidget.row,
+          }
+        : widget,
+    );
+  }, [displayWidgets, dragOriginWidget, draggingWidgetId]);
 
   const columns = useMemo(() => {
-    const column1 = [];
-    const column2 = [];
-    const column3 = [];
+    const column1: SortModeWidget[] = [];
+    const column2: SortModeWidget[] = [];
+    const column3: SortModeWidget[] = [];
 
-    for (let i = 0; i < displayWidgets.length; i++) {
-      const widget = displayWidgets[i];
+    for (let i = 0; i < renderWidgets.length; i++) {
+      const widget = renderWidgets[i];
       const { col } = widget;
 
       switch (col) {
@@ -243,122 +104,278 @@ const ContentArea = (props: Props) => {
     column3.sort((a, b) => a.row - b.row);
 
     return [column1, column2, column3];
-  }, [displayWidgets]);
+  }, [renderWidgets]);
 
-  const setItemRef = useCallback(
-    (widgetId: Widget['id']) => (node: HTMLDivElement | null) => {
-      if (node) {
-        itemRefs.current.set(widgetId, node);
-      } else {
-        itemRefs.current.delete(widgetId);
+  const { beginDrag, recordHover, scheduleDragEndClear } = useSortDndLogger({
+    columns,
+    displayWidgetCount: displayWidgets.length,
+    draggingWidgetId,
+    isSortMode,
+  });
+
+  const { cancelAnimations, setItemRef, snapshotAffectedItemRects } = useSortModeFlip({
+    displayWidgets,
+    draggingWidgetId,
+    isSortMode,
+  });
+
+  const {
+    close: closeSortContextMenu,
+    menu: sortContextMenu,
+    open: openSortContextMenu,
+    select: selectSortContextMenu,
+  } = useSortContextMenu({
+    isSortMode,
+    moveWidgetToColumnEdge,
+  });
+
+  const handleDragStart = useCallback(
+    (widgetId: Widget['id']) => {
+      const dragStartRequestedAt = performance.now();
+      const originWidget = displayWidgets.find(({ id }) => id === widgetId);
+      const startResult = onSortModeStart('drag');
+
+      beginDrag(widgetId, startResult, dragStartRequestedAt);
+      setDragOriginWidget(originWidget ? { col: originWidget.col, id: originWidget.id, row: originWidget.row } : null);
+      setDraggingWidgetId(widgetId);
+      setDropPreview(null);
+      closeSortContextMenu();
+    },
+    [beginDrag, closeSortContextMenu, displayWidgets, onSortModeStart],
+  );
+
+  const flushDragHover = useCallback(
+    (options?: { animate?: boolean; record?: boolean; showPreview?: boolean }) => {
+      const { animate = true, record = true, showPreview = true } = options ?? {};
+      const pendingHover = pendingHoverRef.current;
+
+      hoverFrameIdRef.current = null;
+      pendingHoverRef.current = null;
+
+      if (!pendingHover) return;
+
+      const { sourceId, targetId, insertPosition } = pendingHover;
+      const hoverStartedAt = performance.now();
+      const sourceWidget = displayWidgets.find(({ id }) => id === sourceId);
+      const targetWidget = displayWidgets.find(({ id }) => id === targetId);
+
+      if (animate && isSortMode) {
+        snapshotAffectedItemRects(sourceId, targetId);
+      }
+
+      moveWidgetPosition(sourceId, targetId, insertPosition);
+
+      if (showPreview) {
+        setDropPreview((preview) => {
+          if (
+            preview?.sourceId === sourceId &&
+            preview.targetId === targetId &&
+            preview.insertPosition === insertPosition
+          ) {
+            return preview;
+          }
+
+          return pendingHover;
+        });
+      }
+
+      if (record) {
+        recordHover({
+          crossColumn: Boolean(sourceWidget && targetWidget && sourceWidget.col !== targetWidget.col),
+          hoverStartedAt,
+          insertPosition,
+          sourceId,
+          syncMs: performance.now() - hoverStartedAt,
+          targetId,
+        });
+      }
+    },
+    [displayWidgets, isSortMode, moveWidgetPosition, recordHover, snapshotAffectedItemRects],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    const hasPendingHover = Boolean(pendingHoverRef.current);
+
+    if (hoverFrameIdRef.current !== null) {
+      cancelAnimationFrame(hoverFrameIdRef.current);
+      hoverFrameIdRef.current = null;
+    }
+
+    scheduleDragEndClear({
+      clear: () => {
+        cancelAnimations();
+
+        if (hasPendingHover) {
+          flushDragHover({ animate: false, record: false, showPreview: false });
+        }
+
+        setDraggingWidgetId(null);
+        setDragOriginWidget(null);
+        setDropPreview(null);
+      },
+      dropPreviewActive: Boolean(dropPreview || hasPendingHover),
+    });
+  }, [cancelAnimations, dropPreview, flushDragHover, scheduleDragEndClear]);
+
+  const handleDragHover = useCallback(
+    (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => {
+      if (sourceId === targetId) return;
+
+      pendingHoverRef.current = { sourceId, targetId, insertPosition };
+
+      if (hoverFrameIdRef.current !== null) return;
+
+      hoverFrameIdRef.current = requestAnimationFrame(() => {
+        flushDragHover();
+      });
+    },
+    [flushDragHover],
+  );
+
+  const handleEmptyColumnHover = useCallback(
+    (sourceId: Widget['id'], targetCol: Widget['col']) => {
+      if (!isSortMode) return;
+
+      const sourceWidget = displayWidgets.find(({ id }) => id === sourceId);
+      if (!sourceWidget || sourceWidget.col === targetCol) return;
+
+      if (hoverFrameIdRef.current !== null) {
+        cancelAnimationFrame(hoverFrameIdRef.current);
+        hoverFrameIdRef.current = null;
+      }
+
+      pendingHoverRef.current = null;
+      cancelAnimations();
+      setDropPreview(null);
+      moveWidgetToColumn(sourceId, targetCol);
+    },
+    [cancelAnimations, displayWidgets, isSortMode, moveWidgetToColumn],
+  );
+
+  useEffect(
+    () => () => {
+      if (hoverFrameIdRef.current !== null) {
+        cancelAnimationFrame(hoverFrameIdRef.current);
       }
     },
     [],
   );
 
-  const setVisualRef = useCallback(
-    (widgetId: Widget['id']) => (node: HTMLDivElement | null) => {
-      if (node) {
-        visualRefs.current.set(widgetId, node);
-      } else {
-        visualRefs.current.delete(widgetId);
-      }
+  const handleBookmarkDragStart = useCallback(() => {
+    if (bookmarkDragWidgetsRef.current) return;
+
+    const nextWidgets = clone(widgets);
+    bookmarkDragBaseWidgetsRef.current = nextWidgets;
+    bookmarkDragWidgetsRef.current = nextWidgets;
+    setBookmarkDragWidgets(nextWidgets);
+  }, [widgets]);
+
+  const handleBookmarkMove = useCallback(
+    (params: MoveBookmarkParams) => {
+      const currentWidgets = bookmarkDragWidgetsRef.current ?? clone(widgets);
+      const nextWidgets = moveBookmarkInWidgets(currentWidgets, params);
+
+      bookmarkDragWidgetsRef.current = nextWidgets;
+      setBookmarkDragWidgets(nextWidgets);
     },
-    [],
+    [widgets],
   );
 
-  useLayoutEffect(() => {
-    animationFrameIdsRef.current.forEach((frameId) => {
-      cancelAnimationFrame(frameId);
-    });
-    animationFrameIdsRef.current = [];
+  const handleBookmarkDragEnd = useCallback(() => {
+    const draftWidgets = bookmarkDragWidgetsRef.current;
+    const baseWidgets = bookmarkDragBaseWidgetsRef.current ?? widgets;
 
-    visualRefs.current.forEach((node) => {
-      node.style.transition = 'none';
-      node.style.transform = '';
-    });
+    bookmarkDragWidgetsRef.current = null;
+    bookmarkDragBaseWidgetsRef.current = null;
 
-    if (!dropPreview) {
-      previousItemRectsRef.current = new Map();
+    if (!draftWidgets) {
+      setBookmarkDragWidgets(null);
 
       return;
     }
 
-    itemRefs.current.forEach((node, widgetId) => {
-      if (widgetId === draggingWidgetId) return;
+    const changedWidgetsData: { data: Widget['data']; id: Widget['id'] }[] = [];
 
-      const previousRect = previousItemRectsRef.current.get(widgetId);
-      if (!previousRect) return;
+    draftWidgets.forEach((widget) => {
+      if (widget.type !== 'bookmarks') return;
 
-      const currentRect = node.getBoundingClientRect();
-      const visualNode = visualRefs.current.get(widgetId);
-      if (!visualNode) return;
+      const sourceWidget = baseWidgets.find((item) => item.id === widget.id);
+      if (sourceWidget?.type !== 'bookmarks') return;
 
-      const deltaX = previousRect.left - currentRect.left;
-      const deltaY = previousRect.top - currentRect.top;
-      if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
+      const sourceBookmarkIds = sourceWidget.data.bookmarks.map(({ id }) => id).join('|');
+      const draftBookmarkIds = widget.data.bookmarks.map(({ id }) => id).join('|');
 
-      visualNode.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+      if (sourceBookmarkIds === draftBookmarkIds) return;
 
-      visualNode.getBoundingClientRect();
-
-      const frameId = requestAnimationFrame(() => {
-        visualNode.style.transition = 'transform 140ms cubic-bezier(0.2, 0, 0, 1)';
-        visualNode.style.transform = '';
-      });
-
-      animationFrameIdsRef.current.push(frameId);
+      changedWidgetsData.push({ id: widget.id, data: widget.data });
     });
-  }, [draggingWidgetId, dropPreview, widgets]);
+
+    if (changedWidgetsData.length > 0) {
+      saveWidgetsData(changedWidgetsData);
+    }
+
+    setBookmarkDragWidgets(null);
+  }, [saveWidgetsData, widgets]);
 
   return (
     <>
-      <DragLayerPreview widgets={displayWidgets} />
+      <WidgetDragPreview />
+      <BookmarkDragPreview />
+      <SortModeContextMenu menu={sortContextMenu} onClose={closeSortContextMenu} onSelect={selectSortContextMenu} />
       <Row className="px-[8px] py-[16px] !mx-0" gutter={[16, 16]}>
         {columns.map((column, index) => (
           <Col key={index} span={8}>
             <Row gutter={[16, 8]}>
-              {column.map(({ id, type, name, data }) => {
+              {column.map((widget) => {
+                const { id, type, name } = widget;
                 const isDropTarget = dropPreview?.targetId === id;
                 const isDraggingWidget = dropPreview && draggingWidgetId === id;
-                const sortContextMenu: MenuProps = {
-                  items: sortContextMenuItems,
-                  onClick: ({ domEvent, key }) => {
-                    domEvent.preventDefault();
-                    domEvent.stopPropagation();
-                    moveWidgetToColumnEdge(id, key as WidgetColumnEdgePosition);
-                  },
-                };
                 const widgetNode = (
                   <div>
                     <DraggableWidget
+                      hideSourcePreviewOnDragStart={!isSortMode}
+                      previewTitle={name}
                       widgetId={id}
                       onDragEnd={handleDragEnd}
                       onDragHover={handleDragHover}
                       onDragStart={handleDragStart}
                     >
-                      {({ containerRef, isDragging, onTitleMouseDown, titleRef }) => (
+                      {({ containerRef, dragHandleRef, isDragging, isSourcePreviewHidden, onTitleMouseDown }) => (
                         <div ref={containerRef}>
-                          <div ref={setVisualRef(id)} className={classNames({ [styles.widgetVisual]: isDragging })}>
-                            {type === 'bookmarks' && (
-                              <Bookmark
-                                copyWidget={copyWidget}
-                                data={data}
-                                delWidget={delWidget}
-                                editWidget={editWidget}
-                                forceCollapsed={isSortMode}
-                                id={id}
+                          <div style={isSourcePreviewHidden && !isSortMode ? { opacity: 0 } : undefined}>
+                            {isSortMode ? (
+                              <SortModeCard
+                                dragHandleRef={dragHandleRef}
                                 isTitleDragging={isDragging}
-                                moveBookmark={handleBookmarkMove}
-                                moveWidgetToPageModal={moveWidgetToPageModal}
                                 name={name}
-                                titleRef={titleRef}
-                                onBookmarkDragEnd={handleBookmarkDragEnd}
-                                onBookmarkDragStart={handleBookmarkDragStart}
-                                onTitleMouseDown={onTitleMouseDown}
+                                onContextMenu={(event) => {
+                                  openSortContextMenu(event, id);
+                                }}
+                                onDragMouseDown={onTitleMouseDown}
                               />
+                            ) : (
+                              <>
+                                {type === 'bookmarks' && (
+                                  <Bookmark
+                                    copyWidget={copyWidget}
+                                    data={(widget as Extract<Widget, { type: 'bookmarks' }>).data}
+                                    delWidget={delWidget}
+                                    dragHandleRef={dragHandleRef}
+                                    editWidget={editWidget}
+                                    id={id}
+                                    isBookmarkDragging={Boolean(bookmarkDragWidgets)}
+                                    isTitleDragging={isDragging}
+                                    moveBookmark={handleBookmarkMove}
+                                    moveWidgetToPageModal={moveWidgetToPageModal}
+                                    name={name}
+                                    onBookmarkDragEnd={handleBookmarkDragEnd}
+                                    onBookmarkDragStart={handleBookmarkDragStart}
+                                    onTitleMouseDown={onTitleMouseDown}
+                                  />
+                                )}
+                                {type === 'clocks' && 'clocks'}
+                              </>
                             )}
-                            {type === 'clocks' && 'clocks'}
                           </div>
                         </div>
                       )}
@@ -370,34 +387,34 @@ const ContentArea = (props: Props) => {
                   <React.Fragment key={id}>
                     {isDropTarget && dropPreview?.insertPosition === 'before' && <DropPlaceholder />}
                     <Col
-                      ref={setItemRef(id)}
+                      ref={isSortMode ? setItemRef(id) : undefined}
                       span={24}
                       style={isDraggingWidget ? { opacity: 0, pointerEvents: 'none', position: 'absolute' } : undefined}
                     >
-                      {isSortMode ? (
-                        <Dropdown menu={sortContextMenu} trigger={['contextMenu']}>
-                          {widgetNode}
-                        </Dropdown>
-                      ) : (
-                        widgetNode
-                      )}
+                      {widgetNode}
                     </Col>
                     {isDropTarget && dropPreview?.insertPosition === 'after' && <DropPlaceholder />}
                   </React.Fragment>
                 );
               })}
-              <Col span={24}>
-                <Button
-                  block
-                  disabled={isSortMode}
-                  type="dashed"
-                  onClick={() => {
-                    addWidget('bookmarks', index, column.length);
-                  }}
-                >
-                  新增工具
-                </Button>
-              </Col>
+              {isSortMode && column.length === 0 && (
+                <Col span={24}>
+                  <EmptyColumnDropZone col={index as Widget['col']} onHover={handleEmptyColumnHover} />
+                </Col>
+              )}
+              {!isSortMode && (
+                <Col span={24}>
+                  <Button
+                    block
+                    type="dashed"
+                    onClick={() => {
+                      addWidget('bookmarks', index, column.length);
+                    }}
+                  >
+                    新增工具
+                  </Button>
+                </Col>
+              )}
             </Row>
           </Col>
         ))}

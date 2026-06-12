@@ -1,7 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 
 import { CopyOutlined, DeleteOutlined } from '@ant-design/icons';
+
+import classNames from 'classnames';
 
 import ContextMenu from '@/components/ContextMenu';
 
@@ -11,7 +14,7 @@ import mark from './mark.svg';
 import type { ContextMenuItems } from '@/components/ContextMenu/types';
 
 import type { BookmarkDragItem } from '../../dnd';
-import type { BookmarkHandler, BookmarkProps } from '../../types';
+import type { BookmarkHandler, BookmarkId, BookmarkProps } from '../../types';
 
 import styles from './style.module.scss';
 
@@ -49,8 +52,27 @@ const ShowUrl = (props: { url: string }) => {
   );
 };
 
+type BookmarkDropPreview = {
+  insertPosition: NonNullable<BookmarkDragItem['lastInsertPosition']>;
+  sourceBookmarkId: BookmarkId;
+  targetBookmarkId?: BookmarkId;
+};
+
+const BookmarkDropPlaceholder = () => (
+  <li className="flex h-[32px] items-center px-[15px]">
+    <div className="flex h-[24px] w-full items-center rounded-[6px] border border-dashed border-[#1677ff] bg-[#e6f4ff] px-[8px] shadow-[0_0_0_2px_rgba(22,119,255,0.1),inset_0_0_0_1px_rgba(22,119,255,0.14)]">
+      <div className="h-[6px] w-full rounded-full bg-[rgba(22,119,255,0.22)]" />
+    </div>
+  </li>
+);
+
 type BookmarkItemProps = {
   bookmark: BookmarkProps['data']['bookmarks'][number];
+  isBookmarkDragging?: boolean;
+  isDropPreviewSource: boolean;
+  isHovered: boolean;
+  setDropPreview: React.Dispatch<React.SetStateAction<BookmarkDropPreview | null>>;
+  setHoveredBookmarkId: React.Dispatch<React.SetStateAction<BookmarkId | null>>;
   setShowUrl: React.Dispatch<React.SetStateAction<string>>;
 } & Pick<BookmarkHandler, 'copyBookmark' | 'deleteBookmark'> &
   Pick<BookmarkProps, 'id' | 'moveBookmark' | 'onBookmarkDragEnd' | 'onBookmarkDragStart'>;
@@ -61,30 +83,59 @@ const BookmarkItem = (props: BookmarkItemProps) => {
     copyBookmark,
     deleteBookmark,
     id,
+    isBookmarkDragging,
+    isDropPreviewSource,
+    isHovered,
     moveBookmark,
     onBookmarkDragEnd,
     onBookmarkDragStart,
+    setHoveredBookmarkId,
+    setDropPreview,
     setShowUrl,
   } = props;
   const itemRef = useRef<HTMLLIElement | null>(null);
 
-  const [{ isDragging }, drag] = useDrag<BookmarkDragItem, void, { isDragging: boolean }>(
+  const [{ isDragging }, drag, preview] = useDrag<BookmarkDragItem, void, { isDragging: boolean }>(
     () => ({
       type: BOOKMARK_DRAG_TYPE,
       item: () => {
+        setDropPreview(null);
         onBookmarkDragStart();
 
-        return { bookmarkId: bookmark.id, sourceWidgetId: id };
+        return {
+          bookmarkId: bookmark.id,
+          preview: {
+            icon: bookmark.icon,
+            title: bookmark.title,
+            url: bookmark.url,
+            width: itemRef.current?.getBoundingClientRect().width ?? 240,
+          },
+          sourceWidgetId: id,
+        };
       },
       end: () => {
+        setDropPreview(null);
         onBookmarkDragEnd();
       },
       collect: (monitor) => ({
         isDragging: monitor.isDragging(),
       }),
     }),
-    [bookmark.id, id, onBookmarkDragEnd, onBookmarkDragStart],
+    [
+      bookmark.icon,
+      bookmark.id,
+      bookmark.title,
+      bookmark.url,
+      id,
+      onBookmarkDragEnd,
+      onBookmarkDragStart,
+      setDropPreview,
+    ],
   );
+
+  useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: false });
+  }, [preview]);
 
   const [, drop] = useDrop<BookmarkDragItem>(
     () => ({
@@ -100,13 +151,46 @@ const BookmarkItem = (props: BookmarkItemProps) => {
         const hoverMiddleY = (hoverRect.bottom - hoverRect.top) / 2;
         const hoverClientY = clientOffset.y - hoverRect.top;
         const insertPosition = hoverClientY > hoverMiddleY ? 'after' : 'before';
+        const nextDropPreview: BookmarkDropPreview = {
+          insertPosition,
+          sourceBookmarkId: item.bookmarkId,
+          targetBookmarkId: bookmark.id,
+        };
 
-        if (
-          item.lastTargetWidgetId === id &&
-          item.lastTargetBookmarkId === bookmark.id &&
-          item.lastInsertPosition === insertPosition
-        ) {
-          return;
+        setDropPreview((current) => {
+          if (
+            current?.sourceBookmarkId === nextDropPreview.sourceBookmarkId &&
+            current.targetBookmarkId === nextDropPreview.targetBookmarkId &&
+            current.insertPosition === nextDropPreview.insertPosition
+          ) {
+            return current;
+          }
+
+          return nextDropPreview;
+        });
+
+        item.lastTargetWidgetId = id;
+        item.lastTargetBookmarkId = bookmark.id;
+        item.lastInsertPosition = insertPosition;
+      },
+      drop: (item, monitor) => {
+        setDropPreview(null);
+        if (item.sourceWidgetId === id && item.bookmarkId === bookmark.id) {
+          onBookmarkDragEnd();
+
+          return { handled: true };
+        }
+
+        const element = itemRef.current;
+        const clientOffset = monitor.getClientOffset();
+        const hoverRect = element?.getBoundingClientRect();
+        let insertPosition =
+          item.lastTargetWidgetId === id && item.lastTargetBookmarkId === bookmark.id
+            ? item.lastInsertPosition
+            : undefined;
+
+        if (hoverRect && clientOffset) {
+          insertPosition = clientOffset.y - hoverRect.top > (hoverRect.bottom - hoverRect.top) / 2 ? 'after' : 'before';
         }
 
         moveBookmark({
@@ -116,15 +200,12 @@ const BookmarkItem = (props: BookmarkItemProps) => {
           targetBookmarkId: bookmark.id,
           targetWidgetId: id,
         });
+        onBookmarkDragEnd();
 
-        item.sourceWidgetId = id;
-        item.lastTargetWidgetId = id;
-        item.lastTargetBookmarkId = bookmark.id;
-        item.lastInsertPosition = insertPosition;
+        return { handled: true };
       },
-      drop: () => ({ handled: true }),
     }),
-    [bookmark.id, id, moveBookmark],
+    [bookmark.id, id, moveBookmark, onBookmarkDragEnd, setDropPreview],
   );
 
   const setItemRef = useCallback(
@@ -134,6 +215,13 @@ const BookmarkItem = (props: BookmarkItemProps) => {
     },
     [drag, drop],
   );
+
+  let itemStyle: React.CSSProperties | undefined;
+  const isSourcePlaceholder = isDragging && !isDropPreviewSource;
+
+  if (isDropPreviewSource) {
+    itemStyle = { opacity: 0, pointerEvents: 'none', position: 'absolute' };
+  }
 
   return (
     <ContextMenu
@@ -145,15 +233,22 @@ const BookmarkItem = (props: BookmarkItemProps) => {
     >
       <li
         ref={setItemRef}
-        className={styles.link}
-        style={isDragging ? { opacity: 0.36 } : undefined}
+        className={classNames(styles.link, {
+          [styles.hovered]: isHovered && !isBookmarkDragging,
+          [styles.sourcePlaceholder]: isSourcePlaceholder,
+        })}
+        style={itemStyle}
         onClick={() => {
           window.open(bookmark.url);
         }}
         onMouseEnter={() => {
-          setShowUrl(bookmark.url);
+          if (!isBookmarkDragging) {
+            setHoveredBookmarkId(bookmark.id);
+            setShowUrl(bookmark.url);
+          }
         }}
         onMouseLeave={() => {
+          setHoveredBookmarkId((current) => (current === bookmark.id ? null : current));
           setShowUrl('');
         }}
       >
@@ -164,52 +259,135 @@ const BookmarkItem = (props: BookmarkItemProps) => {
   );
 };
 
-type Props = Pick<BookmarkHandler, 'copyBookmark' | 'deleteBookmark'> &
-  Pick<BookmarkProps, 'data' | 'id' | 'moveBookmark' | 'onBookmarkDragEnd' | 'onBookmarkDragStart'>;
+type Props = Pick<
+  BookmarkProps,
+  'data' | 'id' | 'isBookmarkDragging' | 'moveBookmark' | 'onBookmarkDragEnd' | 'onBookmarkDragStart'
+> &
+  Pick<BookmarkHandler, 'copyBookmark' | 'deleteBookmark'>;
 
 const ShowCard = (props: Props) => {
-  const { data, deleteBookmark, copyBookmark, id, moveBookmark, onBookmarkDragEnd, onBookmarkDragStart } = props;
+  const {
+    data,
+    deleteBookmark,
+    copyBookmark,
+    id,
+    isBookmarkDragging,
+    moveBookmark,
+    onBookmarkDragEnd,
+    onBookmarkDragStart,
+  } = props;
+  const [dropPreview, setDropPreview] = useState<BookmarkDropPreview | null>(null);
+  const [hoveredBookmarkId, setHoveredBookmarkId] = useState<BookmarkId | null>(null);
   const [showUrl, setShowUrl] = useState('');
 
-  const [, dropList] = useDrop<BookmarkDragItem>(
+  const [{ isOver }, dropList] = useDrop<BookmarkDragItem, { handled: boolean }, { isOver: boolean }>(
     () => ({
       accept: BOOKMARK_DRAG_TYPE,
-      drop: (item, monitor) => {
-        if (monitor.didDrop()) return;
+      hover: (item, monitor) => {
+        if (!monitor.isOver({ shallow: true })) return;
+        if (data.bookmarks.length > 0) return;
 
         const lastBookmark = data.bookmarks[data.bookmarks.length - 1];
         if (item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) return;
 
+        const nextDropPreview: BookmarkDropPreview = {
+          insertPosition: 'after',
+          sourceBookmarkId: item.bookmarkId,
+          targetBookmarkId: lastBookmark?.id,
+        };
+
+        setDropPreview((current) => {
+          if (
+            current?.sourceBookmarkId === nextDropPreview.sourceBookmarkId &&
+            current.targetBookmarkId === nextDropPreview.targetBookmarkId &&
+            current.insertPosition === nextDropPreview.insertPosition
+          ) {
+            return current;
+          }
+
+          return nextDropPreview;
+        });
+
+        item.lastTargetWidgetId = id;
+        item.lastTargetBookmarkId = lastBookmark?.id;
+        item.lastInsertPosition = 'after';
+      },
+      drop: (item, monitor) => {
+        setDropPreview(null);
+
+        if (monitor.didDrop()) return;
+
+        const hasRecordedTarget = item.lastTargetWidgetId === id;
+        const targetBookmarkId = hasRecordedTarget ? item.lastTargetBookmarkId : undefined;
+        const insertPosition = hasRecordedTarget ? item.lastInsertPosition : undefined;
+        const lastBookmark = data.bookmarks[data.bookmarks.length - 1];
+        if (!targetBookmarkId && item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) {
+          onBookmarkDragEnd();
+
+          return { handled: true };
+        }
+
         moveBookmark({
           bookmarkId: item.bookmarkId,
+          insertPosition,
           sourceWidgetId: item.sourceWidgetId,
+          targetBookmarkId,
           targetWidgetId: id,
         });
 
-        item.sourceWidgetId = id;
+        onBookmarkDragEnd();
 
         return { handled: true };
       },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+      }),
     }),
-    [data.bookmarks, id, moveBookmark],
+    [data.bookmarks, id, moveBookmark, onBookmarkDragEnd],
   );
+
+  useEffect(() => {
+    if (!isOver) {
+      setDropPreview(null);
+    }
+  }, [isOver]);
+
+  useEffect(() => {
+    if (!isBookmarkDragging) return;
+
+    setHoveredBookmarkId(null);
+    setShowUrl('');
+  }, [isBookmarkDragging]);
 
   return (
     <>
       <ul ref={dropList}>
         {data.bookmarks.map((bookmark) => (
-          <BookmarkItem
-            key={bookmark.id}
-            bookmark={bookmark}
-            copyBookmark={copyBookmark}
-            deleteBookmark={deleteBookmark}
-            id={id}
-            moveBookmark={moveBookmark}
-            setShowUrl={setShowUrl}
-            onBookmarkDragEnd={onBookmarkDragEnd}
-            onBookmarkDragStart={onBookmarkDragStart}
-          />
+          <React.Fragment key={bookmark.id}>
+            {dropPreview?.targetBookmarkId === bookmark.id && dropPreview.insertPosition === 'before' && (
+              <BookmarkDropPlaceholder />
+            )}
+            <BookmarkItem
+              bookmark={bookmark}
+              copyBookmark={copyBookmark}
+              deleteBookmark={deleteBookmark}
+              id={id}
+              isBookmarkDragging={isBookmarkDragging}
+              isDropPreviewSource={dropPreview?.sourceBookmarkId === bookmark.id}
+              isHovered={hoveredBookmarkId === bookmark.id}
+              moveBookmark={moveBookmark}
+              setDropPreview={setDropPreview}
+              setHoveredBookmarkId={setHoveredBookmarkId}
+              setShowUrl={setShowUrl}
+              onBookmarkDragEnd={onBookmarkDragEnd}
+              onBookmarkDragStart={onBookmarkDragStart}
+            />
+            {dropPreview?.targetBookmarkId === bookmark.id && dropPreview.insertPosition === 'after' && (
+              <BookmarkDropPlaceholder />
+            )}
+          </React.Fragment>
         ))}
+        {dropPreview && !dropPreview.targetBookmarkId && <BookmarkDropPlaceholder />}
       </ul>
       <ShowUrl url={showUrl} />
     </>
