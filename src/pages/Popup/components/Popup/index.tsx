@@ -4,7 +4,7 @@ import { DownloadOutlined } from '@ant-design/icons';
 import { Button, Card, Cascader, Form, Input } from 'antd';
 
 import useGistsTabs from '@/hooks/useGistsTabs';
-import { createBookmark } from '@/pages/Newtab/components/Newtab/components/ContentArea/components/Bookmark/dataFactory';
+import { createBookmark } from '@/pages/Newtab/components/ContentArea/components/Bookmark/dataFactory';
 import { getCurrentTab } from '@/utils/chrome/tabs';
 
 type Option = {
