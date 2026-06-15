@@ -1,0 +1,58 @@
+.link {
+  display: flex;
+  position: relative;
+  font-size: 14px;
+  height: 32px;
+  padding: 4px 15px;
+  border-radius: 6px;
+  color: rgba(0, 0, 0, 0.88);
+  transition: background-color 0.2s ease;
+  user-select: none;
+  align-items: center;
+  cursor: pointer;
+
+  :global {
+    .icon {
+      width: 16px;
+      margin-right: 5px;
+    }
+
+    .title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.hovered {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.sourcePlaceholder {
+  background-color: transparent;
+
+  &::before {
+    position: absolute;
+    inset: 4px 15px;
+    box-sizing: border-box;
+    display: block;
+    content: '';
+    border: 1px dashed #1677ff;
+    border-radius: 6px;
+    background:
+      linear-gradient(rgba(22, 119, 255, 0.22), rgba(22, 119, 255, 0.22)) center / calc(100% - 16px) 6px no-repeat,
+      #e6f4ff;
+    box-shadow:
+      0 0 0 2px rgba(22, 119, 255, 0.1),
+      inset 0 0 0 1px rgba(22, 119, 255, 0.14);
+  }
+
+  :global {
+    .icon,
+    .title {
+      visibility: hidden;
+    }
+  }
+}
