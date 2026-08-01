@@ -1,1 +1,9 @@
 @use '@/styles/tailwind.scss';
+
+html,
+body,
+#app-container {
+  margin: 0;
+  width: 500px;
+  overflow: hidden;
+}
