@@ -11,6 +11,7 @@ import { getCurrentTab } from '@/utils/chrome/tabs';
 
 type Option = {
   children?: Option[];
+  col?: number;
   label: string;
   value: string;
 };
@@ -96,18 +97,19 @@ const WidgetPicker = ({ options, value, onChange }: WidgetPickerProps) => {
         <div className="mb-2 shrink-0 text-xs text-[rgba(0,0,0,0.45)]">书签组</div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {widgets.length ? (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 grid-flow-col gap-2">
               {widgets.map((widget) => (
-                <PickTag
-                  key={widget.value}
-                  fixedWidth
-                  active={value?.[0] === activePageId && value?.[1] === widget.value}
-                  label={widget.label}
-                  onClick={() => {
-                    if (!activePageId) return;
-                    onChange?.([activePageId, widget.value]);
-                  }}
-                />
+                <div key={widget.value} style={{ gridColumn: (widget.col ?? 0) + 1 }}>
+                  <PickTag
+                    fixedWidth
+                    active={value?.[0] === activePageId && value?.[1] === widget.value}
+                    label={widget.label}
+                    onClick={() => {
+                      if (!activePageId) return;
+                      onChange?.([activePageId, widget.value]);
+                    }}
+                  />
+                </div>
               ))}
             </div>
           ) : (
@@ -129,7 +131,13 @@ const Popup = () => {
         const { id, name, widgets } = item;
         const bookmarkWidgets = widgets
           .filter((widget) => widget.type === 'bookmarks')
-          .map((widget) => ({ label: widget.name, value: widget.id }));
+          .slice()
+          .sort((a, b) => a.col - b.col || a.row - b.row)
+          .map((widget) => ({
+            col: widget.col,
+            label: widget.name,
+            value: widget.id,
+          }));
 
         if (!bookmarkWidgets.length) return arr;
 
