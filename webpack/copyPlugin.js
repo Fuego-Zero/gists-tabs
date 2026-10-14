@@ -27,7 +27,7 @@ const CopyPlugin = [
     ],
   }),
 ].concat(
-  ['src/pages/Content/content.styles.css', 'src/assets/img/icon-128.png', 'src/assets/img/icon-34.png'].map(
+  ['src/assets/img/icon-128.png', 'src/assets/img/icon-34.png'].map(
     (item) =>
       new CopyWebpackPlugin({
         patterns: [
