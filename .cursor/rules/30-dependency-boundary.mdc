@@ -1,0 +1,93 @@
+---
+description: 扩展内依赖方向、模块边界、Chrome / Gist API 与公共 API 规则。
+globs:
+  - "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# 依赖边界规则
+
+## 1. 依赖朝稳定方向流动
+
+高层业务不要依赖低层实现细节。
+
+优先：
+
+```text
+入口（新标签页 / Options / Popup / Background）
+→ 业务 / 小组件
+→ 边界接口（storage / sync）
+→ 基础设施（chrome.*、Gist HTTP、本地存储实现）
+```
+
+而不是 UI 或业务代码到处直接散落 `chrome.*`、axios 或 Gist 细节。
+
+## 2. 禁止循环依赖
+
+发现循环依赖时，不要通过：
+
+- 动态 require
+- 延迟 import
+- barrel 调整
+
+掩盖问题。
+
+应重新检查职责和依赖方向。
+
+## 3. 第三方与平台 API 隔离
+
+以下类型依赖应有明确边界：
+
+- `chrome.*`（storage、tabs、runtime 等）
+- GitHub Gist / HTTP 客户端
+- 分析 SDK（若有）
+- 其他第三方 SDK
+
+不要让平台或第三方类型污染整个业务层。
+
+但不要重新包装第三方的全部 API，只封装当前真正使用的部分。
+
+## 4. 扩展分层边界（短节）
+
+- **UI**：渲染与交互；通过明确接口读写存储/同步，不直接拼 Gist 请求或散落 `chrome.storage`。
+- **storage / sync**：本机扩展存储与可选 Gist 同步；对外暴露稳定 API。
+- **Chrome / 网络实现**：集中在边界层；业务模块不 deep import 内部实现细节。
+
+## 5. Public API
+
+每个 module 应有明确公共 API。
+
+消费者不要 deep import 内部实现路径。
+
+## 6. Barrel
+
+Barrel export 可用于稳定公共 API。
+
+禁止：
+
+- 每层目录都建 index
+- 导出全部内部实现
+- 通过 barrel 形成循环依赖
+- 为了少写 import 路径扩大 public surface
+
+## 7. Cross-module
+
+跨模块通信优先依赖：
+
+- 稳定 contract
+- module public API
+- event（确有异步解耦需求时）
+
+不要直接读写其他模块内部 state / storage 细节。
+
+## 8. 框架边界
+
+React、Webpack、antd 等不应单独决定业务模型。
+
+业务层尽量不依赖：
+
+- 特定页面路由细节
+- 仅 UI 层才需要的组件类型
+- SDK-specific context
+
+除非该模块本身就是对应边界层。

@@ -1,0 +1,186 @@
+---
+description: JavaScript / TypeScript / JSX / TSX 通用编码规则。
+globs:
+  - "**/*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}"
+alwaysApply: false
+---
+
+# JavaScript / TypeScript 规则
+
+## 1. TypeScript 优先
+
+新项目和新增核心业务代码优先 TypeScript。
+
+已有 JavaScript 项目不要为了规则强制整体迁移 TypeScript。
+
+## 2. 避免 any
+
+优先级：
+
+```text
+明确类型
+> generic
+> unknown + narrowing
+> any
+```
+
+`any` 只能用于：
+
+- 外部遗留代码
+- 无法可靠建模的边界
+
+应先检查依赖的文档和类型定义；外部边界优先使用 `unknown` 并校验收窄。确实无法建模时才使用 `any`，限制作用域，不以临时迁移为理由放宽类型。
+
+## 3. 外部输入必须运行时校验
+
+TypeScript 不能验证运行时数据。
+
+以下输入必须考虑 Schema / validation：
+
+- HTTP request
+- 环境变量
+- 数据库 JSON
+- MQ / Event
+- 文件解析
+- LLM structured output
+- 第三方 API response
+
+不要只靠 `as SomeType`。
+
+## 4. Schema 与 Type 尽量单一事实源
+
+如果已有 Zod / Valibot / TypeBox 等 Schema：
+
+优先从 Schema 推导 TS Type。
+
+避免同时维护：
+
+- interface
+- Schema
+- DTO
+- Response Type
+
+多套近似定义。
+
+## 5. 类型表达真实约束
+
+避免：
+
+```ts
+string;
+```
+
+实际上只允许固定值。
+
+优先：
+
+- union
+- enum（项目已有约定时）
+- branded type（真实需要时）
+- discriminated union
+
+不要为了“类型高级”制造复杂类型体操。
+
+## 6. Null / Undefined 明确
+
+不要用：
+
+```ts
+foo!;
+```
+
+掩盖生命周期问题。
+
+明确：
+
+- 可选
+- 空值
+- 未加载
+- 不存在
+- 错误
+
+之间的区别。
+
+## 7. 异步代码
+
+优先 `async/await` 保持可读性。
+
+并行任务应显式使用：
+
+```ts
+Promise.all;
+Promise.allSettled;
+```
+
+不要无意串行化独立 IO。
+
+不要启动未 await 的 Promise，除非明确是 fire-and-forget 且有错误处理。
+
+## 8. 错误
+
+不要：
+
+```ts
+catch {}
+```
+
+静默吞错。
+
+不要把所有错误转成字符串丢失上下文。
+
+预期错误与未知错误应可区分。
+
+## 9. Import
+
+- 使用项目统一 alias / package public API。
+- 禁止通过深层相对路径绕过包边界。
+- 删除未使用 import。
+- import 排序由 lint / formatter 工具负责，不依赖人工维护。
+
+## 10. Export
+
+默认最小公开面。
+
+只 export 真正需要跨模块使用的内容。
+
+不要用巨型 `index.ts` 暴露全部内部实现。
+
+## 11. 函数
+
+函数优先：
+
+- 单一职责
+- 明确输入
+- 明确输出
+- 少隐藏副作用
+
+复杂条件优先提炼“业务含义”，而不是单纯把每几行拆成函数。
+
+## 12. 注释
+
+注释解释：
+
+- 为什么
+- 约束
+- 非显然决策
+- 风险
+
+不要重复代码本身已经表达的“做什么”。
+
+## 13. 常量
+
+有明确业务或系统含义的数字、字符串不要散落在逻辑里。
+
+```ts
+const MAX_RETRY_COUNT = 3;
+```
+
+不要把所有字面量都机械地抽成常量。
+
+## 14. 弃用 API
+
+禁止使用任何已弃用 API：带 `@deprecated` 的属性、组件、配置项，包括 antd、React、Vite 等。
+
+一律改用官方推荐的替代写法。
+
+编辑器、类型检查、构建或运行时控制台报 deprecated，视为未通过。

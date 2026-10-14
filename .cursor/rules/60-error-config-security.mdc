@@ -1,0 +1,95 @@
+---
+description: 错误处理、扩展配置、Secrets 与基础安全规则。
+globs:
+  - "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# Error / Config / Security
+
+## 1. Fail Fast
+
+关键配置缺失时，在启动或首次明确边界处失败。
+
+不要让配置错误变成随机运行时异常。
+
+生产路径不应自动使用弱默认值充当密钥或高权限凭据。
+
+## 2. 配置读取
+
+集中读取与校验配置（含 Options 中的用户设置）。
+
+不要在业务代码到处直接读散落的配置键。
+
+不要在多个模块重复解析同一个配置。
+
+本扩展以 `chrome.storage` / Options 配置为主；一般不依赖 `process.env`、JWT 或数据库密码。若构建脚本确有环境变量，仍应集中校验。
+
+## 3. Secret（含 GitHub Token）
+
+绝不提交：
+
+- GitHub Token / PAT
+- API key
+- password
+- access token
+- private key
+
+示例配置或文档只放变量名和非敏感占位，不放真实 Token。
+
+**GitHub Token 不入库、不进日志、不进错误上报与 trace。** 展示错误时脱敏。
+
+## 4. 错误类型
+
+建议区分：
+
+- ValidationError
+- AuthError
+- PermissionError
+- NotFoundError
+- ConflictError
+- ExternalServiceError
+- ConfigError
+- UnknownError
+
+不要求完全采用这些类名，但语义应可区分。
+
+## 5. 外部服务
+
+Gist / GitHub 等外部依赖失败时：
+
+- 明确 unavailable
+- 保留原始 cause（内部）
+- 对外返回稳定、可展示的错误信息
+
+不要自动伪造 fallback 数据，除非业务明确允许。
+
+## 6. 用户输入
+
+任何用户输入都不可信。
+
+特别注意：
+
+- 文件名
+- 路径
+- URL
+- HTML
+- redirect
+- 粘贴的 Token / 配置内容
+
+## 7. 存储与 Web
+
+敏感 Token 的存储方式遵循扩展安全模型（优先扩展存储，避免不必要的长期明文暴露）。
+
+不要默认把长期高权限凭据放进可被无关脚本轻易读取的位置。
+
+## 8. 依赖
+
+引入依赖前确认：
+
+- 是否真的需要
+- 维护状态
+- License
+- 是否与现有库重复
+
+避免为一个简单工具函数引入大型依赖。

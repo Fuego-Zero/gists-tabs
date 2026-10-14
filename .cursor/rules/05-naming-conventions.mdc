@@ -1,0 +1,143 @@
+---
+description: Chrome 扩展单仓的目录、代码、测试、文档和资源命名规范。
+alwaysApply: true
+---
+
+# 文件与目录命名规范
+
+本规范是本仓库的团队约定，适用于 **Chrome MV3 扩展单仓**（React / TypeScript），不宣称为行业统一标准。
+
+## 1. 适用范围
+
+- 新增文件和目录遵守本规范。
+- 旧名称仍存在不代表继续推荐旧风格，也不能仅因旧名称不符合规范就改动无关文件。
+- 本规范只规定名称，不要求重组目录、拆分模块、更改导出方式或修改业务行为。
+- 工具、框架、外部协议与生成流程约定的名称优先，例外见第 7 节。
+
+## 2. 目录：kebab-case
+
+使用小写英文，多个单词以中划线连接，优先按业务领域或功能分组命名。
+
+```text
+bookmark-widget/
+clock-panel/
+gist-sync/
+```
+
+缩写同样小写，例如 `api/`、`ui/`、`src/`。业务目录不混用 camelCase、PascalCase 或 snake_case。
+
+本仓库为单仓扩展，不引入 `apps/`、`packages/` 等顶层划分；按现有扩展目录（如 `src/`、页面入口目录）组织即可。
+
+## 3. 普通代码文件：camelCase
+
+适用于普通 `.ts`、`.js`、`.mjs`、`.cjs`、`.mts`、`.cts` 文件，包括业务逻辑、服务、客户端、类型、常量、工具函数和脚本。
+
+```text
+submitGuard.ts
+conversationStore.ts
+gistClient.ts
+draftTypes.ts
+verifyImports.mjs
+```
+
+- 文件名描述主要职责；只有一个主要导出函数时，可以与函数同名。
+- 普通 `.ts` 文件即使导出类，也使用 camelCase，例如 `gistClient.ts` 导出 `GistClient`。
+- 不为匹配文件名强制使用默认导出，不改变公共 API 或代码符号的已有语义。
+- `.tsx` / `.jsx` 文件如果只包含 JSX 工具函数，没有主要 React 组件，仍使用 camelCase。
+
+## 4. React 组件和 Hook
+
+主要 React 组件文件使用 PascalCase，与主要组件名称一致。
+
+```text
+BookmarkList.tsx → BookmarkList
+ClockWidget.tsx  → ClockWidget
+```
+
+组件所在目录仍使用 kebab-case，例如 `clock-panel/ClockWidget.tsx`。
+
+自定义 Hook 文件使用 `use` 开头的 camelCase，并与主要 Hook 名称一致。
+
+```text
+useGistSync.ts
+useExtensionStorage.ts
+```
+
+文件扩展名本身不决定命名方式；不为命名规范机械拆分组件或工具函数。
+
+## 5. 测试：跟随被测文件
+
+| 用途     | 规则                         | 示例                         |
+| -------- | ---------------------------- | ---------------------------- |
+| 单元测试 | 被测文件名 + `.test`         | `submitGuard.test.ts`        |
+| 组件测试 | 组件文件名 + `.test`         | `ClockWidget.test.tsx`       |
+| 集成测试 | 被测文件名或场景名 + `.test` | `gistSync.test.ts`           |
+| E2E 测试 | 场景名 + `.spec`             | `newtabWidgets.spec.ts`      |
+
+- 单一被测文件的测试，保留被测文件名的大小写形式。
+- 没有单一被测文件的场景测试，使用 camelCase 描述场景。
+- 测试扩展名由内容和运行环境决定；组件测试需要 JSX 时使用 `.tsx`。
+- 可以使用 `unit/`、`integration/`、`e2e/` 或已有业务测试目录，不要求迁移当前测试布局。
+- 测试辅助文件遵守普通代码文件规则，例如 `fixtureData.ts`。
+
+## 6. 样式、文档和静态资源：kebab-case
+
+按内容或用途使用小写英文名称。
+
+```text
+newtab-layout.css
+architecture.md
+company-logo.svg
+empty-state.png
+```
+
+- `.css`、`.scss` 等普通样式文件使用 kebab-case。
+- 与组件配套的 CSS Modules 作为明确例外，跟随组件名称，例如 `ClockWidget.module.css`。
+- 普通文档使用 kebab-case 英文文件名，文档正文可以使用中文。
+- 所有临时文件统一存放在根目录 `.tmp/`，按用途使用子目录；生产代码、正式文档和仓库规则不得依赖其中的文件作为规范或运行前提。
+- 截图、测试报告等非代码临时资料使用 kebab-case；临时代码文件仍遵守对应的代码命名规则。
+
+## 7. 工具、框架和生成名例外
+
+保留工具、框架、构建与扩展约定的文件名、目录名和后缀，例如：
+
+```text
+AGENTS.md
+README.md
+package.json
+tsconfig.json
+webpack.config.js
+eslint.config.js
+manifest.json
+.cursor/
+.vscode/
+.tmp/
+index.ts
+main.tsx
+env.d.ts
+```
+
+- `.cursor/rules/` 中的规则文件使用数字排序前缀 + kebab-case + `.mdc`，例如 `05-naming-conventions.mdc`。
+- Chrome `manifest.json`、Webpack 入口/输出名、以及构建生成的 chunk / asset 名称，按工具与扩展约定保留，不因本规范机械重命名。
+- 自定义声明文件使用 camelCase + `.d.ts`，例如 `chromeTypes.d.ts`。
+- 生成文件、第三方文件、外部依赖路径和公共静态 URL 不直接机械重命名，应核对生成流程和现行消费者；调整名称时更新调用方，不为旧名称增加转发或兼容别名。
+
+## 8. 缩写与语义
+
+- 驼峰名称中的缩写按普通单词处理，例如 `apiClient.ts`、`useGistSync.ts`、`HttpClient.tsx`。
+- 不添加无意义的 `new`、`old`、`final`、`v2`；版本确实属于业务协议时可以保留。
+- 避免笼统的 `helpers.ts`、`common.ts`；优先使用 `dateFormatting.ts` 等表达真实职责的名称。
+- 上级目录已明确表达的含义不必重复。
+- 避免仅大小写不同的两个路径，不同时创建 `ClockWidget.tsx` 与 `clockWidget.tsx`。
+- 本规范不改变代码符号约定：函数、变量和 Hook 使用 camelCase，类型、类和 React 组件使用 PascalCase，常量沿用项目代码规则。
+
+## 9. 路径迁移要求
+
+执行文件或目录重命名时：
+
+- 先列出旧路径、新路径、例外和影响范围；区分名称调整与其他结构重构。
+- 同步更新 import、export、动态加载、构建与测试配置、脚本、文档链接和静态资源引用。
+- Windows 下仅大小写变化的 Git 重命名使用临时中间名，确保 Git 正确记录。
+- 保留用户已有的未提交修改，不把其他改动归入命名迁移。
+- 验证引用完整性，并运行与影响范围相符的类型检查、lint、测试及构建。
+- 不把命名迁移当作修改业务规则或导出接口的授权。
