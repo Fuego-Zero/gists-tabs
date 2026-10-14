@@ -1,42 +1,35 @@
 # 芸笺
 
-基于 GitHub Gists 管理数据的 Chrome 新标签页扩展（仓库名仍为 `gists-tabs`）。
+芸笺是一个 Chrome 新标签页扩展：把浏览器首页变成你自己的多页工作台，在画布上放置书签、时钟等小组件。数据默认保存在本机扩展存储中；需要跨设备或备份时，可用自己的 GitHub Token 同步到个人 Gist。
+
+## 功能概要
+
+- 多页新标签画布
+- 书签、时钟等小组件，支持拖拽排序
+- Popup 快速添加书签
+- Options：配置 GitHub Token 与云同步开关
+- 本地存储；可选同步到个人 Gist
+- 数据导入 / 导出
+- 主题：light / dark
 
 ## 技术栈
 
 Chrome MV3 · React 18 · TypeScript · Ant Design 5 · Tailwind · Webpack
 
-## 分支策略（GitHub flow）
+当前版本见 `package.json`。
 
-本仓库已从 gitflow 切换为 **GitHub flow**。
+## 本地开发
 
-### 主干
+前置：Node.js 与 Yarn。
 
-- **唯一长期主干：`master`**（本轮不改名为 `main`）。
-- 新工作一律从 `master` 拉取功能分支。
-- **`develop` 已停用**：不再从 `develop` 拉新分支，也不再向 `develop` 合并。远程 `develop` 的删除须经 Fuego 按钮确认后再执行。
-
-### 功能分支命名
-
-| 前缀 | 用途 |
+| 命令 | 说明 |
 |------|------|
-| `feat/` | 新功能 |
-| `fix/` | 缺陷 |
-| `chore/` | 脚手架、依赖、命名、文档流程等 |
-| `docs/` | 纯文档 |
+| `yarn dev` | 清理后启动开发构建 |
+| `yarn build` | 类型检查并产出生产构建 |
+| `yarn lint` | `tsc --noEmit` + ESLint |
 
-规则：一个功能/改动一个分支；分支名短横线小写（例如 `chore/readme-yunjian`）；不设长驻 release / hotfix 分支。
+构建产物在 `build/`。在 Chrome 中加载已解压的扩展时，选择该目录即可。
 
-### 审后 PR 流程
+## 许可证
 
-1. 从 `master` 拉功能分支，本地开发（期间默认不推送）。
-2. 功能完成后，经 **Fuego 按钮确认** 再推送并开 PR（base = `master`）。
-3. `@芸笺-审核` 只读审：通过 / 有条件通过 / 打回。
-4. 通过后由 **Fuego 在网页点合并**；合并后删除远程功能分支（删除亦须确认）。
-5. 不设 bot 自动合并；不向 `develop` 合并。
-
-### 本地说明（本分支落地）
-
-- 当前开发请基于 `master` / 本仓库的功能分支。
-- 若本地仍停留在 `develop`，请切回 `master` 再开新分支。
-- **不要**自行推送；**不要**自行删除远程 `develop`。
+MIT
