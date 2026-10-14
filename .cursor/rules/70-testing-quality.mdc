@@ -1,0 +1,78 @@
+---
+description: 测试、质量门禁与回归通用规范。
+globs:
+  - "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# Testing / Quality
+
+## 1. 测试关注行为
+
+优先测试：
+
+- 业务规则
+- 公共契约
+- 错误边界
+- 权限 / Token 相关边界
+- 数据转换
+- 存储与同步边界
+
+不要大量测试框架本身已经保证的实现细节。
+
+## 2. Bug Fix
+
+修复 Bug 时优先补一个能复现问题的回归测试（若项目已具备单测基建）。
+
+## 3. Unit / Integration / E2E 分层
+
+### Unit
+- 快
+- 无真实外部依赖
+- 验证纯逻辑和稳定 contract
+
+### Integration
+- 验证存储、Gist Client、模块边界
+
+### E2E
+- 验证真实用户链路（扩展加载与主路径）
+
+不要用 mock 集成测试冒充 E2E。
+
+当前仓库若尚未建立单测 / E2E，不要虚构测试或 CI；有基建后再按本节补齐。
+
+## 4. Mock
+
+只 mock 真正边界：
+
+- 外部 API（如 GitHub Gist）
+- 时间
+- 随机
+- `chrome.*`（仅 unit 场景）
+
+不要把被测试业务本身 mock 掉。
+
+## 5. Flaky Test
+
+不接受通过 sleep 增大等待或重跑多次长期掩盖 flaky。
+
+应找出竞态、状态污染、不稳定外部依赖。
+
+## 6. 当前质量门
+
+当前以项目已有脚本为准，至少：
+
+```text
+yarn lint
+yarn build
+```
+
+有 `typecheck` / `test` 后再纳入同一质量门。不虚构尚不存在的 CI 流水线；若日后增加 CI，最小顺序为 install → lint →（typecheck）→（test）→ build。
+
+## 7. Coverage
+
+Coverage 是信号，不是目标。
+
+不要为了百分比写无业务价值测试。
+
+关键业务路径和错误路径优先。

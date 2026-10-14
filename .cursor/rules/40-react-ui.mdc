@@ -1,0 +1,135 @@
+---
+description: React / JSX / TSX 项目的通用 UI 工程规则。仅在 React 代码中适用。
+globs:
+  - "**/*.{jsx,tsx}"
+alwaysApply: false
+---
+
+# React / UI 通用规则
+
+## 1. 组件职责
+
+组件优先承担一种主要职责：
+
+- 页面组合
+- 业务 Feature
+- 可复用 UI
+- 数据展示
+- 交互控制
+
+页面组件不要长期同时负责：
+
+- 请求
+- 业务判断
+- 复杂数据转换
+- 全部 UI
+- 多个独立弹窗/流程
+
+## 2. 不机械拆组件
+
+不要因为 JSX 长就拆。
+
+优先按：
+
+- 独立业务区域
+- 独立状态
+- 独立复用
+- 独立变化原因
+
+拆分。
+
+禁止大量无意义 Wrapper Component。
+
+## 3. 状态
+
+优先级：
+
+```text
+局部 UI state
+→ feature state
+→ server / sync state
+→ global client state
+```
+
+不要把远端或同步数据无必要地复制到全局 store。
+
+不要为简单表单引入全局状态。
+
+## 4. 数据请求
+
+请求逻辑不要散落在大量组件中。
+
+统一：
+
+- API / sync client
+- query / mutation 层（若有）
+- 错误处理
+
+UI 组件不直接拼接复杂 URL、Header、鉴权逻辑。
+
+## 5. Effect
+
+`useEffect` 不是业务流程引擎。
+
+不要用多组互相依赖的 Effect 模拟状态机。
+
+可以从 props/state 派生的数据不要用 Effect 再存一份。
+
+## 6. Memo
+
+不要默认给所有组件加：
+
+- memo
+- useMemo
+- useCallback
+
+只有真实渲染问题、引用稳定要求或昂贵计算时使用。
+
+## 7. Props
+
+Props 应表达组件契约。
+
+避免几十个布尔值控制一个“万能组件”。
+
+复杂场景优先拆成更明确的组件或 discriminated props。
+
+## 8. 表单
+
+表单验证应有统一 Schema / Rule 来源。
+
+不要让 UI 校验与持久化 / 同步侧校验长期漂移。
+
+## 9. 可访问性
+
+交互元素使用正确语义：
+
+- button
+- input
+- label
+- dialog
+- aria（确有需要）
+
+不要用 div 模拟一切交互。
+
+## 10. UI 库
+
+项目已有成熟组件库（如 antd）时优先复用。
+
+不要因为视觉微差重新造一整套 Button / Modal / Form / Table。
+
+## 11. 操作反馈（toast）
+
+成功 / 失败 / 瞬时警告优先用项目已有的 antd toast（如 `App.useApp().message`），不占用页面流动布局，自动消失。
+
+- 通过项目约定的 App context 调用；勿脱离 context 直接静态 `import { message } from "antd"`。
+- 不引入第二套 toast 库。
+- Modal（含 `Modal.confirm` / `Modal.success`）仅用于必须确认才能继续的破坏性或不可撤销步骤；不用 Modal 展示普通成功/失败。
+- 页内 `Alert` / `Typography` 仅用于静态帮助、表单校验区、长期状态说明；不用作一次性操作结果的唯一反馈。
+- 失败文案展示用户可读意图，不展示堆栈、内部路径或未脱敏细节（尤其 GitHub Token）。
+
+## 12. 主题色
+
+主题优先以项目现有 `ConfigProvider` / 设计 token 为唯一来源（若已接入 antd theme）。
+
+- 样式优先用组件属性和 token；需要主题值时用项目约定的 hook（如 `theme.useToken()`）读取。
+- 业务组件不硬编码散落的 hex，不随意覆盖组件库内部类名。

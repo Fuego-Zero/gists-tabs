@@ -1,0 +1,117 @@
+---
+description: 通用模块、分层、职责与抽象设计规则。
+globs:
+  - "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# 模块设计规则
+
+## 1. 优先按业务能力组织
+
+对于中大型项目，优先考虑：
+
+```text
+feature / module / domain
+```
+
+而不是把全项目横向切成：
+
+```text
+controllers/
+services/
+repositories/
+utils/
+```
+
+模块内部再根据真实职责拆层。
+
+## 2. 不机械套层
+
+不要强制每个模块都有：
+
+```text
+controller
+service
+repository
+schema
+types
+mapper
+adapter
+```
+
+只有存在真实职责时才创建。
+
+## 3. 内聚
+
+一个模块应尽量：
+
+- 对外接口少
+- 内部实现集中
+- 不要求外部理解其内部数据结构
+
+不要把模块内部细节暴露给消费者。
+
+## 4. 公共代码的门槛
+
+代码只有满足以下条件时才进入 shared/common：
+
+- 至少两个真实消费者
+- 语义稳定
+- 不属于某个业务模块
+- 不引入反向依赖
+
+不要因为“以后可能复用”提前放公共目录。
+
+## 5. Utils 不是垃圾桶
+
+`utils/` 只放真正无业务语义、低耦合的通用函数。
+
+有明确业务语义的代码应留在所属模块。
+
+## 6. Service
+
+Service 负责业务编排或业务规则。
+
+不要让 Service 同时成为：
+
+- 数据库 DAO
+- HTTP Client
+- SDK Wrapper
+- DTO Mapper
+- Logger Wrapper
+
+## 7. Repository
+
+只有需要明确持久化边界时使用 Repository。
+
+Repository 负责数据访问技术细节，不承载业务决策。
+
+简单场景不要为模式形式强制 Repository。
+
+## 8. Adapter
+
+Adapter 用于适配外部接口或第三方 API。
+
+不要把项目内部每个函数调用都包装成 Adapter。
+
+## 9. 生命周期
+
+明确对象/服务是：
+
+- 每次调用创建
+- request scoped
+- singleton
+- application scoped
+
+避免隐藏的全局可变状态。
+
+## 10. 依赖注入
+
+依赖注入用于：
+
+- 明确依赖
+- 测试替换
+- 生命周期管理
+
+不要为了“企业架构”构建自研 DI Container。
