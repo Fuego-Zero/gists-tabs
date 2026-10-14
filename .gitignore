@@ -24,3 +24,7 @@
 secrets.*.js
 
 /src/data/mock
+
+# local scratch (TODO etc., never commit)
+.tmp/
+
