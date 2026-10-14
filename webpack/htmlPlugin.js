@@ -2,7 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { PAGES_PATH } = require('./constant');
 
-const htmlPlugin = ['Newtab', 'Options', 'Popup', 'Devtools', 'Panel'].map((item) => {
+const htmlPlugin = ['Newtab', 'Options', 'Popup'].map((item) => {
   const _item = item.toLowerCase();
 
   return new HtmlWebpackPlugin({
