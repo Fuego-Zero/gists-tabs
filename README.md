@@ -1,6 +1,6 @@
 # 芸笺
 
-基于 GitHub Gists 管理数据的 Chrome 新标签页扩展（仓库名仍为 `gist-tabs`）。
+基于 GitHub Gists 管理数据的 Chrome 新标签页扩展（仓库名仍为 `gists-tabs`）。
 
 ## 技术栈
 
