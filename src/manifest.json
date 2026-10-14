@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Gists Tabs",
-  "description": "一个基于 GitHub Gists 存储数据的 Chrome 书签插件",
+  "name": "芸笺",
+  "description": "个人新标签页工作台：多页画布上挂书签、时钟等小组件；数据默认本机存储，可选同步到 GitHub Gist。",
   "options_page": "options.html",
   "permissions": [
     "storage",
@@ -29,5 +29,6 @@
       ],
       "matches": []
     }
-  ]
+  ],
+  "short_name": "芸笺"
 }
