@@ -5,6 +5,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { App, Button, Form, Layout, Modal, Select, Space } from 'antd';
 
 import ScrollWrap from '@/components/ScrollWrap';
+import SyncConflictModal from '@/components/SyncConflictModal';
 import useGistsTabs from '@/hooks/useGistsTabs';
 import withTheme from '@/theme/withTheme';
 
@@ -188,6 +189,7 @@ const Newtab = () => {
         </ScrollWrap>
       </Content>
       {contextHolder}
+      <SyncConflictModal />
     </Layout>
   );
 };

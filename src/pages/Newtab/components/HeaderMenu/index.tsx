@@ -11,12 +11,15 @@ import {
   HolderOutlined,
   MenuOutlined,
   PlusOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { App, Button, Dropdown, Menu } from 'antd';
+import { App, Button, Dropdown, Menu, Space } from 'antd';
 
 import Storage from '@/classes/Storage';
+import SyncStatusIndicator from '@/components/SyncStatusIndicator';
 import useGistsTabs from '@/hooks/useGistsTabs';
+import useSyncState from '@/hooks/useSyncState';
 import { downloadFile, uploadFile } from '@/utils/file';
 
 import EditForm from './components/EditForm';
@@ -25,6 +28,7 @@ import type { Props } from './types';
 
 const HeaderMenu = (props: Props) => {
   const [gistsTabs, setGistsTabs] = useGistsTabs();
+  const syncState = useSyncState();
 
   const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage, onSortModeStart } = props;
 
@@ -67,11 +71,10 @@ const HeaderMenu = (props: Props) => {
         icon: <DeleteOutlined />,
         onClick: ({ domEvent }) => {
           const { shiftKey } = domEvent;
-          // 按住 Shift 删除时跳过确认弹窗，保留给高频整理页面的快捷操作。
           if (shiftKey) return delPage(activePageId);
 
           modal.confirm({
-            title: '您确定要删除吗?',
+            title: '你确定要删除吗?',
             icon: <ExclamationCircleFilled />,
             content: '删除后所有数据都会消失',
             okText: '删除',
@@ -89,11 +92,42 @@ const HeaderMenu = (props: Props) => {
       },
       {
         key: 'sync',
-        label: <span className="select-none">同步数据</span>,
+        label: <span className="select-none">立即同步</span>,
         icon: <CloudSyncOutlined />,
+        disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
         onClick: async () => {
           await Storage.syncGists();
-          message.success('同步成功');
+          message.success('已触发同步');
+        },
+      },
+      {
+        key: 'pull',
+        label: <span className="select-none">从云端拉取</span>,
+        icon: <CloudDownloadOutlined />,
+        onClick: () => {
+          modal.confirm({
+            title: '从云端拉取？',
+            icon: <ExclamationCircleFilled />,
+            content: '将用云端覆盖本机（覆盖前写入本地快照）。是否继续？',
+            okText: '拉取',
+            okType: 'danger',
+            cancelText: '取消',
+            onOk: async () => {
+              const res = await Storage.pullFromCloudConfirmed();
+              if (res.ok) message.success('拉取成功');
+              else message.error(res.reason || '拉取失败');
+            },
+          });
+        },
+      },
+      {
+        key: 'retry',
+        label: <span className="select-none">重试同步</span>,
+        icon: <ReloadOutlined />,
+        disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
+        onClick: async () => {
+          await Storage.retrySync();
+          message.info('已重试');
         },
       },
       {
@@ -102,7 +136,7 @@ const HeaderMenu = (props: Props) => {
         icon: <CloudDownloadOutlined />,
         onClick: async () => {
           if (!gistsTabs) {
-            message.warning('暂无数据可导出');
+            message.warning('没有数据可导出');
             return;
           }
 
@@ -111,7 +145,7 @@ const HeaderMenu = (props: Props) => {
             message.success('导出成功');
           } catch (error) {
             console.error('导出数据失败', error);
-            message.error('导出失败，请稍后重试');
+            message.error('导出失败，请稍后再试');
           }
         },
       },
@@ -133,23 +167,21 @@ const HeaderMenu = (props: Props) => {
                 const file = await uploadFile();
                 if (!file) return;
 
-                // 导入是全量覆盖当前本地数据，所以必须放在二次确认之后执行。
                 const text = await file.text();
                 const data = JSON.parse(text);
 
-                // TODO 未来需要强校验结构 —— 现在先偷懒了
                 setGistsTabs(data);
                 message.success('导入成功');
               } catch (error) {
                 console.error('导入数据失败', error);
-                message.error('导入失败，文件内容有误');
+                message.error('导入失败，文件可能损坏');
               }
             },
           });
         },
       },
     ],
-    [activePageId, copyPage, delPage, gistsTabs, message, modal, pages.length, setGistsTabs],
+    [activePageId, copyPage, delPage, gistsTabs, message, modal, pages.length, setGistsTabs, syncState.status],
   );
 
   const currentPageName = useMemo(() => pages.find((page) => page.id === activePageId)?.name, [activePageId, pages]);
@@ -166,30 +198,31 @@ const HeaderMenu = (props: Props) => {
           setActivePageId(value.key);
         }}
       />
-      <Button
-        ghost
-        className="mr-[10px]"
-        icon={<PlusOutlined />}
-        shape="circle"
-        size="small"
-        onClick={() => {
-          addPage();
-          message.success('新增成功');
-        }}
-      />
-      <Button
-        ghost
-        className="mr-[10px]"
-        icon={<HolderOutlined />}
-        shape="circle"
-        size="small"
-        onClick={() => {
-          onSortModeStart('manual');
-        }}
-      />
-      <Dropdown menu={{ items: dropdowns }} trigger={['click']}>
-        <Button ghost icon={<MenuOutlined />} shape="circle" size="small" />
-      </Dropdown>
+      <Space className="mr-[10px]" size={8}>
+        <SyncStatusIndicator />
+        <Button
+          ghost
+          icon={<PlusOutlined />}
+          shape="circle"
+          size="small"
+          onClick={() => {
+            addPage();
+            message.success('添加成功');
+          }}
+        />
+        <Button
+          ghost
+          icon={<HolderOutlined />}
+          shape="circle"
+          size="small"
+          onClick={() => {
+            onSortModeStart('manual');
+          }}
+        />
+        <Dropdown menu={{ items: dropdowns }} trigger={['click']}>
+          <Button ghost icon={<MenuOutlined />} shape="circle" size="small" />
+        </Dropdown>
+      </Space>
       <EditForm
         name={currentPageName}
         open={isOpen}

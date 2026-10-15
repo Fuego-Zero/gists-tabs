@@ -1,3 +1,4 @@
+import type { SyncMeta } from './sync';
 import type { Bookmarks } from './widget/bookmark';
 import type { Clocks } from './widget/clock';
 
@@ -27,8 +28,11 @@ export type Page = {
 
 export type GistsTabs = {
   pages: Page[];
+  syncMeta?: SyncMeta;
   updateAt: number;
   version: number;
 };
 
 export type Theme = 'dark' | 'light';
+
+export type { SyncConflictPayload, SyncMeta, SyncSnapshot, SyncState, SyncStatus } from './sync';
