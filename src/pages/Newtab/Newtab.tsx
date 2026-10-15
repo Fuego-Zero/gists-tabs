@@ -147,7 +147,10 @@ const Newtab = () => {
 
   return (
     <Layout className="h-[100vh]">
-      <Header className="sticky top-0 z-10 w-full flex items-center">
+      <Header className="sticky top-0 z-10 w-full flex items-center gap-3">
+        <span className="shrink-0 select-none whitespace-nowrap text-sm font-medium text-white/90">
+          芸笺 · Gists Tabs
+        </span>
         {isSortMode ? (
           <Space className="ml-auto">
             <Button type="primary" onClick={saveSortMode}>

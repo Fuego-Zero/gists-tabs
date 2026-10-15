@@ -90,6 +90,10 @@ const Options = () => {
   return (
     <Layout>
       <Content className="h-[100vh] pt-[100px] px-[20px]">
+        <div className="mb-8 w-[650px]">
+          <h1 className="m-0 text-2xl font-semibold">芸笺 · Gists Tabs</h1>
+          <p className="mb-0 mt-1 text-gray-500">设置</p>
+        </div>
         <Form className="w-[650px]" labelCol={{ span: 4 }}>
           <Form.Item label="Gists Token">
             <Space.Compact style={{ width: '100%' }}>

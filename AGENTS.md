@@ -1,4 +1,4 @@
-# 芸笺 · Agent / 协作与工程约定
+# 芸笺 · Gists Tabs · Agent / 协作与工程约定
 
 面向 Cursor / Codex、项目组协作 bot 与协作者。人读的产品介绍见 [README.md](./README.md)。详细工程规则维护在 `.cursor/rules/`。
 
