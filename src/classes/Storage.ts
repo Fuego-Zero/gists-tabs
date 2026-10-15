@@ -689,7 +689,32 @@ class Storage {
     }
   }
 
-  async setGistsTabs(data: GistsTabs) {
+  /**
+   * User-edit write path. Engine writebacks (push / applyCloudData / use-cloud)
+   * must use this.set + setDirty(false), not this method. If a sync write must
+   * go through here, pass { fromSync: true } or { skipDirty: true }.
+   */
+  async setGistsTabs(data: GistsTabs, options?: { fromSync?: boolean; skipDirty?: boolean }) {
+    const skipDirty = Boolean(options?.skipDirty || options?.fromSync);
+
+    if (skipDirty) {
+      await this.set(storageKeys.gistsTabs, data);
+      await this.setDirty(false);
+      return;
+    }
+
+    // Guard: synced data echoed back via user handler must not re-dirty.
+    // Same anchored revision + unchanged pages => echo (updateAt bump only).
+    const prev = await this.getGistsTabs();
+    const lastSynced = await this.getLastSyncedRevision();
+    const sameRevision = Boolean(data.syncMeta?.revision && lastSynced && data.syncMeta.revision === lastSynced);
+    const samePages =
+      prev != null && JSON.stringify(prev.pages) === JSON.stringify(data.pages) && prev.version === data.version;
+    if (sameRevision && samePages) {
+      await this.set(storageKeys.gistsTabs, data);
+      return;
+    }
+
     await this.set(storageKeys.gistsTabs, data);
     await this.setDirty(true);
     const open = await this.getCloudSync();

@@ -16,6 +16,7 @@ export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (da
     version: VERSION,
   });
 
+  // User edits only (sets dirty). onChanged / engine writebacks update React only — do not re-persist via this handler.
   const setGistsTabsHandler = useCallback((data: GistsTabs) => {
     data.updateAt = Date.now();
     setGistsTabs(clone(data));
@@ -46,7 +47,7 @@ export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (da
     })();
   }, [setGistsTabsHandler]);
 
-  // 跨页同步：用 chrome.storage.onChanged，去掉 200ms 轮询与 autoSync 间隔轮询
+  // Cross-tab sync via chrome.storage.onChanged (React only; never Storage.setGistsTabs — avoids re-dirty after synced)
   useEffect(() => {
     const onChanged: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (changes, areaName) => {
       if (areaName !== 'local') return;
