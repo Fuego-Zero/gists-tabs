@@ -16,6 +16,7 @@ export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (da
     version: VERSION,
   });
 
+  // User edits only (sets dirty). onChanged / engine writebacks update React only — do not re-persist via this handler.
   const setGistsTabsHandler = useCallback((data: GistsTabs) => {
     data.updateAt = Date.now();
     setGistsTabs(clone(data));
@@ -26,12 +27,9 @@ export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (da
     (async () => {
       let data = await Storage.getGistsTabs();
 
-      //* 如果没有数据，就需要走初始化数据流程
       if (!data) {
-        console.log('初始化数据流程');
-
         data = {
-          pages: [createPage('首页')],
+          pages: [createPage('主页')],
           updateAt: Date.now(),
           version: VERSION,
         };
@@ -39,46 +37,34 @@ export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (da
         await Storage.setGistsTabs(data);
       }
 
-      if (data.version === VERSION) return setGistsTabs(data);
+      if (data.version === VERSION) {
+        setGistsTabs(data);
+        return;
+      }
 
       data = upgradeGistsTabsToV1(data);
       setGistsTabsHandler(data);
     })();
   }, [setGistsTabsHandler]);
 
+  // Cross-tab sync via chrome.storage.onChanged (React only; never Storage.setGistsTabs — avoids re-dirty after synced)
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    (async function sync() {
-      const autoSync = await Storage.getAutoSync();
-      if (autoSync) await Storage.syncGists();
-
-      const syncInterval = await Storage.getAutoSyncInterval();
-      timer = setTimeout(sync, syncInterval * 1000);
-    })();
-
-    return () => {
-      clearTimeout(timer);
+    const onChanged: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (changes, areaName) => {
+      if (areaName !== 'local') return;
+      if (!changes.gistsTabs) return;
+      const next = changes.gistsTabs.newValue as GistsTabs | undefined;
+      if (!next) return;
+      setGistsTabs((prev) => {
+        if (prev.updateAt === next.updateAt && prev.syncMeta?.revision === next.syncMeta?.revision) {
+          return prev;
+        }
+        return next;
+      });
     };
-  }, []);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    let lastData: GistsTabs | undefined;
-
-    (async function sync() {
-      const data = await Storage.getGistsTabs();
-
-      if (data && data.updateAt !== lastData?.updateAt) {
-        lastData = data;
-        setGistsTabs(data);
-      }
-
-      timer = setTimeout(sync, 200);
-    })();
-
+    chrome.storage.onChanged.addListener(onChanged);
     return () => {
-      clearTimeout(timer);
+      chrome.storage.onChanged.removeListener(onChanged);
     };
   }, []);
 

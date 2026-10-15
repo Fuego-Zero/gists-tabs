@@ -1,0 +1,48 @@
+import type { GistsTabs } from '@/types';
+
+/** 冲突判定只比相等/不等，不做大小比较 */
+export type SyncMeta = {
+  deviceId: string;
+  revision: string;
+  updateAt: number;
+};
+
+export type SyncStatus = 'auth_failed' | 'conflict' | 'failed' | 'pending' | 'rate_limited' | 'synced' | 'syncing';
+
+export type SyncConflictPayload = {
+  cloud: GistsTabs;
+  cloudEtag: null | string;
+  local: GistsTabs;
+};
+
+export type SyncState = {
+  backoffUntil?: number;
+  conflict?: SyncConflictPayload;
+  lastError?: string;
+  lastPullAt?: number;
+  lastPushAt?: number;
+  status: SyncStatus;
+};
+
+export type SyncSnapshot = {
+  at: number;
+  data: GistsTabs;
+  id: string;
+  reason: string;
+};
+
+export const SYNC_STATUS_LABEL: Record<SyncStatus, string> = {
+  auth_failed: '鉴权失败',
+  conflict: '冲突待处理',
+  failed: '失败',
+  pending: '待同步（已排队）',
+  rate_limited: '限流等待',
+  synced: '已同步',
+  syncing: '同步中',
+};
+
+export const PULL_THROTTLE_MS = 5 * 60 * 1000;
+export const PUSH_DEBOUNCE_MS = 3000;
+export const SNAPSHOT_RING_SIZE = 5;
+export const BACKOFF_CAP_MS = 10 * 60 * 1000;
+export const BACKOFF_BASE_MS = 5000;
