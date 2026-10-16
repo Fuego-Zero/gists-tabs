@@ -19,7 +19,15 @@ export default function useWidgetsHandler(
   );
 
   const addWidget = (type: WidgetType, col: number, row: number) => {
-    widgets.push(createWidget('', type, row, col));
+    if (type === 'clocks') {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      widgets.push(createWidget(t('clockWidget'), type, row, col, {
+        clocks: [{ id: createId(), timezone }],
+      }));
+    } else {
+      widgets.push(createWidget('', type, row, col));
+    }
+
     setGistsTabs(gistsTabs);
   };
 

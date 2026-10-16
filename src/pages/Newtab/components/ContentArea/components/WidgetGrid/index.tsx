@@ -1,4 +1,5 @@
-import { Button, Col, Row } from 'antd';
+import { EllipsisOutlined } from '@ant-design/icons';
+import { Button, Col, Dropdown, Row, Space } from 'antd';
 import React from 'react';
 
 import { t } from '@/i18n/translate';
@@ -9,6 +10,7 @@ import type { SortModeWidget, WidgetInsertPosition, WidgetsHandler } from '../..
 import type { MoveBookmarkParams } from '../../../../utils/bookmarkPosition';
 import type { WidgetDropPreview } from '../../hooks/useWidgetSortDnd';
 import Bookmark from '../Bookmark';
+import ClockCard from '../clock/ClockCard';
 import DraggableWidget from '../DraggableWidget';
 import DropPlaceholder from '../DropPlaceholder';
 import EmptyColumnDropZone from '../EmptyColumnDropZone';
@@ -43,6 +45,9 @@ type Props = {
 const isBookmarkWidget = (widget: SortModeWidget): widget is Extract<Widget, { type: 'bookmarks' }> =>
   widget.type === 'bookmarks';
 
+const isClockWidget = (widget: SortModeWidget): widget is Extract<Widget, { type: 'clocks' }> =>
+  widget.type === 'clocks';
+
 const WidgetGrid = (props: Props) => {
   const {
     addWidget,
@@ -62,7 +67,7 @@ const WidgetGrid = (props: Props) => {
         <Col key={index} span={8}>
           <Row gutter={[16, 8]}>
             {column.map((widget) => {
-              const { id, name, type } = widget;
+              const { id, name } = widget;
               const isDropTarget = sortDnd.dropPreview?.targetId === id;
               const isDraggingWidget = Boolean(sortDnd.dropPreview && sortDnd.draggingWidgetId === id);
               // 被拖拽的源卡片在列表里占位但不显示，由自定义预览负责跟随鼠标。
@@ -114,7 +119,20 @@ const WidgetGrid = (props: Props) => {
                                   onTitleMouseDown={onTitleMouseDown}
                                 />
                               )}
-                              {type === 'clocks' && 'clocks'}
+                              {isClockWidget(widget) && (
+                                <ClockCard
+                                  copyWidget={copyWidget}
+                                  data={widget.data}
+                                  delWidget={delWidget}
+                                  dragHandleRef={dragHandleRef}
+                                  editWidget={editWidget}
+                                  id={id}
+                                  isTitleDragging={isDragging}
+                                  moveWidgetToPageModal={moveWidgetToPageModal}
+                                  name={name}
+                                  onTitleMouseDown={onTitleMouseDown}
+                                />
+                              )}
                             </>
                           )}
                         </div>
@@ -142,15 +160,29 @@ const WidgetGrid = (props: Props) => {
             )}
             {!isSortMode && (
               <Col span={24}>
-                <Button
-                  block
-                  type="dashed"
-                  onClick={() => {
-                    addWidget('bookmarks', index, column.length);
-                  }}
-                >
-                  {t('newWidget')}
-                </Button>
+                <Space.Compact block>
+                  <Button
+                    style={{ flex: 1 }}
+                    type="dashed"
+                    onClick={() => {
+                      addWidget('bookmarks', index, column.length);
+                    }}
+                  >
+                    {t('newWidget')}
+                  </Button>
+                  <Dropdown
+                    menu={{
+                      items: [{ key: 'clocks', label: t('newClock') }],
+                      onClick: () => {
+                        addWidget('clocks', index, column.length);
+                      },
+                    }}
+                    placement="bottomRight"
+                    trigger={['hover']}
+                  >
+                    <Button aria-label={t('newClock')} icon={<EllipsisOutlined />} type="dashed" />
+                  </Dropdown>
+                </Space.Compact>
               </Col>
             )}
           </Row>

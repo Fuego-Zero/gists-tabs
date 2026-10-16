@@ -11,6 +11,7 @@ export default [
       'src/data/mock/**',
       'src/storage/snapshotCache.test.ts',
       'src/storage/initialCanvas.test.ts',
+      'src/pages/Newtab/components/ContentArea/components/clock/formatClock.test.ts',
     ],
   },
   ...react,
