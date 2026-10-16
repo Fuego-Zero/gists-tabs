@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useDragLayer } from 'react-dnd';
 
-import { BOOKMARK_DRAG_TYPE } from '../../dnd';
+import { BOOKMARK_DRAG_TYPE, type BookmarkDragItem  } from '../../dnd';
 import mark from '../ShowCard/mark.svg';
 
-import type { BookmarkDragItem } from '../../dnd';
+
 
 const PREVIEW_OFFSET_X = 14;
 const PREVIEW_OFFSET_Y = 10;
@@ -36,7 +36,7 @@ const BookmarkPreviewIcon = (props: { src: null | string }) => {
 };
 
 const getUrlLabel = (url: string) => {
-  if (!url) return '';
+  if (!url) {return '';}
 
   try {
     return new URL(url).hostname.replace(/^www\./, '');
@@ -53,18 +53,18 @@ const BookmarkDragPreview = () => {
     itemType: monitor.getItemType(),
   }));
 
-  if (itemType !== BOOKMARK_DRAG_TYPE || !isDragging || !currentOffset || !isBookmarkDragItem(item)) return null;
+  if (itemType !== BOOKMARK_DRAG_TYPE || !isDragging || !currentOffset || !isBookmarkDragItem(item)) {return null;}
 
   const { icon, title, url } = item.preview;
   const urlLabel = getUrlLabel(url);
 
   return (
     <div
+      className="fixed left-0 top-0 z-[9999] pointer-events-none"
       style={{
         transform: `translate3d(${currentOffset.x + PREVIEW_OFFSET_X}px, ${currentOffset.y + PREVIEW_OFFSET_Y}px, 0)`,
         willChange: 'transform',
       }}
-      className="fixed left-0 top-0 z-[9999] pointer-events-none"
     >
       <div
         className="flex h-[40px] items-center gap-[8px] overflow-hidden rounded-[10px] border border-[rgba(5,5,5,0.08)] bg-[rgba(255,255,255,0.96)] px-[10px] shadow-[0_10px_28px_rgba(0,0,0,0.16)] ring-1 ring-[rgba(255,255,255,0.7)]"

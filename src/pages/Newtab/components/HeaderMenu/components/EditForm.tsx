@@ -1,13 +1,14 @@
+import { Form, Input, Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
 
-import { Form, Input, Modal } from 'antd';
+import { t } from '@/i18n/translate';
 
-type Props = {
+interface Props {
   name?: string;
   onCancel: () => void;
   onOk: (data: { name: string }) => void;
   open: boolean;
-};
+}
 
 const EditForm = (props: Props) => {
   const { open, onOk, onCancel, name = '' } = props;
@@ -15,17 +16,17 @@ const EditForm = (props: Props) => {
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   useEffect(() => {
-    if (open) form.setFieldsValue({ name });
+    if (open) {form.setFieldsValue({ name });}
   }, [form, name, open]);
 
   return (
     <Modal
-      destroyOnClose
-      cancelText="取消"
+      destroyOnHidden
+      cancelText={t('cancel')}
       confirmLoading={confirmLoading}
-      okText="确认"
+      okText={t('confirm')}
       open={open}
-      title="编辑页面"
+      title={t('editPage')}
       onCancel={onCancel}
       onOk={async () => {
         setConfirmLoading(true);
@@ -44,7 +45,7 @@ const EditForm = (props: Props) => {
       }}
     >
       <Form form={form} layout="vertical" name="form">
-        <Form.Item label="页面名称" name="name" rules={[{ required: true, message: '请输入页面名称' }]}>
+        <Form.Item label={t('pageName')} name="name" rules={[{ required: true, message: t('pageNameRequired') }]}>
           <Input autoComplete="off" maxLength={20} />
         </Form.Item>
       </Form>

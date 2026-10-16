@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -10,9 +8,11 @@ import {
   WarningOutlined,
 } from '@ant-design/icons';
 import { Tag, Tooltip } from 'antd';
+import React from 'react';
 
 import useSyncState from '@/hooks/useSyncState';
-import { SYNC_STATUS_LABEL, type SyncStatus } from '@/types/sync';
+import { formatLastError, syncStatusLabel } from '@/i18n/translate';
+import type { SyncStatus } from '@/types/sync';
 
 const ICON: Record<SyncStatus, React.ReactNode> = {
   auth_failed: <StopOutlined />,
@@ -36,8 +36,9 @@ const COLOR: Record<SyncStatus, string> = {
 
 const SyncStatusIndicator = () => {
   const state = useSyncState();
-  const label = SYNC_STATUS_LABEL[state.status];
-  const title = state.lastError ? `${label}：${state.lastError}` : label;
+  const label = syncStatusLabel(state.status);
+  const detail = formatLastError(state.lastError);
+  const title = detail ? `${label}: ${detail}` : label;
 
   return (
     <Tooltip title={title}>

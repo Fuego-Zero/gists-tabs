@@ -1,7 +1,7 @@
 /**
  * 提取数组元素类型
  */
-export type InferArrayItem<T> = T extends Array<infer P> ? P : never;
+export type InferArrayItem<T> = T extends (infer P)[] ? P : never;
 
 /**
  * 部分属性可选
@@ -19,9 +19,7 @@ export type RequiredOptionOnly<T, K extends keyof T> = Partial<T> & Required<Pic
  * 属性二选一
  */
 export type EitherOr<
-  O extends {
-    [name: string]: any;
-  },
+  O extends Record<string, any>,
   L extends keyof O,
   R extends keyof O,
 > = OneOfOption<O, L | R>;

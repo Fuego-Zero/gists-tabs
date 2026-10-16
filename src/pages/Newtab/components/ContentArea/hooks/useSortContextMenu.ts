@@ -5,10 +5,10 @@ import type { Widget } from '@/types';
 import type { WidgetColumnEdgePosition } from '../../../types';
 import type { SortContextMenuState } from '../components/SortModeContextMenu';
 
-type Params = {
+interface Params {
   isSortMode: boolean;
   moveWidgetToColumnEdge: (widgetId: Widget['id'], edgePosition: WidgetColumnEdgePosition) => void;
-};
+}
 
 const useSortContextMenu = (params: Params) => {
   const { isSortMode, moveWidgetToColumnEdge } = params;
@@ -20,7 +20,7 @@ const useSortContextMenu = (params: Params) => {
 
   const open = useCallback(
     (event: MouseEvent<HTMLDivElement>, widgetId: Widget['id']) => {
-      if (!isSortMode) return;
+      if (!isSortMode) {return;}
 
       event.preventDefault();
       event.stopPropagation();
@@ -41,7 +41,7 @@ const useSortContextMenu = (params: Params) => {
   );
 
   useEffect(() => {
-    if (!menu) return;
+    if (!menu) {return;}
 
     window.addEventListener('blur', close);
     window.addEventListener('mousedown', close);
@@ -53,7 +53,7 @@ const useSortContextMenu = (params: Params) => {
   }, [close, menu]);
 
   useEffect(() => {
-    if (isSortMode) return;
+    if (isSortMode) {return;}
 
     setMenu(null);
   }, [isSortMode]);

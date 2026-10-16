@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   CopyOutlined,
   DeleteOutlined,
@@ -9,10 +7,12 @@ import {
   VerticalAlignBottomOutlined,
   VerticalAlignTopOutlined,
 } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import { Button, Dropdown } from 'antd';
+import { Button, Dropdown, type MenuProps  } from 'antd';
+import React from 'react';
 
-type Props = {
+import { t } from '@/i18n/translate';
+
+interface Props {
   actionDisabled?: boolean;
   copyWidget: () => void;
   delWidget: () => void;
@@ -21,7 +21,7 @@ type Props = {
   switchMode: () => void;
   toggleDisabled?: boolean;
   toggleExpand: () => void;
-};
+}
 
 enum MenuAction {
   DELETE = 'delete',
@@ -42,26 +42,28 @@ const ExtraCard = (props: Props) => {
   } = props;
 
   const clickHandler: MenuProps['onClick'] = ({ key }) => {
-    if (key === MenuAction.MOVE) return moveWidgetToPageModal();
-    if (key === MenuAction.DELETE) return delWidget();
-    if (key === MenuAction.COPY) return copyWidget();
+    if (key === MenuAction.MOVE) {return moveWidgetToPageModal();}
+
+    if (key === MenuAction.DELETE) {return delWidget();}
+
+    if (key === MenuAction.COPY) {return copyWidget();}
   };
 
   const items: MenuProps['items'] = [
     {
       key: MenuAction.MOVE,
-      label: '移动',
+      label: t('move'),
       icon: <SwapOutlined />,
     },
     {
       key: MenuAction.COPY,
-      label: '复制',
+      label: t('copy'),
       icon: <CopyOutlined />,
     },
     {
       key: MenuAction.DELETE,
       danger: true,
-      label: '删除',
+      label: t('delete'),
       icon: <DeleteOutlined />,
     },
   ];

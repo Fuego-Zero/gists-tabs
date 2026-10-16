@@ -63,7 +63,7 @@ export function isObject<T extends Record<any, any> = Record<any, any>>(value: a
   return isType(value, 'Object');
 }
 
-export function isArray<T>(value: any): value is Array<T> {
+export function isArray<T>(value: any): value is T[] {
   return isType(value, 'Array');
 }
 
@@ -91,11 +91,11 @@ export function isBlob(value: any): value is Blob {
   return isType(value, 'Blob');
 }
 
-export function isSymbol(value: any): value is Symbol {
+export function isSymbol(value: any): value is symbol {
   return isType(value, 'Symbol');
 }
 
-export function isBigInt(value: any): value is BigInt {
+export function isBigInt(value: any): value is bigint {
   return isType(value, 'BigInt');
 }
 

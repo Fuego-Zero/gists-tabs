@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
-import { infoSortDndLog, roundMs, warnSortDndLog } from '../utils/sortDndLog';
-
 import type { Widget } from '@/types';
 
 import type { SortModeStartResult, SortModeWidget, WidgetInsertPosition } from '../../../types';
+import { infoSortDndLog, roundMs, warnSortDndLog } from '../utils/sortDndLog';
 
-type SortDndStats = {
+interface SortDndStats {
   crossColumnHoverCount: number;
   dragStartedAt: number;
   hoverCount: number;
@@ -15,36 +14,36 @@ type SortDndStats = {
   slowHoverCount: number;
   totalSyncMs: number;
   widgetId: Widget['id'];
-};
+}
 
-type DragEnterState = {
+interface DragEnterState {
   afterStartHandlerAt: number;
   committed: boolean;
   requestedAt: number;
   startResult: SortModeStartResult;
   widgetId: Widget['id'];
-};
+}
 
-type RecordHoverParams = {
+interface RecordHoverParams {
   crossColumn: boolean;
   hoverStartedAt: number;
   insertPosition: WidgetInsertPosition;
   sourceId: Widget['id'];
   syncMs: number;
   targetId: Widget['id'];
-};
+}
 
-type ScheduleDragEndClearParams = {
+interface ScheduleDragEndClearParams {
   clear: () => void;
   dropPreviewActive: boolean;
-};
+}
 
-type Params = {
+interface Params {
   columns: SortModeWidget[][];
   displayWidgetCount: number;
   draggingWidgetId: Widget['id'] | null;
   isSortMode: boolean;
-};
+}
 
 const SORT_DND_SLOW_HOVER_MS = 24;
 const SORT_DND_SLOW_END_MS = 24;
@@ -131,7 +130,7 @@ const useSortDndLogger = (params: Params) => {
           currentStats.maxFrameMs = Math.max(currentStats.maxFrameMs, frameMs);
         }
 
-        if (syncMs < SORT_DND_SLOW_HOVER_MS && frameMs < SORT_DND_SLOW_HOVER_MS) return;
+        if (syncMs < SORT_DND_SLOW_HOVER_MS && frameMs < SORT_DND_SLOW_HOVER_MS) {return;}
 
         if (currentStats) {
           currentStats.slowHoverCount += 1;
@@ -210,7 +209,7 @@ const useSortDndLogger = (params: Params) => {
           );
         }
 
-        if (!stats || stats.hoverCount === 0) return;
+        if (!stats || stats.hoverCount === 0) {return;}
 
         const durationMs = performance.now() - stats.dragStartedAt;
         const avgSyncMs = stats.totalSyncMs / stats.hoverCount;
@@ -237,7 +236,7 @@ const useSortDndLogger = (params: Params) => {
   useLayoutEffect(() => {
     const enterState = enterStateRef.current;
 
-    if (!enterState || enterState.committed || !isSortMode || !draggingWidgetId) return;
+    if (!enterState || enterState.committed || !isSortMode || !draggingWidgetId) {return;}
 
     const committedAt = performance.now();
 

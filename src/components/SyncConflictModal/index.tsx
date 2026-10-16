@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import { App, Button, Modal, Space, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
 
 import Storage from '@/classes/Storage';
 import useSyncState from '@/hooks/useSyncState';
+import { formatLastError, t } from '@/i18n/translate';
 import { downloadFile } from '@/utils/file';
 
-const { Paragraph, Text } = Typography;
+const { Paragraph } = Typography;
 
 const SyncConflictModal = () => {
   const syncState = useSyncState();
@@ -25,11 +25,11 @@ const SyncConflictModal = () => {
     setBusy(true);
     try {
       await Storage.resolveConflictKeepLocal();
-      message.success('已保留本机并推送云端');
+      message.success(t('keepLocalOk'));
       setOpen(false);
     } catch (error) {
       console.error(error);
-      message.error('处理冲突失败');
+      message.error(t('conflictFail'));
     } finally {
       setBusy(false);
     }
@@ -39,65 +39,63 @@ const SyncConflictModal = () => {
     setBusy(true);
     try {
       await Storage.resolveConflictUseCloud();
-      message.success('已采用云端数据');
+      message.success(t('useCloudOk'));
       setOpen(false);
     } catch (error) {
       console.error(error);
-      message.error('处理冲突失败');
+      message.error(t('conflictFail'));
     } finally {
       setBusy(false);
     }
   }
 
   async function exportBoth() {
-    if (!conflict) return;
+    if (!conflict) {return;}
+
     try {
       await downloadFile(conflict.local, `yunjian-local-${Date.now()}.json`);
       await downloadFile(conflict.cloud, `yunjian-cloud-${Date.now()}.json`);
-      message.success('已导出本机与云端 JSON');
+      message.success(t('exportBothOk'));
     } catch (error) {
       console.error(error);
-      message.error('导出失败');
+      message.error(t('exportFail'));
     }
   }
 
   return (
     <Modal
       centered
+      closable={false}
       footer={
         <Space wrap>
           <Button disabled={busy} onClick={exportBoth}>
-            导出两边 JSON
+            {t('exportBoth')}
           </Button>
           <Button danger disabled={busy} loading={busy} onClick={useCloud}>
-            采用云端
+            {t('useCloud')}
           </Button>
           <Button disabled={busy} loading={busy} type="primary" onClick={keepLocal}>
-            保留本机并推云
+            {t('keepLocal')}
           </Button>
         </Space>
       }
+      maskClosable={false}
+      open={open}
       title={
         <span>
           <ExclamationCircleFilled className="mr-2 text-amber-500" />
-          同步冲突
+          {t('conflictTitle')}
         </span>
       }
-      closable={false}
-      maskClosable={false}
-      open={open}
     >
-      <Paragraph>
-        云端与本机的 <Text code>revision</Text> 不一致（或云端为旧格式无
-        revision）。禁止静默覆盖，请选择一侧（或先导出备份）。
-      </Paragraph>
-      {syncState.lastError ? <Paragraph type="warning">{syncState.lastError}</Paragraph> : null}
+      <Paragraph>{t('conflictBody')}</Paragraph>
+      {syncState.lastError ? <Paragraph type="warning">{formatLastError(syncState.lastError)}</Paragraph> : null}
       <Paragraph type="secondary">
-        本机 updateAt：{conflict?.local.updateAt ?? '-'} / 云端 updateAt：{conflict?.cloud.updateAt ?? '-'}
+        {t('localUpdateAt')}：{conflict?.local.updateAt ?? '-'} / {t('cloudUpdateAt')}：{conflict?.cloud.updateAt ?? '-'}
         <br />
-        本机 revision：{conflict?.local.syncMeta?.revision ?? '（无）'}
+        {t('localRevision')}：{conflict?.local.syncMeta?.revision ?? t('none')}
         <br />
-        云端 revision：{conflict?.cloud.syncMeta?.revision ?? '（无）'}
+        {t('cloudRevision')}：{conflict?.cloud.syncMeta?.revision ?? t('none')}
       </Paragraph>
     </Modal>
   );

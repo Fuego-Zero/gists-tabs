@@ -6,13 +6,13 @@ import type { WidgetInsertPosition } from '../types';
 type BookmarkWidget = Extract<Widget, { type: 'bookmarks' }>;
 type BookmarkList = BookmarkWidget['data']['bookmarks'];
 
-export type MoveBookmarkParams = {
+export interface MoveBookmarkParams {
   bookmarkId: BookmarkId;
   insertPosition?: WidgetInsertPosition;
   sourceWidgetId: Widget['id'];
   targetBookmarkId?: BookmarkId;
   targetWidgetId: Widget['id'];
-};
+}
 
 const getBookmarkIds = (bookmarks: BookmarkList) => bookmarks.map(({ id }) => id).join('|');
 
@@ -24,21 +24,21 @@ export const moveBookmarkInWidgets = (widgets: Page['widgets'], params: MoveBook
   const { bookmarkId, insertPosition = 'after', sourceWidgetId, targetBookmarkId, targetWidgetId } = params;
 
   // 拖回自己所在的同一个落点时直接 no-op，避免出现“拿起又放下却换位”的错觉。
-  if (sourceWidgetId === targetWidgetId && bookmarkId === targetBookmarkId) return widgets;
+  if (sourceWidgetId === targetWidgetId && bookmarkId === targetBookmarkId) {return widgets;}
 
   const sourceWidgetIndex = widgets.findIndex((widget) => widget.id === sourceWidgetId);
   const targetWidgetIndex = widgets.findIndex((widget) => widget.id === targetWidgetId);
 
-  if (sourceWidgetIndex === -1 || targetWidgetIndex === -1) return widgets;
+  if (sourceWidgetIndex === -1 || targetWidgetIndex === -1) {return widgets;}
 
   const sourceWidget = widgets[sourceWidgetIndex];
   const targetWidget = widgets[targetWidgetIndex];
-  if (sourceWidget?.type !== 'bookmarks' || targetWidget?.type !== 'bookmarks') return widgets;
+  if (sourceWidget?.type !== 'bookmarks' || targetWidget?.type !== 'bookmarks') {return widgets;}
 
   const sourceBookmarks = sourceWidget.data.bookmarks;
   const sourceIndex = sourceBookmarks.findIndex((bookmark) => bookmark.id === bookmarkId);
 
-  if (sourceIndex === -1) return widgets;
+  if (sourceIndex === -1) {return widgets;}
 
   const bookmark = sourceBookmarks[sourceIndex];
   const nextSourceBookmarks = sourceBookmarks.filter((item) => item.id !== bookmarkId);
@@ -49,15 +49,16 @@ export const moveBookmarkInWidgets = (widgets: Page['widgets'], params: MoveBook
   if (targetBookmarkId) {
     // 没有 targetBookmarkId 时表示追加到目标 card 尾部；有值时按 before/after 精确插入。
     targetIndex = targetBookmarks.findIndex((targetBookmark) => targetBookmark.id === targetBookmarkId);
-    if (targetIndex === -1) return widgets;
-    if (insertPosition === 'after') targetIndex += 1;
+    if (targetIndex === -1) {return widgets;}
+
+    if (insertPosition === 'after') {targetIndex += 1;}
   }
 
   const nextTargetBookmarks = [...targetBookmarks];
   nextTargetBookmarks.splice(targetIndex, 0, bookmark);
 
   if (sourceWidgetIndex === targetWidgetIndex) {
-    if (isSameBookmarkOrder(sourceBookmarks, nextTargetBookmarks)) return widgets;
+    if (isSameBookmarkOrder(sourceBookmarks, nextTargetBookmarks)) {return widgets;}
 
     const nextWidgets = [...widgets];
     nextWidgets[sourceWidgetIndex] = {

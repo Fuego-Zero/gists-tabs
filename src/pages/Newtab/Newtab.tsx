@@ -1,28 +1,22 @@
+import { App, Button, Form, Layout, Modal, Select, Space } from 'antd';
 import React, { useCallback, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
-import { App, Button, Form, Layout, Modal, Select, Space } from 'antd';
-
 import ScrollWrap from '@/components/ScrollWrap';
 import SyncConflictModal from '@/components/SyncConflictModal';
 import useGistsTabs from '@/hooks/useGistsTabs';
+import { useStorageItem } from '@/hooks/useStorageItem';
+import { pageTitle, setActiveLocale, t } from '@/i18n/translate';
+import { localeItem } from '@/storage/items';
 import withTheme from '@/theme/withTheme';
+import type { Page, Widget } from '@/types';
 
 import ContentArea from './components/ContentArea';
 import HeaderMenu from './components/HeaderMenu';
 import useActivePage from './hooks/useActivePage';
 import usePagesHandler from './hooks/usePagesHandler';
 import useWidgetsHandler from './hooks/useWidgetsHandler';
-import {
-  createSortModeWidgets,
-  moveWidgetPositionInList,
-  moveWidgetToColumnEdgeInList,
-  moveWidgetToColumnInList,
-} from './utils/widgetPosition';
-
-import type { Page, Widget } from '@/types';
-
 import type {
   SortModeStartReason,
   SortModeStartResult,
@@ -30,11 +24,19 @@ import type {
   WidgetColumnEdgePosition,
   WidgetInsertPosition,
 } from './types';
+import {
+  createSortModeWidgets,
+  moveWidgetPositionInList,
+  moveWidgetToColumnEdgeInList,
+  moveWidgetToColumnInList,
+} from './utils/widgetPosition';
 
 const { Header, Content } = Layout;
 
 const Newtab = () => {
   const [gistsTabs, setGistsTabs] = useGistsTabs();
+  const locale = useStorageItem(localeItem, 'zh_CN');
+  setActiveLocale(locale);
   const [activePageId, setActivePageId] = useActivePage(gistsTabs);
   const pagesHandler = usePagesHandler(gistsTabs, setGistsTabs);
   const { widgets, ...widgetsHandler } = useWidgetsHandler(gistsTabs, setGistsTabs, activePageId);
@@ -114,23 +116,23 @@ const Newtab = () => {
   }, []);
 
   const saveSortMode = useCallback(() => {
-    if (!sortModeWidgets) return;
+    if (!sortModeWidgets) {return;}
 
     // 真实 widget 数据只需要更新 col/row，避免覆盖排序期间可能变化的业务 data。
     widgetsHandler.saveWidgetPositions(sortModeWidgets.map(({ col, id, row }) => ({ col, id, row })));
     setSortModeWidgets(null);
-    message.success('排序已保存');
+    message.success(t('sortSaved'));
   }, [message, sortModeWidgets, widgetsHandler]);
 
   function moveWidgetToPageModal(widgetId: Widget['id']) {
-    const options = pages.map((page) => ({ value: page.id, label: <span>{page.name}</span> }));
+    const options = pages.map((page) => ({ value: page.id, label: <span>{pageTitle(page)}</span> }));
 
     // 默认选中当前页，用户可直接确认或切到其他页。
     form.setFieldsValue({ pageId: activePageId });
 
     modal.confirm({
-      destroyOnClose: true,
-      title: '选择新页面',
+      destroyOnHidden: true,
+      title: t('choosePage'),
       icon: null,
       content: (
         <Form form={form} layout="vertical" name="form">
@@ -149,16 +151,13 @@ const Newtab = () => {
   return (
     <Layout className="h-[100vh]">
       <Header className="sticky top-0 z-10 w-full flex items-center gap-3">
-        <span className="shrink-0 select-none whitespace-nowrap text-sm font-medium text-white/90">
-          芸笺 · Gists Tabs
-        </span>
         {isSortMode ? (
           <Space className="ml-auto">
             <Button type="primary" onClick={saveSortMode}>
-              保存
+              {t('save')}
             </Button>
-            <Button ghost onClick={exitSortMode}>
-              退出
+            <Button type="text" onClick={exitSortMode}>
+              {t('exit')}
             </Button>
           </Space>
         ) : (

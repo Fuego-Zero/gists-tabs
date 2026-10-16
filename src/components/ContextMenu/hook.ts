@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 
 import { DEFAULT_Z_INDEX } from './constant';
 import useContextmenuHandle from './hooks/useContextmenuHandle';
-
 import type { UseContextMenuParams } from './types';
 
 export function useContextMenu<T = any>(params: UseContextMenuParams<T>) {

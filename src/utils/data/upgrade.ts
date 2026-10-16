@@ -1,15 +1,15 @@
-import { isArray } from '../typeUtil';
-
 import type { GistsTabs } from '@/types';
 import type { Bookmark } from '@/types/widget/bookmark';
 import type { Clock } from '@/types/widget/clock';
+
+import { isArray } from '../typeUtil';
 
 /**
  * 升级数据版本
  */
 function upgradeGistsTabsToV1(data: GistsTabs): GistsTabs {
   const { pages, updateAt, version } = data;
-  if (version === 1) return data;
+  if (version === 1) {return data;}
 
   pages.forEach((page) => {
     page.widgets.forEach((widget) => {

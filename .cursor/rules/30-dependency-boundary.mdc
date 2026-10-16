@@ -82,7 +82,7 @@ Barrel export 可用于稳定公共 API。
 
 ## 8. 框架边界
 
-React、Webpack、antd 等不应单独决定业务模型。
+React、WXT、antd 等不应单独决定业务模型。
 
 业务层尽量不依赖：
 

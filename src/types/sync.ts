@@ -1,35 +1,35 @@
 import type { GistsTabs } from '@/types';
 
 /** 冲突判定只比相等/不等，不做大小比较 */
-export type SyncMeta = {
+export interface SyncMeta {
   deviceId: string;
   revision: string;
   updateAt: number;
-};
+}
 
 export type SyncStatus = 'auth_failed' | 'conflict' | 'failed' | 'pending' | 'rate_limited' | 'synced' | 'syncing';
 
-export type SyncConflictPayload = {
+export interface SyncConflictPayload {
   cloud: GistsTabs;
   cloudEtag: null | string;
   local: GistsTabs;
-};
+}
 
-export type SyncState = {
+export interface SyncState {
   backoffUntil?: number;
   conflict?: SyncConflictPayload;
   lastError?: string;
   lastPullAt?: number;
   lastPushAt?: number;
   status: SyncStatus;
-};
+}
 
-export type SyncSnapshot = {
+export interface SyncSnapshot {
   at: number;
   data: GistsTabs;
   id: string;
   reason: string;
-};
+}
 
 export const SYNC_STATUS_LABEL: Record<SyncStatus, string> = {
   auth_failed: '鉴权失败',

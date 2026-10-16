@@ -1,7 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
-import Popup from './components/Popup';
+import Popup from '@/pages/Popup/components/Popup';
+import { WithTheme } from '@/theme/withTheme';
+import '@/styles/tailwind.css';
 
 import './index.scss';
 
@@ -16,4 +18,8 @@ if (container) {
 }
 
 const root = createRoot(container!);
-root.render(<Popup />);
+root.render(
+  <WithTheme>
+    <Popup />
+  </WithTheme>,
+);

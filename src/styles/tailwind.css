@@ -1,0 +1,7 @@
+@layer theme, base, antd, components, utilities;
+
+@import 'tailwindcss';
+
+@theme {
+  --color-danger: #ff4d4f;
+}

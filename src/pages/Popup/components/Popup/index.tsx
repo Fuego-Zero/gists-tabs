@@ -1,40 +1,39 @@
+import { DownloadOutlined } from '@ant-design/icons';
+import { Button, Form, Input, theme, Tooltip } from 'antd';
+import classNames from 'classnames';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { DownloadOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Tooltip } from 'antd';
-
-import classNames from 'classnames';
-
 import useGistsTabs from '@/hooks/useGistsTabs';
+import { t } from '@/i18n/translate';
 import { createBookmark } from '@/pages/Newtab/components/ContentArea/components/Bookmark/dataFactory';
 import { getCurrentTab } from '@/utils/chrome/tabs';
 
-type Option = {
+interface Option {
   children?: Option[];
   col?: number;
   label: string;
   value: string;
-};
+}
 
-type FormValues = {
+interface FormValues {
   favIconUrl: string;
   title: string;
   url: string;
   widget?: string[];
-};
+}
 
-type WidgetPickerProps = {
+interface WidgetPickerProps {
   onChange?: (value?: string[]) => void;
   options: Option[];
   value?: string[];
-};
+}
 
-type PickTagProps = {
+interface PickTagProps {
   active?: boolean;
   fixedWidth?: boolean;
   label: string;
   onClick: () => void;
-};
+}
 
 const tagClassName =
   'm-0 inline-flex shrink-0 cursor-pointer items-center rounded-md border px-2.5 py-1 text-sm leading-5 transition-colors';
@@ -46,7 +45,7 @@ const PickTag = ({ active = false, fixedWidth = false, label, onClick }: PickTag
         'w-full min-w-0': fixedWidth,
         'max-w-[120px]': !fixedWidth,
         'border-[#1677ff] bg-[#e6f4ff] text-[#1677ff]': active,
-        'border-[#d9d9d9] bg-[#fafafa] text-[rgba(0,0,0,0.88)] hover:border-[#1677ff] hover:text-[#1677ff]': !active,
+        'border-current/20 bg-current/5 text-inherit hover:border-[#1677ff] hover:text-[#1677ff]': !active,
       })}
       type="button"
       onClick={onClick}
@@ -71,11 +70,11 @@ const WidgetPicker = ({ options, value, onChange }: WidgetPickerProps) => {
     <div
       className={classNames('flex min-h-0 flex-1 flex-col gap-3 rounded-lg border p-3', {
         'border-[#ff4d4f]': status === 'error',
-        'border-[#d9d9d9]': status !== 'error',
+        'border-current/20': status !== 'error',
       })}
     >
       <div className="shrink-0">
-        <div className="mb-2 text-xs text-[rgba(0,0,0,0.45)]">页面</div>
+        <div className="mb-2 text-xs opacity-45">{t('page')}</div>
         <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
           {options.map((page) => (
             <PickTag
@@ -94,7 +93,7 @@ const WidgetPicker = ({ options, value, onChange }: WidgetPickerProps) => {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="mb-2 shrink-0 text-xs text-[rgba(0,0,0,0.45)]">书签组</div>
+        <div className="mb-2 shrink-0 text-xs opacity-45">{t('bookmarkGroup')}</div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {widgets.length ? (
             <div className="grid grid-cols-3 grid-flow-col gap-2">
@@ -105,7 +104,8 @@ const WidgetPicker = ({ options, value, onChange }: WidgetPickerProps) => {
                     active={value?.[0] === activePageId && value?.[1] === widget.value}
                     label={widget.label}
                     onClick={() => {
-                      if (!activePageId) return;
+                      if (!activePageId) {return;}
+
                       onChange?.([activePageId, widget.value]);
                     }}
                   />
@@ -113,7 +113,7 @@ const WidgetPicker = ({ options, value, onChange }: WidgetPickerProps) => {
               ))}
             </div>
           ) : (
-            <div className="py-2 text-sm text-[#00000040]">暂无书签组</div>
+            <div className="py-2 text-sm opacity-45">{t('noBookmarkGroup')}</div>
           )}
         </div>
       </div>
@@ -122,6 +122,7 @@ const WidgetPicker = ({ options, value, onChange }: WidgetPickerProps) => {
 };
 
 const Popup = () => {
+  const { token } = theme.useToken();
   const [gistsTabs, setGistsTabs] = useGistsTabs();
   const [form] = Form.useForm();
 
@@ -139,7 +140,7 @@ const Popup = () => {
             value: widget.id,
           }));
 
-        if (!bookmarkWidgets.length) return arr;
+        if (!bookmarkWidgets.length) {return arr;}
 
         arr.push({
           label: name,
@@ -167,8 +168,9 @@ const Popup = () => {
         .find((page) => page.id === pageId)
         ?.widgets.find((widget) => widget.id === widgetId);
 
-      if (!widget) return;
-      if (widget.type !== 'bookmarks') return;
+      if (!widget) {return;}
+
+      if (widget.type !== 'bookmarks') {return;}
 
       const bookmark = createBookmark({
         icon: values.favIconUrl,
@@ -177,7 +179,8 @@ const Popup = () => {
       });
       widget.data.bookmarks.push(bookmark);
 
-      setGistsTabs(gistsTabs);
+      // 先等存储写完再关弹窗，否则页面卸载会丢掉这次添加。
+      await setGistsTabs(gistsTabs);
       window.close();
     } catch (error) {
       console.error(error);
@@ -185,28 +188,28 @@ const Popup = () => {
   }
 
   return (
-    <div className="flex h-full w-full flex-col bg-white">
-      <div className="shrink-0 border-b border-[#f0f0f0] px-6 py-4 text-base font-medium">添加书签</div>
+    <div className="flex h-full w-full flex-col" style={{ background: token.colorBgContainer, color: token.colorText }}>
+      <div className="shrink-0 border-b border-current/10 px-6 py-4 text-base font-medium">{t('addBookmark')}</div>
 
       <Form requiredMark className="flex min-h-0 flex-1 flex-col px-6 pt-4" form={form} layout="vertical">
-        <Form.Item className="shrink-0" label="标题" name="title" rules={[{ required: true, message: '请输入标题' }]}>
+        <Form.Item className="shrink-0" label={t('title')} name="title" rules={[{ required: true, message: t('titleRequired') }]}>
           <Input.TextArea rows={2} style={{ resize: 'none' }} />
         </Form.Item>
 
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="mb-2 shrink-0 text-sm text-[rgba(0,0,0,0.88)]">
+          <div className="mb-2 shrink-0 text-sm">
             <span className="mr-1 text-[#ff4d4f]">*</span>
-            书签
+            {t('bookmark')}
           </div>
           <Form.Item
             noStyle
+            name="widget"
             rules={[
               {
                 validator: (_, selected) =>
-                  selected?.length === 2 ? Promise.resolve() : Promise.reject(new Error('请选择书签')),
+                  selected?.length === 2 ? Promise.resolve() : Promise.reject(new Error(t('pickBookmark'))),
               },
             ]}
-            name="widget"
             validateTrigger={[]}
           >
             <WidgetPicker options={options} />
@@ -227,9 +230,9 @@ const Popup = () => {
         </Form.Item>
       </Form>
 
-      <div className="shrink-0 border-t border-[#f0f0f0] px-6 py-3 text-center">
+      <div className="shrink-0 border-t border-current/10 px-6 py-3 text-center">
         <Button icon={<DownloadOutlined />} type="primary" onClick={onSave}>
-          保存书签
+          {t('saveBookmark')}
         </Button>
       </div>
     </div>

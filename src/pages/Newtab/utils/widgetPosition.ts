@@ -16,10 +16,10 @@ const applyWidgetPosition = <T extends SortModeWidget>(
   col: Widget['col'],
   row: Widget['row'],
 ) => {
-  if (widget.col === col && widget.row === row) return false;
+  if (widget.col === col && widget.row === row) {return false;}
 
   const index = widgetIndexMap.get(widget.id);
-  if (index === undefined) return false;
+  if (index === undefined) {return false;}
 
   nextWidgets[index] = { ...widget, col, row };
 
@@ -47,12 +47,12 @@ export const moveWidgetPositionInList = <T extends SortModeWidget>(
   targetId: Widget['id'],
   insertPosition: WidgetInsertPosition,
 ): T[] => {
-  if (sourceId === targetId) return widgets;
+  if (sourceId === targetId) {return widgets;}
 
   const source = widgets.find((item) => item.id === sourceId);
   const target = widgets.find((item) => item.id === targetId);
 
-  if (!source || !target) return widgets;
+  if (!source || !target) {return widgets;}
 
   const nextWidgets = [...widgets];
   const widgetIndexMap = buildWidgetIndexMap(widgets);
@@ -62,7 +62,7 @@ export const moveWidgetPositionInList = <T extends SortModeWidget>(
   const targetColumn = getColumnWidgets(widgets, targetCol, sourceId);
   const targetIndex = targetColumn.findIndex((widget) => widget.id === targetId);
 
-  if (targetIndex === -1) return widgets;
+  if (targetIndex === -1) {return widgets;}
 
   targetColumn.splice(insertPosition === 'after' ? targetIndex + 1 : targetIndex, 0, source);
 
@@ -85,7 +85,7 @@ export const moveWidgetToColumnEdgeInList = <T extends SortModeWidget>(
 ): T[] => {
   const source = widgets.find((item) => item.id === widgetId);
 
-  if (!source) return widgets;
+  if (!source) {return widgets;}
 
   const nextWidgets = [...widgets];
   const widgetIndexMap = buildWidgetIndexMap(widgets);
@@ -109,7 +109,7 @@ export const moveWidgetToColumnInList = <T extends SortModeWidget>(
 ): T[] => {
   const source = widgets.find((item) => item.id === widgetId);
 
-  if (!source) return widgets;
+  if (!source) {return widgets;}
 
   const nextWidgets = [...widgets];
   const widgetIndexMap = buildWidgetIndexMap(widgets);

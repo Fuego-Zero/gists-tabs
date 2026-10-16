@@ -1,20 +1,19 @@
+import { ExclamationCircleFilled } from '@ant-design/icons';
+import { App, Card, Form, Input, notification, Spin } from 'antd';
+import classNames from 'classnames';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDrop } from 'react-dnd';
 
-import { ExclamationCircleFilled } from '@ant-design/icons';
-import { App, Card, Form, Input, Spin, notification } from 'antd';
-
-import classNames from 'classnames';
+import { t } from '@/i18n/translate';
+import type { Bookmark } from '@/types/widget/bookmark';
 
 import EditCard from './components/EditCard';
 import EditDetail from './components/EditDetail';
 import ExtraCard from './components/ExtraCard';
 import ShowCard from './components/ShowCard';
-import { BOOKMARK_DRAG_TYPE } from './dnd';
+import { BOOKMARK_DRAG_TYPE, type BookmarkDragItem  } from './dnd';
 import useBookmarkHandler from './hooks/useBookmarkHandler';
 import useDetailHandler from './hooks/useDetailHandler';
-
-import type { BookmarkDragItem } from './dnd';
 import type { BookmarkProps } from './types';
 
 const Bookmark = (props: BookmarkProps) => {
@@ -54,15 +53,19 @@ const Bookmark = (props: BookmarkProps) => {
     try {
       setLoading(true);
       const fields = await form.validateFields();
-      editWidget(id, { name: fields.name, data: { ...data, bookmarks: fields.bookmarks } });
+      const bookmarks = (fields.bookmarks ?? []).map((item: Bookmark, index: number) => ({
+        ...data.bookmarks[index],
+        ...item,
+      }));
+      editWidget(id, { name: fields.name, data: { ...data, bookmarks } });
       setIsEditMode(false);
-      message.success('保存成功');
+      message.success(t('saveOk'));
     } catch (error) {
       const { errorFields }: { errorFields: { errors: string[] }[] } = error as any;
 
       errorFields.forEach(({ errors: [description] }) => {
         notification.error({
-          message: '保存失败',
+          message: t('saveFail'),
           description,
         });
       });
@@ -84,7 +87,7 @@ const Bookmark = (props: BookmarkProps) => {
   });
 
   const handleExpandToggle = useCallback(() => {
-    if (forceCollapsed) return;
+    if (forceCollapsed) {return;}
 
     // 这里沿用现有数据写法：展开状态属于 widget data，立即写回外部存储。
     data.expanded = !data.expanded;
@@ -95,7 +98,8 @@ const Bookmark = (props: BookmarkProps) => {
     (event: React.MouseEvent<HTMLDivElement>) => {
       event.preventDefault();
       const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) selection.removeAllRanges();
+      if (selection && selection.rangeCount > 0) {selection.removeAllRanges();}
+
       handleExpandToggle();
     },
     [handleExpandToggle],
@@ -109,7 +113,7 @@ const Bookmark = (props: BookmarkProps) => {
       accept: BOOKMARK_DRAG_TYPE,
       drop: (item, monitor) => {
         // 子级 li 已经处理过 drop 时，父级 card 不再兜底，避免重复保存。
-        if (monitor.didDrop()) return;
+        if (monitor.didDrop()) {return;}
 
         // 父级 drop 只处理“落在 card 空白区域”的兜底场景；优先复用行级 hover 记录的精确落点。
         const hasRecordedTarget = item.lastTargetWidgetId === id;
@@ -146,7 +150,7 @@ const Bookmark = (props: BookmarkProps) => {
       if (typeof containerRef === 'function') {
         containerRef(node);
       } else if (containerRef) {
-        (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        (containerRef).current = node;
       }
     },
     [containerRef, dropBookmark],
@@ -155,43 +159,44 @@ const Bookmark = (props: BookmarkProps) => {
   return (
     <>
       <div ref={setContainerRef}>
-        <Spin spinning={loading} tip="执行中...">
+        <Spin spinning={loading} tip={t('running')}>
           <Form form={form} initialValues={{ name, bookmarks: data.bookmarks }}>
             <Card
               extra={
                 <ExtraCard
+                  actionDisabled={forceCollapsed}
                   copyWidget={() => {
                     copyWidget(id);
                   }}
                   delWidget={() => {
                     confirm({
-                      title: '您确定要删除吗?',
+                      title: t('deleteConfirm'),
                       icon: <ExclamationCircleFilled />,
-                      content: '删除后所有数据都会消失',
+                      content: t('deleteData'),
                       okType: 'danger',
                       async onOk() {
                         delWidget(id);
-                        message.success('删除成功');
+                        message.success(t('deleteOk'));
                       },
                     });
                   }}
+                  expanded={effectiveExpanded}
                   moveWidgetToPageModal={() => {
                     moveWidgetToPageModal(id);
                   }}
                   switchMode={() => {
                     setIsEditMode((value) => !value);
                   }}
-                  actionDisabled={forceCollapsed}
-                  expanded={effectiveExpanded}
                   toggleDisabled={forceCollapsed}
                   toggleExpand={handleExpandToggle}
                 />
               }
+              size="small"
               title={
                 isEditMode ? (
                   <div className="mr-[5px]">
                     <Form.Item noStyle name="name">
-                      <Input autoComplete="off" placeholder="请输入名称" />
+                      <Input autoComplete="off" placeholder={t('namePlaceholder')} />
                     </Form.Item>
                   </div>
                 ) : (
@@ -201,7 +206,7 @@ const Bookmark = (props: BookmarkProps) => {
                       'mx-[-8px] my-[-4px] rounded-[6px] px-[8px] py-[4px] transition-colors duration-150 select-none',
                       {
                         'cursor-grab active:cursor-grabbing': dragHandleRef,
-                        'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.08)]': isTitleDragging,
+                        'shadow-[0_2px_8px_rgba(0,0,0,0.28)] ring-1 ring-[#1677ff]/40': isTitleDragging,
                       },
                     )}
                     onDoubleClick={handleTitleDoubleClick}
@@ -211,7 +216,6 @@ const Bookmark = (props: BookmarkProps) => {
                   </div>
                 )
               }
-              size="small"
             >
               {showContent && (
                 <>
@@ -248,7 +252,7 @@ const Bookmark = (props: BookmarkProps) => {
 };
 
 const isEqualInSortMode = (prevProps: BookmarkProps, nextProps: BookmarkProps) => {
-  if (!prevProps.forceCollapsed || !nextProps.forceCollapsed) return false;
+  if (!prevProps.forceCollapsed || !nextProps.forceCollapsed) {return false;}
 
   // sort mode 下 Bookmark 永远收起，只比较标题拖拽相关字段，避免内部大列表参与重渲染。
   return (

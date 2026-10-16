@@ -13,9 +13,9 @@ type GetElementProps<T> = T extends HTMLElement
   : {
       [k in keyof T]: T[k];
     };
-export type ReactChildren<P extends object | undefined = undefined> = {
+export interface ReactChildren<P extends object | undefined = undefined> {
   children?: P extends undefined ? React.ReactNode : ((props: P) => React.ReactNode) | React.ReactNode;
-};
+}
 
 type ReactPropsOnlyChildren<P extends object | undefined = undefined> = Pick<
   React.HTMLAttributes<HTMLElement>,

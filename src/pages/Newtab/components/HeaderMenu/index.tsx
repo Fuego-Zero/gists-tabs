@@ -1,5 +1,3 @@
-import React, { useMemo, useState } from 'react';
-
 import {
   CloudDownloadOutlined,
   CloudSyncOutlined,
@@ -10,25 +8,31 @@ import {
   ExclamationCircleFilled,
   HolderOutlined,
   MenuOutlined,
+  MoonOutlined,
   PlusOutlined,
   ReloadOutlined,
+  SunOutlined,
 } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import { App, Button, Dropdown, Menu, Space } from 'antd';
+import { App, Button, Dropdown, Menu, type MenuProps, Space, Tooltip  } from 'antd';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import Storage from '@/classes/Storage';
-import SyncStatusIndicator from '@/components/SyncStatusIndicator';
 import useGistsTabs from '@/hooks/useGistsTabs';
+import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
+import { formatLastError, pageTitle, syncStatusLabel, t } from '@/i18n/translate';
+import { localeItem, themeItem } from '@/storage/items';
 import { downloadFile, uploadFile } from '@/utils/file';
 
 import EditForm from './components/EditForm';
-
 import type { Props } from './types';
 
 const HeaderMenu = (props: Props) => {
   const [gistsTabs, setGistsTabs] = useGistsTabs();
   const syncState = useSyncState();
+  const mode = useStorageItem(themeItem, 'light');
+  const locale = useStorageItem(localeItem, 'zh_CN');
+  const skipInitialSyncNotice = useRef(true);
 
   const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage, onSortModeStart } = props;
 
@@ -36,19 +40,51 @@ const HeaderMenu = (props: Props) => {
     () =>
       pages.map((page) => ({
         key: page.id,
-        label: page.name,
+        label: pageTitle(page),
       })),
-    [pages],
+    [locale, pages],
   );
 
   const { message, modal } = App.useApp();
+  const messageRef = useRef(message);
+  messageRef.current = message;
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (skipInitialSyncNotice.current) {
+      skipInitialSyncNotice.current = false;
+      return;
+    }
+
+    if (syncState.status === 'conflict') {return;}
+
+    const label = syncStatusLabel(syncState.status);
+    const detail = formatLastError(syncState.lastError);
+    const text = detail ? `${label}: ${detail}` : label;
+    const notice = messageRef.current;
+    if (syncState.status === 'failed' || syncState.status === 'auth_failed') {
+      notice.error(text);
+      return;
+    }
+
+    if (syncState.status === 'rate_limited') {
+      notice.warning(text);
+      return;
+    }
+
+    if (syncState.status === 'synced') {
+      notice.success(text);
+      return;
+    }
+
+    notice.info(text);
+  }, [syncState.lastError, syncState.status]);
 
   const dropdowns: MenuProps['items'] = useMemo(
     () => [
       {
         key: 'edit',
-        label: <span className="select-none">修改名称</span>,
+        label: <span className="select-none">{t('editName')}</span>,
         icon: <EditOutlined />,
         onClick: () => {
           setIsOpen(true);
@@ -56,33 +92,33 @@ const HeaderMenu = (props: Props) => {
       },
       {
         key: 'copy',
-        label: <span className="select-none">复制页面</span>,
+        label: <span className="select-none">{t('copyPage')}</span>,
         icon: <CopyOutlined />,
         onClick: () => {
           copyPage(activePageId);
-          message.success('复制成功');
+          message.success(t('copyOk'));
         },
       },
       {
         key: 'del',
         danger: !(pages.length === 1),
         disabled: pages.length === 1,
-        label: <span className="select-none">删除页面</span>,
+        label: <span className="select-none">{t('deletePage')}</span>,
         icon: <DeleteOutlined />,
         onClick: ({ domEvent }) => {
           const { shiftKey } = domEvent;
-          if (shiftKey) return delPage(activePageId);
+          if (shiftKey) {return delPage(activePageId);}
 
           modal.confirm({
-            title: '你确定要删除吗?',
+            title: t('deleteConfirm'),
             icon: <ExclamationCircleFilled />,
-            content: '删除后所有数据都会消失',
-            okText: '删除',
+            content: t('deleteData'),
+            okText: t('delete'),
             okType: 'danger',
-            cancelText: '取消',
+            cancelText: t('cancel'),
             onOk() {
               delPage(activePageId);
-              message.success('删除成功');
+              message.success(t('deleteOk'));
             },
           });
         },
@@ -92,99 +128,105 @@ const HeaderMenu = (props: Props) => {
       },
       {
         key: 'sync',
-        label: <span className="select-none">立即同步</span>,
+        label: <span className="select-none">{t('syncNow')}</span>,
         icon: <CloudSyncOutlined />,
         disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
         onClick: async () => {
           await Storage.syncGists();
-          message.success('已触发同步');
+          message.success(t('syncTriggered'));
         },
       },
       {
         key: 'pull',
-        label: <span className="select-none">从云端拉取</span>,
+        label: <span className="select-none">{t('pullFromCloud')}</span>,
         icon: <CloudDownloadOutlined />,
         onClick: () => {
           modal.confirm({
-            title: '从云端拉取？',
+            title: t('pullTitle'),
             icon: <ExclamationCircleFilled />,
-            content: '将用云端覆盖本机（覆盖前写入本地快照）。是否继续？',
-            okText: '拉取',
+            content: t('pullConfirmPage'),
+            okText: t('pull'),
             okType: 'danger',
-            cancelText: '取消',
+            cancelText: t('cancel'),
             onOk: async () => {
               const res = await Storage.pullFromCloudConfirmed();
-              if (res.ok) message.success('拉取成功');
-              else message.error(res.reason || '拉取失败');
+              if (res.ok) {message.success(t('pullOk'));}
+              else {message.error(res.reason || t('pullFail'));}
             },
           });
         },
       },
       {
         key: 'retry',
-        label: <span className="select-none">重试同步</span>,
+        label: <span className="select-none">{t('retry')}</span>,
         icon: <ReloadOutlined />,
         disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
         onClick: async () => {
           await Storage.retrySync();
-          message.info('已重试');
+          message.info(t('retryOk'));
         },
       },
       {
         key: 'export',
-        label: <span className="select-none">导出数据</span>,
+        label: <span className="select-none">{t('exportData')}</span>,
         icon: <CloudDownloadOutlined />,
         onClick: async () => {
           if (!gistsTabs) {
-            message.warning('没有数据可导出');
+            message.warning(t('noData'));
             return;
           }
 
           try {
             await downloadFile(gistsTabs, `gists-tabs-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
-            message.success('导出成功');
+            message.success(t('exportOk'));
           } catch (error) {
             console.error('导出数据失败', error);
-            message.error('导出失败，请稍后再试');
+            message.error(t('exportFailLater'));
           }
         },
       },
       {
         key: 'import',
         danger: true,
-        label: <span className="select-none">导入数据</span>,
+        label: <span className="select-none">{t('importData')}</span>,
         icon: <CloudUploadOutlined />,
         onClick: async () => {
           modal.confirm({
-            title: '危险！',
+            title: t('importTitle'),
             icon: <ExclamationCircleFilled />,
-            content: '导入数据会覆盖当前所有数据，且不可恢复，是否继续？',
-            okText: '继续',
+            content: t('importDanger'),
+            okText: t('continue'),
             okType: 'danger',
-            cancelText: '取消',
+            cancelText: t('cancel'),
             onOk: async () => {
               try {
                 const file = await uploadFile();
-                if (!file) return;
+                if (!file) {return;}
 
                 const text = await file.text();
                 const data = JSON.parse(text);
 
                 setGistsTabs(data);
-                message.success('导入成功');
+                message.success(t('importOk'));
               } catch (error) {
                 console.error('导入数据失败', error);
-                message.error('导入失败，文件可能损坏');
+                message.error(t('importFail'));
               }
             },
           });
         },
       },
     ],
-    [activePageId, copyPage, delPage, gistsTabs, message, modal, pages.length, setGistsTabs, syncState.status],
+    [activePageId, copyPage, delPage, gistsTabs, locale, message, modal, pages.length, setGistsTabs, syncState.status],
   );
 
-  const currentPageName = useMemo(() => pages.find((page) => page.id === activePageId)?.name, [activePageId, pages]);
+  const currentPageName = useMemo(
+    () => {
+      const page = pages.find((item) => item.id === activePageId);
+      return page ? pageTitle(page) : undefined;
+    },
+    [activePageId, locale, pages],
+  );
 
   return (
     <>
@@ -192,35 +234,46 @@ const HeaderMenu = (props: Props) => {
         items={menus}
         mode="horizontal"
         selectedKeys={[activePageId]}
-        style={{ flex: 1, minWidth: 0 }}
-        theme="dark"
+        style={{ flex: 1, minWidth: 0, background: 'transparent', borderBottom: 'none' }}
+        theme="light"
         onSelect={(value) => {
           setActivePageId(value.key);
         }}
       />
       <Space className="mr-[10px]" size={8}>
-        <SyncStatusIndicator />
+        <Tooltip title={mode === 'dark' ? t('light') : t('dark')}>
+          <Button
+            aria-label={mode === 'dark' ? t('light') : t('dark')}
+            icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+            shape="circle"
+            size="small"
+            type="text"
+            onClick={() => {
+              void themeItem.setValue(mode === 'dark' ? 'light' : 'dark');
+            }}
+          />
+        </Tooltip>
         <Button
-          ghost
           icon={<PlusOutlined />}
           shape="circle"
           size="small"
+          type="text"
           onClick={() => {
             addPage();
-            message.success('添加成功');
+            message.success(t('addOk'));
           }}
         />
         <Button
-          ghost
           icon={<HolderOutlined />}
           shape="circle"
           size="small"
+          type="text"
           onClick={() => {
             onSortModeStart('manual');
           }}
         />
         <Dropdown menu={{ items: dropdowns }} trigger={['click']}>
-          <Button ghost icon={<MenuOutlined />} shape="circle" size="small" />
+          <Button icon={<MenuOutlined />} shape="circle" size="small" type="text" />
         </Dropdown>
       </Space>
       <EditForm

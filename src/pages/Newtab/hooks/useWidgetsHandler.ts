@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
 
+import { t } from '@/i18n/translate';
+import type { GistsTabs, Page, Widget, WidgetDataMap, WidgetType } from '@/types';
 import { clone } from '@/utils';
 import { createId, createWidget } from '@/utils/data/factory';
 
-import { moveWidgetPositionInList } from '../utils/widgetPosition';
-
-import type { GistsTabs, Page, Widget, WidgetDataMap, WidgetType } from '@/types';
-
 import type { PageId, WidgetsHandler } from '../types';
+import { moveWidgetPositionInList } from '../utils/widgetPosition';
 
 export default function useWidgetsHandler(
   gistsTabs: GistsTabs,
@@ -26,7 +25,7 @@ export default function useWidgetsHandler(
 
   const delWidget = (widgetId: Widget['id']) => {
     const index = widgets.findIndex((item) => item.id === widgetId);
-    if (index === -1) return;
+    if (index === -1) {return;}
 
     widgets.splice(index, 1);
 
@@ -35,7 +34,7 @@ export default function useWidgetsHandler(
 
   const copyWidget = (widgetId: Widget['id']) => {
     const index = widgets.findIndex((item) => item.id === widgetId);
-    if (index === -1) return;
+    if (index === -1) {return;}
 
     const source = widgets[index];
     const { col, data, name, row, type } = source;
@@ -53,13 +52,14 @@ export default function useWidgetsHandler(
       });
     }
 
-    const target = createWidget(`${name} 复制`, type, row + 1, col, newData);
+    const target = createWidget(`${name} ${t('widgetCopy')}`, type, row + 1, col, newData);
     const sortedWidgets = widgets.filter((widget) => widget.col === col).sort((a, b) => a.row - b.row);
 
     // 副本插到原卡片下一行；如果后面已有卡片，逐个向下顺延 row。
     let lastRow = target.row;
     sortedWidgets.forEach((item) => {
-      if (item.row !== lastRow) return;
+      if (item.row !== lastRow) {return;}
+
       lastRow++;
       item.row = lastRow;
     });
@@ -70,7 +70,7 @@ export default function useWidgetsHandler(
 
   const editWidget = (widgetId: Widget['id'], data: Partial<Pick<Widget, 'data' | 'name'>>) => {
     const widget = widgets.find((item) => item.id === widgetId);
-    if (!widget) return;
+    if (!widget) {return;}
 
     Object.assign(widget, data);
     setGistsTabs(gistsTabs);
@@ -83,23 +83,23 @@ export default function useWidgetsHandler(
     // 只保存 widget.data，供 Bookmark 内部拖拽这类局部数据变更使用。
     widgets.forEach((widget) => {
       const data = dataMap.get(widget.id);
-      if (!data || widget.data === data) return;
+      if (!data || widget.data === data) {return;}
 
-      widget.data = data as Widget['data'];
+      widget.data = data;
       hasChanged = true;
     });
 
-    if (!hasChanged) return;
+    if (!hasChanged) {return;}
 
     setGistsTabs(gistsTabs);
   };
 
   const moveWidgetToPage = (widgetId: Widget['id'], pageId: PageId) => {
     const widget = widgets.find((item) => item.id === widgetId);
-    if (!widget) return;
+    if (!widget) {return;}
 
     const page = gistsTabs.pages.find((item) => item.id === pageId);
-    if (!page) return;
+    if (!page) {return;}
 
     widgets.splice(
       widgets.findIndex((item) => item.id === widgetId),
@@ -116,10 +116,10 @@ export default function useWidgetsHandler(
 
   const moveWidgetPosition: WidgetsHandler['moveWidgetPosition'] = (sourceId, targetId, insertPosition) => {
     const nextWidgets = moveWidgetPositionInList(widgets, sourceId, targetId, insertPosition);
-    if (nextWidgets === widgets) return;
+    if (nextWidgets === widgets) {return;}
 
     const page = gistsTabs.pages.find((item) => item.id === activePageId);
-    if (!page) return;
+    if (!page) {return;}
 
     page.widgets = nextWidgets;
     setGistsTabs(gistsTabs);
@@ -127,7 +127,7 @@ export default function useWidgetsHandler(
 
   const saveWidgetPositions: WidgetsHandler['saveWidgetPositions'] = (positions) => {
     const page = gistsTabs.pages.find((item) => item.id === activePageId);
-    if (!page) return;
+    if (!page) {return;}
 
     // sort mode 保存只写回位置，避免覆盖排序过程中其它组件产生的数据变更。
     const positionMap = new Map(positions.map(({ col, id, row }) => [id, { col, row }]));
@@ -135,7 +135,7 @@ export default function useWidgetsHandler(
 
     page.widgets.forEach((widget) => {
       const position = positionMap.get(widget.id);
-      if (!position) return;
+      if (!position) {return;}
 
       if (widget.col !== position.col || widget.row !== position.row) {
         hasChanged = true;
@@ -145,7 +145,7 @@ export default function useWidgetsHandler(
       widget.row = position.row;
     });
 
-    if (!hasChanged) return;
+    if (!hasChanged) {return;}
 
     setGistsTabs(gistsTabs);
   };

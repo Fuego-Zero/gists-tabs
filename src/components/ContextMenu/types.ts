@@ -4,18 +4,18 @@ import type { Root } from 'react-dom/client';
 import type { ReactProps } from '@/types/utils';
 import type { EventEmitter } from '@/utils/EventEmitter';
 
-export type ContextMenuInstance = {
+export interface ContextMenuInstance {
   app: Root;
   destroy: Function;
   el: HTMLDivElement;
-};
+}
 
-export type ContextMenuItem<T> = {
+export interface ContextMenuItem<T> {
   disabled?: boolean;
   icon?: ReactNode;
   title: string;
   value: T;
-};
+}
 
 export type ContextMenuItems<T> = ContextMenuItem<T>[];
 
@@ -25,7 +25,7 @@ export type OnSelect<T> = (value: ContextMenuItem<T>['value'], event: MouseEvent
 export type OnCancel = () => void;
 export type OnChoose = () => void;
 
-type Handler<T> = {
+interface Handler<T> {
   /**
    * 取消
    */
@@ -38,7 +38,7 @@ type Handler<T> = {
    * 选择成功
    */
   onSelect?: OnSelect<T>;
-};
+}
 
 type CommonProps<T> = {
   items?: ContextMenuItems<T>;
@@ -77,15 +77,15 @@ export type ContextMenuProps<T> = ReactProps<
   } & CommonProps<T>
 >;
 
-export type MenuEventHandler<T> = {
+export interface MenuEventHandler<T> {
   cancel: OnCancel;
   destroy: () => void;
   select: (params: { event: MouseEvent; value: ContextMenuItem<T>['value'] }) => void;
-};
+}
 
-export type MenuBoxProps<T> = {
+export interface MenuBoxProps<T> {
   emitter: EventEmitter<MenuEventHandler<T>>;
   items: ContextMenuItems<T>;
   left: number;
   top: number;
-};
+}

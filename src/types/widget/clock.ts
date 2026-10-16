@@ -1,8 +1,8 @@
-export type Clock = {
+export interface Clock {
   id: string;
   timezone: string;
-};
+}
 
-export type Clocks = {
+export interface Clocks {
   clocks: Clock[];
-};
+}

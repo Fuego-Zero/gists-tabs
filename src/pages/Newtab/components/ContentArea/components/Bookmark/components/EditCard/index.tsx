@@ -1,6 +1,7 @@
+import { App, Button, Divider, Form, Input, Space } from 'antd';
 import React, { useState } from 'react';
 
-import { App, Button, Divider, Form, Input, Space } from 'antd';
+import { t } from '@/i18n/translate';
 
 import type { Bookmark } from '@/types/widget/bookmark';
 
@@ -30,9 +31,9 @@ const EditCard = (props: Props) => {
                 noStyle
                 {...field}
                 name={[field.name, 'title']}
-                rules={[{ required: true, message: '请输入标题' }]}
+                rules={[{ required: true, message: t('titleRequired') }]}
               >
-                <Input autoComplete="off" placeholder="请输入标题" />
+                <Input autoComplete="off" placeholder={t('titleRequired')} />
               </Form.Item>
               <Button
                 onClick={() => {
@@ -40,7 +41,7 @@ const EditCard = (props: Props) => {
                   selectBookmark(row.id);
                 }}
               >
-                编辑
+                {t('edit')}
               </Button>
             </Space.Compact>
           ))
@@ -50,7 +51,7 @@ const EditCard = (props: Props) => {
       <div className="mt-[10px]">
         <Space.Compact className="w-full">
           <Input
-            placeholder="请输入网址"
+            placeholder={t('urlPlaceholder')}
             value={inputURLValue}
             onChange={(e) => {
               setInputURLValue(e.target.value);
@@ -59,7 +60,7 @@ const EditCard = (props: Props) => {
           <Button
             onClick={() => {
               let url = inputURLValue.trim();
-              if (!url) return message.warning('请输入网址');
+              if (!url) {return message.warning(t('urlRequired'));}
 
               // 用户通常不会手输协议，默认补 https 让 URL 解析和打开行为一致。
               url = url.startsWith('http') ? url : `https://${url}`;
@@ -67,11 +68,11 @@ const EditCard = (props: Props) => {
               setInputURLValue('');
             }}
           >
-            添加
+            {t('add')}
           </Button>
         </Space.Compact>
         <Button block className="mt-[10px]" onClick={onSave}>
-          保存
+          {t('save')}
         </Button>
       </div>
     </div>

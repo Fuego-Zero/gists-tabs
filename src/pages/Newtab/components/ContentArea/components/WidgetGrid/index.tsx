@@ -1,27 +1,27 @@
+import { Button, Col, Row } from 'antd';
 import React from 'react';
 
-import { Button, Col, Row } from 'antd';
-
-import Bookmark from '../Bookmark';
-import DraggableWidget from '../DraggableWidget';
-import DropPlaceholder from '../DropPlaceholder';
-import EmptyColumnDropZone from '../EmptyColumnDropZone';
-import SortModeCard from '../SortModeCard';
+import { t } from '@/i18n/translate';
 
 import type { Widget } from '@/types';
 
 import type { SortModeWidget, WidgetInsertPosition, WidgetsHandler } from '../../../../types';
 import type { MoveBookmarkParams } from '../../../../utils/bookmarkPosition';
 import type { WidgetDropPreview } from '../../hooks/useWidgetSortDnd';
+import Bookmark from '../Bookmark';
+import DraggableWidget from '../DraggableWidget';
+import DropPlaceholder from '../DropPlaceholder';
+import EmptyColumnDropZone from '../EmptyColumnDropZone';
+import SortModeCard from '../SortModeCard';
 
-type BookmarkDraftHandlers = {
+interface BookmarkDraftHandlers {
   isDragging: boolean;
   moveBookmark: (params: MoveBookmarkParams) => void;
   onDragEnd: () => void;
   onDragStart: () => void;
-};
+}
 
-type SortDndHandlers = {
+interface SortDndHandlers {
   draggingWidgetId: Widget['id'] | null;
   dropPreview: WidgetDropPreview | null;
   onDragEnd: () => void;
@@ -30,7 +30,7 @@ type SortDndHandlers = {
   onEmptyColumnHover: (sourceId: Widget['id'], targetCol: Widget['col']) => void;
   onOpenContextMenu: (event: React.MouseEvent<HTMLDivElement>, widgetId: Widget['id']) => void;
   setItemRef: (widgetId: Widget['id']) => (node: HTMLDivElement | null) => void;
-};
+}
 
 type Props = {
   bookmarkDraft: BookmarkDraftHandlers;
@@ -137,7 +137,7 @@ const WidgetGrid = (props: Props) => {
             {isSortMode && column.length === 0 && (
               <Col span={24}>
                 {/* 空列需要预留承接区，否则跨列拖拽无法进入没有卡片的列。 */}
-                <EmptyColumnDropZone col={index as Widget['col']} onHover={sortDnd.onEmptyColumnHover} />
+                <EmptyColumnDropZone col={index} onHover={sortDnd.onEmptyColumnHover} />
               </Col>
             )}
             {!isSortMode && (
@@ -149,7 +149,7 @@ const WidgetGrid = (props: Props) => {
                     addWidget('bookmarks', index, column.length);
                   }}
                 >
-                  新增工具
+                  {t('newWidget')}
                 </Button>
               </Col>
             )}

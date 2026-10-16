@@ -1,7 +1,6 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 import { GISTS_FILE_DESCRIPTION, GISTS_FILE_NAME } from '@/config';
-
 import type { GistsTabs } from '@/types';
 
 const github = axios.create({
@@ -10,22 +9,22 @@ const github = axios.create({
   validateStatus: () => true,
 });
 
-export type GitHubRateInfo = {
+export interface GitHubRateInfo {
   remaining?: number;
   reset?: number;
   retryAfter?: number;
-};
+}
 
 export type GitHubErrorKind = 'auth' | 'http' | 'network' | 'not_modified' | 'ok' | 'precondition' | 'rate_limit';
 
-export type GitHubResult<T> = {
+export interface GitHubResult<T> {
   data?: T;
   errorKind: GitHubErrorKind;
   etag: null | string;
   message?: string;
   rate: GitHubRateInfo;
   status: number;
-};
+}
 
 function parseRate(headers: Record<string, unknown>): GitHubRateInfo {
   const remaining = headers['x-ratelimit-remaining'];
@@ -39,11 +38,16 @@ function parseRate(headers: Record<string, unknown>): GitHubRateInfo {
 }
 
 function classifyStatus(status: number): GitHubErrorKind {
-  if (status === 200 || status === 201) return 'ok';
-  if (status === 304) return 'not_modified';
-  if (status === 401) return 'auth';
-  if (status === 412) return 'precondition';
-  if (status === 403 || status === 429) return 'rate_limit';
+  if (status === 200 || status === 201) {return 'ok';}
+
+  if (status === 304) {return 'not_modified';}
+
+  if (status === 401) {return 'auth';}
+
+  if (status === 412) {return 'precondition';}
+
+  if (status === 403 || status === 429) {return 'rate_limit';}
+
   return 'http';
 }
 
@@ -82,6 +86,7 @@ function parseGistContent(resData: unknown): GistsTabs {
   if (!content) {
     return { pages: [], updateAt: -1, version: 1 };
   }
+
   return JSON.parse(content) as GistsTabs;
 }
 
@@ -92,10 +97,13 @@ export async function githubGetGist(
 ): Promise<GitHubResult<GistsTabs>> {
   try {
     const headers: Record<string, string> = { ...authHeader(token) };
-    if (options?.etag) headers['If-None-Match'] = options.etag;
+    if (options?.etag) {headers['If-None-Match'] = options.etag;}
+
     const res = await github.get(`/gists/${id}`, { headers });
-    if (res.status === 304) return fromResponse(res);
-    if (res.status !== 200) return fromResponse(res);
+    if (res.status === 304) {return fromResponse(res);}
+
+    if (res.status !== 200) {return fromResponse(res);}
+
     return fromResponse(res, parseGistContent(res.data));
   } catch (error) {
     return fromNetworkError(error);
@@ -104,11 +112,12 @@ export async function githubGetGist(
 
 export async function githubListGists(
   token: string,
-): Promise<GitHubResult<Array<{ description: string; id: string }>>> {
+): Promise<GitHubResult<{ description: string; id: string }[]>> {
   try {
     const res = await github.get('/gists', { headers: authHeader(token) });
-    if (res.status !== 200) return fromResponse(res);
-    const list = (res.data as Array<{ description: string; id: string }>).map((item) => ({
+    if (res.status !== 200) {return fromResponse(res);}
+
+    const list = (res.data as { description: string; id: string }[]).map((item) => ({
       description: item.description,
       id: item.id,
     }));
@@ -133,7 +142,8 @@ export async function githubCreateGist(token: string, content: GistsTabs): Promi
       },
       { headers: authHeader(token) },
     );
-    if (res.status !== 201 && res.status !== 200) return fromResponse(res);
+    if (res.status !== 201 && res.status !== 200) {return fromResponse(res);}
+
     return fromResponse(res, { id: (res.data as { id: string }).id });
   } catch (error) {
     return fromNetworkError(error);
@@ -148,7 +158,8 @@ export async function githubPatchGist(
 ): Promise<GitHubResult<GistsTabs>> {
   try {
     const headers: Record<string, string> = { ...authHeader(token) };
-    if (options?.ifMatch) headers['If-Match'] = options.ifMatch;
+    if (options?.ifMatch) {headers['If-Match'] = options.ifMatch;}
+
     const res = await github.patch(
       `/gists/${id}`,
       {
@@ -160,7 +171,8 @@ export async function githubPatchGist(
       },
       { headers },
     );
-    if (res.status !== 200) return fromResponse(res);
+    if (res.status !== 200) {return fromResponse(res);}
+
     return fromResponse(res, parseGistContent(res.data));
   } catch (error) {
     return fromNetworkError(error);
