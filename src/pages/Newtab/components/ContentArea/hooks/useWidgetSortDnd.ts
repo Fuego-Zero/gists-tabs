@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import useSortContextMenu from './useSortContextMenu';
-import useSortDndLogger from './useSortDndLogger';
-import useSortModeFlip from './useSortModeFlip';
-
 import type { Widget } from '@/types';
 
 import type {
@@ -13,23 +9,26 @@ import type {
   WidgetColumnEdgePosition,
   WidgetInsertPosition,
 } from '../../../types';
+import useSortContextMenu from './useSortContextMenu';
+import useSortDndLogger from './useSortDndLogger';
+import useSortModeFlip from './useSortModeFlip';
 
-export type WidgetDropPreview = {
+export interface WidgetDropPreview {
   insertPosition: WidgetInsertPosition;
   sourceId: Widget['id'];
   targetId: Widget['id'];
-};
+}
 
 type DragOriginWidget = Pick<SortModeWidget, 'col' | 'id' | 'row'>;
 
-type Params = {
+interface Params {
   displayWidgets: SortModeWidget[];
   isSortMode: boolean;
   moveWidgetPosition: (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => void;
   moveWidgetToColumn: (widgetId: Widget['id'], targetCol: Widget['col']) => void;
   moveWidgetToColumnEdge: (widgetId: Widget['id'], edgePosition: WidgetColumnEdgePosition) => void;
   onSortModeStart: (reason?: SortModeStartReason) => SortModeStartResult;
-};
+}
 
 const getColumns = (widgets: SortModeWidget[]) => {
   const column1: SortModeWidget[] = [];
@@ -78,7 +77,7 @@ const useWidgetSortDnd = (params: Params) => {
   const pendingHoverRef = useRef<WidgetDropPreview | null>(null);
 
   const renderWidgets = useMemo<SortModeWidget[]>(() => {
-    if (!dragOriginWidget || dragOriginWidget.id !== draggingWidgetId) return displayWidgets;
+    if (!dragOriginWidget || dragOriginWidget.id !== draggingWidgetId) {return displayWidgets;}
 
     // 排序时真实数据会移动，但被拖拽卡片视觉上仍留在初始位置，由自定义预览跟随鼠标。
     return displayWidgets.map((widget) =>
@@ -125,7 +124,7 @@ const useWidgetSortDnd = (params: Params) => {
       hoverFrameIdRef.current = null;
       pendingHoverRef.current = null;
 
-      if (!pendingHover) return;
+      if (!pendingHover) {return;}
 
       const { sourceId, targetId, insertPosition } = pendingHover;
       const hoverStartedAt = performance.now();
@@ -211,11 +210,11 @@ const useWidgetSortDnd = (params: Params) => {
 
   const hoverDrag = useCallback(
     (sourceId: Widget['id'], targetId: Widget['id'], insertPosition: WidgetInsertPosition) => {
-      if (sourceId === targetId) return;
+      if (sourceId === targetId) {return;}
 
       pendingHoverRef.current = { sourceId, targetId, insertPosition };
 
-      if (hoverFrameIdRef.current !== null) return;
+      if (hoverFrameIdRef.current !== null) {return;}
 
       hoverFrameIdRef.current = requestAnimationFrame(() => {
         flushDragHover();
@@ -226,10 +225,10 @@ const useWidgetSortDnd = (params: Params) => {
 
   const hoverEmptyColumn = useCallback(
     (sourceId: Widget['id'], targetCol: Widget['col']) => {
-      if (!isSortMode) return;
+      if (!isSortMode) {return;}
 
       const sourceWidget = displayWidgets.find(({ id }) => id === sourceId);
-      if (!sourceWidget || sourceWidget.col === targetCol) return;
+      if (!sourceWidget || sourceWidget.col === targetCol) {return;}
 
       if (hoverFrameIdRef.current !== null) {
         cancelAnimationFrame(hoverFrameIdRef.current);

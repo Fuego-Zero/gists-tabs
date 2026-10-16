@@ -1,4 +1,4 @@
-export type Gists = Array<{
+export type Gists = {
   comments: number;
   comments_enabled: boolean;
   comments_url: string;
@@ -18,9 +18,9 @@ export type Gists = Array<{
   updated_at: string;
   url: string;
   user: null;
-}>;
+}[];
 
-type Owner = {
+interface Owner {
   avatar_url: string;
   events_url: string;
   followers_url: string;
@@ -40,9 +40,9 @@ type Owner = {
   type: string;
   url: string;
   user_view_type: string;
-};
+}
 
-type Files = {
+interface Files {
   content: string;
   encoding: string;
   filename: string;
@@ -51,4 +51,4 @@ type Files = {
   size: number;
   truncated: boolean;
   type: string;
-};
+}

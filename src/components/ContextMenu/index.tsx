@@ -3,7 +3,6 @@ import React, { memo, useEffect, useRef } from 'react';
 import RC from '../RC';
 import { DEFAULT_Z_INDEX } from './constant';
 import useContextmenuHandle from './hooks/useContextmenuHandle';
-
 import type { ContextMenuProps } from './types';
 
 export * from './hook';
@@ -27,11 +26,13 @@ function ContextMenu<T = any>(props: ContextMenuProps<T>) {
 
   useEffect(() => {
     const el = elRef.current;
-    if (!el) return;
+    if (!el) {return;}
 
-    if (contextmenu) el.addEventListener('contextmenu', onContextmenuHandle);
-    if (click) el.addEventListener('click', onContextmenuHandle);
-    if (hover) el.addEventListener('mouseenter', onContextmenuHandle);
+    if (contextmenu) {el.addEventListener('contextmenu', onContextmenuHandle);}
+
+    if (click) {el.addEventListener('click', onContextmenuHandle);}
+
+    if (hover) {el.addEventListener('mouseenter', onContextmenuHandle);}
 
     return () => {
       el.removeEventListener('contextmenu', onContextmenuHandle);

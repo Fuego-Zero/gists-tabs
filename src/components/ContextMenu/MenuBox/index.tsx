@@ -1,19 +1,17 @@
-import type { CSSProperties } from 'react';
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
+import { theme } from 'antd';
 import classNames from 'classnames';
+import React, { type CSSProperties , memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import PageCard from '@/components/PageCard';
-
 import type { ForwardRefHTML } from '@/types/utils';
 
 import type { ContextMenuItem, MenuBoxProps } from '../types';
-
 import style from './style.module.scss';
 
 function MenuBox<T>(props: MenuBoxProps<T>) {
   const { emitter, items, left, top } = props;
 
+  const { token } = theme.useToken();
   const elRef = useRef<ForwardRefHTML<typeof PageCard>>(null);
   const [isHeightSafe, setIsHeightSafe] = useState(true);
   const [isWidthSafe, setIsWidthSafe] = useState(true);
@@ -21,6 +19,8 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
   const menuBoxStyle = useMemo(() => {
     const _style: CSSProperties = {
       top: `${top}px`,
+      backgroundColor: token.colorBgElevated,
+      color: token.colorText,
     };
 
     if (isWidthSafe) {
@@ -34,20 +34,22 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
     }
 
     return _style;
-  }, [isHeightSafe, isWidthSafe, left, top]);
+  }, [isHeightSafe, isWidthSafe, left, token.colorBgElevated, token.colorText, top]);
 
   const close = useCallback(() => {
     emitter.emit('destroy');
   }, [emitter]);
 
   function onSelect(item: ContextMenuItem<T>, event: MouseEvent) {
-    if (item.disabled) return;
+    if (item.disabled) {return;}
+
     emitter.emit('select', { value: item.value, event });
     close();
   }
 
   const contextmenuHandle = useCallback((event: MouseEvent) => {
-    if (elRef.current?.contains(event.target as Node)) return;
+    if (elRef.current?.contains(event.target as Node)) {return;}
+
     event.preventDefault();
     event.stopPropagation();
   }, []);
@@ -57,7 +59,7 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
       event.preventDefault();
       event.stopPropagation();
 
-      if (elRef.current?.contains(event.target as Node)) return;
+      if (elRef.current?.contains(event.target as Node)) {return;}
 
       emitter.emit('cancel');
       close();
@@ -69,13 +71,14 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
     const rect = el.getBoundingClientRect();
     const { top, left, height, width } = rect;
 
-    if (top + height > window.innerHeight) setIsHeightSafe(false);
-    if (left + width > window.innerWidth) setIsWidthSafe(false);
+    if (top + height > window.innerHeight) {setIsHeightSafe(false);}
+
+    if (left + width > window.innerWidth) {setIsWidthSafe(false);}
   }
 
   useEffect(() => {
     const el = elRef.current;
-    if (!el) return;
+    if (!el) {return;}
 
     el.addEventListener('contextmenu', contextmenuHandle);
     document.addEventListener('mousedown', mousedownHandle);
@@ -103,12 +106,12 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
             disabled: item.disabled,
           })}
           onClick={(event) => {
-            onSelect(item, event.nativeEvent as MouseEvent);
+            onSelect(item, event.nativeEvent);
           }}
           onContextMenu={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            onSelect(item, event.nativeEvent as MouseEvent);
+            onSelect(item, event.nativeEvent);
           }}
         >
           <div className="icon">{item.icon}</div>

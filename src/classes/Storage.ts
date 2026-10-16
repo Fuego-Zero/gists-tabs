@@ -1,4 +1,9 @@
 import { GISTS_FILE_DESCRIPTION } from '@/config';
+import { RATE_LIMIT_ERROR_PREFIX, t } from '@/i18n/translate';
+import { isInitialCanvas } from '@/storage/initialCanvas';
+import { sendMessage } from '@/messaging';
+import { storageItems } from '@/storage/items';
+import type { GistsTabs } from '@/types';
 import {
   BACKOFF_BASE_MS,
   BACKOFF_CAP_MS,
@@ -11,14 +16,12 @@ import {
 } from '@/types/sync';
 import { clone, uuid } from '@/utils';
 import {
-  type GitHubResult,
   githubCreateGist,
   githubGetGist,
   githubListGists,
   githubPatchGist,
+  type GitHubResult,
 } from '@/utils/http/github';
-
-import type { GistsTabs } from '@/types';
 
 enum storageKeys {
   activePageId = 'activePageId',
@@ -37,15 +40,47 @@ enum storageKeys {
   syncState = 'syncState',
 }
 
+const PUSH_ALARM = 'yunjian-push';
+const BACKOFF_ALARM = 'yunjian-backoff';
+
 class Storage {
   private backoffTimer: ReturnType<typeof setTimeout> | null = null;
   private dirtyDuringFlight = false;
+  private engineActive = false;
   private initialized = false;
   private pushInFlight = false;
-  private syncGistsTimer: ReturnType<typeof setTimeout> | null = null;
+  private pushTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() {
-    this.bootstrap();
+  /** 只由 Background 调用。页面导入本模块不会冷启动。 */
+  startEngine() {
+    if (this.engineActive) {return;}
+
+    this.engineActive = true;
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name !== PUSH_ALARM && alarm.name !== BACKOFF_ALARM) {return;}
+
+      this.clearTimer(alarm.name);
+      void this.pushToCloud();
+    });
+    void this.bootstrap();
+  }
+
+  schedulePushFromEngine(delay = PUSH_DEBOUNCE_MS) {
+    this.scheduleDelayed(PUSH_ALARM, delay);
+  }
+
+  coldStartFromEngine() {
+    return this.coldStartPull().then(async () => {
+      if ((await this.getDirty()) && (await this.getCloudSync())) {this.scheduleDelayed(PUSH_ALARM, 0);}
+    });
+  }
+
+  async stopSyncFromEngine() {
+    this.clearTimer(PUSH_ALARM);
+    this.clearTimer(BACKOFF_ALARM);
+    await chrome.alarms.clear(PUSH_ALARM);
+    await chrome.alarms.clear(BACKOFF_ALARM);
+    await this.setSyncStatus('synced', { backoffUntil: undefined, conflict: undefined, lastError: undefined });
   }
 
   private async applyCloudData(cloud: GistsTabs, etag: null | string, reason: string) {
@@ -53,7 +88,8 @@ class Storage {
     await this.pushSnapshot(local, reason);
     await this.set(storageKeys.gistsTabs, cloud);
     await this.setLastSyncedRevision(cloud.syncMeta?.revision ?? null);
-    if (etag) await this.setLastEtag(etag);
+    if (etag) {await this.setLastEtag(etag);}
+
     await this.setDirty(false);
     await this.setSyncStatus('synced', { conflict: undefined, lastError: undefined, lastPullAt: Date.now() });
   }
@@ -72,13 +108,15 @@ class Storage {
 
   private async coldStartPull() {
     const open = await this.getCloudSync();
-    if (!open) return;
+    if (!open) {return;}
+
     const token = await this.ensureToken();
-    if (!token) return;
+    if (!token) {return;}
 
     const dirty = await this.getDirty();
     // dirty：留给 push（推前必 GET）。不脏：遵守 5min 节流，勿 force 绕过
-    if (dirty) return;
+    if (dirty) {return;}
+
     await this.pullFromCloud({ force: false, applyIfClean: true });
   }
 
@@ -89,26 +127,54 @@ class Storage {
   }
 
   private debouncePush(delay = PUSH_DEBOUNCE_MS) {
-    if (this.syncGistsTimer) clearTimeout(this.syncGistsTimer);
-    this.syncGistsTimer = setTimeout(() => {
-      this.syncGistsTimer = null;
-      this.pushToCloud();
+    if (this.engineActive) {
+      this.scheduleDelayed(PUSH_ALARM, delay);
+      return;
+    }
+
+    void sendMessage('schedulePush', delay);
+  }
+
+  /**
+   * 后台还在时用定时器按原延迟触发。同时预约 alarm：进程被回收后定时器消失，
+   * alarm 仍会唤醒后台。定时器先到时清掉 alarm，避免约 30 秒后再推一次。
+   */
+  private scheduleDelayed(name: string, delayMs: number) {
+    const delay = Math.max(0, delayMs);
+    this.clearTimer(name);
+    void chrome.alarms.create(name, { when: Date.now() + delay });
+    const timer = setTimeout(() => {
+      this.clearTimer(name);
+      void chrome.alarms.clear(name);
+      void this.pushToCloud();
     }, delay);
+    if (name === PUSH_ALARM) {this.pushTimer = timer;}
+    else {this.backoffTimer = timer;}
+  }
+
+  private clearTimer(name: string) {
+    const timer = name === PUSH_ALARM ? this.pushTimer : this.backoffTimer;
+    if (timer) {clearTimeout(timer);}
+
+    if (name === PUSH_ALARM) {this.pushTimer = null;}
+    else {this.backoffTimer = null;}
   }
 
   private async ensureGistId(token: string): Promise<null | string> {
     const id = await this.getGistId();
-    if (id) return id;
+    if (id) {return id;}
 
     const listed = await githubListGists(token);
     if (listed.errorKind === 'auth') {
       await this.handleAuthFailure(listed.message);
       return null;
     }
+
     if (listed.errorKind === 'rate_limit') {
       await this.handleRateLimit(listed);
       return null;
     }
+
     if (listed.errorKind !== 'ok' || !listed.data) {
       await this.setSyncStatus('failed', { lastError: listed.message || `list gists HTTP ${listed.status}` });
       return null;
@@ -136,17 +202,20 @@ class Storage {
       await this.handleAuthFailure(created.message);
       return null;
     }
+
     if (created.errorKind === 'rate_limit') {
       await this.handleRateLimit(created);
       return null;
     }
+
     if (created.errorKind !== 'ok' || !created.data) {
       await this.setSyncStatus('failed', { lastError: created.message || `create gist HTTP ${created.status}` });
       return null;
     }
 
     await this.setGistId(created.data.id);
-    if (created.etag) await this.setLastEtag(created.etag);
+    if (created.etag) {await this.setLastEtag(created.etag);}
+
     // 新建路径写入 revision 并锚定，避免随后 GET 无 revision 误进冲突
     await this.set(storageKeys.gistsTabs, payload);
     await this.setLastSyncedRevision(newRevision);
@@ -167,12 +236,17 @@ class Storage {
     await this.setDirty(true);
     await this.setSyncStatus('conflict', {
       conflict: { cloud: clone(cloud), cloudEtag, local: clone(local) },
-      lastError: reason || '检测到云端与本机 revision 不一致',
+      lastError: reason || t('errRevision'),
     });
   }
 
-  private get(keys: string | string[]) {
-    return chrome.storage.local.get(keys);
+  private async get<K extends storageKeys>(key: K) {
+    const value = await storageItems[key].getValue();
+    return {
+      [key]: value ?? undefined,
+    } as {
+      [P in K]: NonNullable<Awaited<ReturnType<(typeof storageItems)[P]['getValue']>>> | undefined;
+    };
   }
 
   private async getDirty(): Promise<boolean> {
@@ -182,17 +256,17 @@ class Storage {
 
   private async getGistId(): Promise<string> {
     const res = await this.get(storageKeys.gistId);
-    return (res[storageKeys.gistId] as string) || '';
+    return (res[storageKeys.gistId]!) || '';
   }
 
   private async getLastEtag(): Promise<null | string> {
     const res = await this.get(storageKeys.lastEtag);
-    return (res[storageKeys.lastEtag] as string) || null;
+    return (res[storageKeys.lastEtag]!) || null;
   }
 
   private async getLastSyncedRevision(): Promise<null | string> {
     const res = await this.get(storageKeys.lastSyncedRevision);
-    return (res[storageKeys.lastSyncedRevision] as string) || null;
+    return (res[storageKeys.lastSyncedRevision]!) || null;
   }
 
   private async getLegacyOverwriteConfirmed(): Promise<boolean> {
@@ -202,23 +276,22 @@ class Storage {
 
   private async getOrCreateDeviceId(): Promise<string> {
     const res = await this.get(storageKeys.deviceId);
-    let id = res[storageKeys.deviceId] as string | undefined;
+    let id = res[storageKeys.deviceId];
     if (!id) {
       id = uuid();
       await this.set(storageKeys.deviceId, id);
     }
+
     return id;
   }
 
   private async handleAuthFailure(message?: string) {
-    if (this.backoffTimer) {
-      clearTimeout(this.backoffTimer);
-      this.backoffTimer = null;
-    }
+    this.clearTimer(BACKOFF_ALARM);
+    await chrome.alarms.clear(BACKOFF_ALARM);
     await this.setDirty(true);
     await this.setSyncStatus('auth_failed', {
       backoffUntil: undefined,
-      lastError: message || 'Token 无效或已过期，请到 Options 重配 Token',
+      lastError: message || t('errToken'),
     });
   }
 
@@ -229,7 +302,7 @@ class Storage {
     await this.setDirty(true);
     await this.setSyncStatus('rate_limited', {
       backoffUntil,
-      lastError: result.message || `限流 HTTP ${result.status}`,
+      lastError: result.message || `${RATE_LIMIT_ERROR_PREFIX}${result.status}`,
     });
     this.scheduleBackoffResume(delay);
   }
@@ -240,7 +313,7 @@ class Storage {
     await this.setDirty(true);
     await this.setSyncStatus('failed', {
       backoffUntil,
-      lastError: message || '同步失败',
+      lastError: message || t('errSync'),
     });
     this.scheduleBackoffResume(delay);
   }
@@ -257,7 +330,8 @@ class Storage {
   }
 
   private async pushSnapshot(data: GistsTabs | undefined, reason: string) {
-    if (!data) return;
+    if (!data) {return;}
+
     const list = await this.getSnapshots();
     const snap: SyncSnapshot = {
       at: Date.now(),
@@ -270,13 +344,13 @@ class Storage {
   }
 
   private async pushToCloud() {
-    if (!this.initialized && this.pushInFlight) return;
+    if (!this.initialized && this.pushInFlight) {return;}
 
     const open = await this.getCloudSync();
-    if (!open) return;
+    if (!open) {return;}
 
     const state = await this.getSyncState();
-    if (this.isAutoPushPaused(state)) return;
+    if (this.isAutoPushPaused(state)) {return;}
 
     if (state.backoffUntil && Date.now() < state.backoffUntil && state.status === 'rate_limited') {
       this.scheduleBackoffResume(state.backoffUntil - Date.now());
@@ -296,7 +370,7 @@ class Storage {
 
     const token = await this.ensureToken();
     if (!token) {
-      await this.setSyncStatus('failed', { lastError: '未配置 Token' });
+      await this.setSyncStatus('failed', { lastError: t('errNoToken') });
       return;
     }
 
@@ -306,7 +380,7 @@ class Storage {
 
     try {
       const gistId = await this.ensureGistId(token);
-      if (!gistId) return;
+      if (!gistId) {return;}
 
       // v1.1 B：凡 dirty 推云前必条件 GET，不受 5min 节流
       const got = await githubGetGist(token, gistId, { etag: null }); // 推前必须拿到正文与 ETag，不用 304 短路
@@ -315,21 +389,29 @@ class Storage {
         await this.handleAuthFailure(got.message);
         return;
       }
+
       if (got.errorKind === 'rate_limit') {
         await this.handleRateLimit(got);
         return;
       }
+
       if (got.errorKind !== 'ok' || !got.data) {
         await this.handleTransientFailure(got.message || `pre-push GET HTTP ${got.status}`);
         return;
       }
 
-      if (got.etag) await this.setLastEtag(got.etag);
+      if (got.etag) {await this.setLastEtag(got.etag);}
 
       const local = await this.getGistsTabs();
       if (!local) {
         await this.setDirty(false);
         await this.setSyncStatus('synced');
+        return;
+      }
+
+      // 本机仍是自动创建的空首页时采用云端，避免用空画布覆盖已有 Gist。不比较「首页」字符串。
+      if (isInitialCanvas(local) && got.data.pages?.length && !isInitialCanvas(got.data)) {
+        await this.applyCloudData(got.data, got.etag, 'pull-init');
         return;
       }
 
@@ -340,7 +422,7 @@ class Storage {
       // dirty+无云 revision → legacy 冲突（或已确认一次覆盖）；dirty+有云 revision 且无锚点/不等 → 冲突
       if (!cloudRev) {
         if (!legacyConfirmed) {
-          await this.enterConflict(local, got.data, got.etag, '云端为旧格式（无 revision），覆盖前需确认');
+          await this.enterConflict(local, got.data, got.etag, t('errLegacy'));
           return;
         }
       } else if (this.revisionsConflict(cloudRev, lastSynced)) {
@@ -348,7 +430,7 @@ class Storage {
           local,
           got.data,
           got.etag,
-          lastSynced ? '检测到云端与本机 revision 不一致' : '本机无同步锚点且云端已有 revision，覆盖前需确认',
+          lastSynced ? t('errRevision') : t('errNoAnchor'),
         );
         return;
       }
@@ -373,15 +455,18 @@ class Storage {
         await this.handleAuthFailure(patched.message);
         return;
       }
+
       if (patched.errorKind === 'rate_limit') {
         await this.handleRateLimit(patched);
         return;
       }
+
       if (patched.errorKind === 'precondition') {
         const latest = await githubGetGist(token, gistId);
         await this.enterConflict(local, latest.data || got.data, latest.etag || got.etag);
         return;
       }
+
       if (patched.errorKind !== 'ok') {
         await this.handleTransientFailure(patched.message || `PATCH HTTP ${patched.status}`);
         return;
@@ -394,7 +479,8 @@ class Storage {
           await this.enterConflict(local, verify.data, verify.etag);
           return;
         }
-        if (verify.etag) await this.setLastEtag(verify.etag);
+
+        if (verify.etag) {await this.setLastEtag(verify.etag);}
       } else if (patched.etag) {
         await this.setLastEtag(patched.etag);
       }
@@ -422,25 +508,28 @@ class Storage {
 
   private revisionsConflict(cloudRevision: string | undefined, lastSynced: null | string): boolean {
     // 无云 revision：由 legacy 路径单独处理
-    if (!cloudRevision) return false;
+    if (!cloudRevision) {return false;}
+
     // 云有 revision、本机无锚点：禁止静默覆盖（与设计①同精神）
-    if (!lastSynced) return true;
+    if (!lastSynced) {return true;}
+
     return cloudRevision !== lastSynced;
   }
 
   private scheduleBackoffResume(delayMs: number) {
-    if (this.backoffTimer) clearTimeout(this.backoffTimer);
-    this.backoffTimer = setTimeout(
-      () => {
-        this.backoffTimer = null;
-        this.pushToCloud();
-      },
-      Math.max(0, delayMs),
-    );
+    if (!this.engineActive) {return;}
+
+    this.scheduleDelayed(BACKOFF_ALARM, delayMs);
   }
 
-  private set(key: string, value: unknown): Promise<void> {
-    return chrome.storage.local.set({ [key]: value });
+  private async set(key: storageKeys, value: unknown): Promise<void> {
+    const item = storageItems[key];
+    if (value == null) {
+      await item.removeValue();
+      return;
+    }
+
+    await item.setValue(value as never);
   }
 
   private async setDirty(dirty: boolean) {
@@ -469,19 +558,19 @@ class Storage {
 
   async getActivePageId(): Promise<string> {
     const res = await this.get(storageKeys.activePageId);
-    return res[storageKeys.activePageId];
+    return res[storageKeys.activePageId] || '';
   }
 
   /** @deprecated 强云同步下不再对用户暴露；保留读取以免旧数据报错 */
   async getAutoSync(): Promise<boolean> {
     const res = await this.get(storageKeys.autoSync);
-    return res[storageKeys.autoSync];
+    return Boolean(res[storageKeys.autoSync]);
   }
 
   /** @deprecated */
   async getAutoSyncInterval(): Promise<number> {
     const res = await this.get(storageKeys.autoSyncInterval);
-    return res[storageKeys.autoSyncInterval];
+    return res[storageKeys.autoSyncInterval] || 0;
   }
 
   // —— public API ——
@@ -491,24 +580,24 @@ class Storage {
     return Boolean(res[storageKeys.cloudSync]);
   }
 
-  async getGistsTabs(): Promise<GistsTabs> {
+  async getGistsTabs(): Promise<GistsTabs | undefined> {
     const res = await this.get(storageKeys.gistsTabs);
     return res[storageKeys.gistsTabs];
   }
 
   async getGistsToken(): Promise<string> {
     const res = await this.get(storageKeys.gistsToken);
-    return res[storageKeys.gistsToken];
+    return res[storageKeys.gistsToken] || '';
   }
 
   async getSnapshots(): Promise<SyncSnapshot[]> {
     const res = await this.get(storageKeys.syncSnapshots);
-    return (res[storageKeys.syncSnapshots] as SyncSnapshot[]) || [];
+    return (res[storageKeys.syncSnapshots]!) || [];
   }
 
   async getSyncState(): Promise<SyncState> {
     const res = await this.get(storageKeys.syncState);
-    const state = res[storageKeys.syncState] as SyncState | undefined;
+    const state = res[storageKeys.syncState];
     return state ?? { status: 'synced' };
   }
 
@@ -522,13 +611,13 @@ class Storage {
     skipIfDirty?: boolean;
   }): Promise<{ ok: boolean; reason?: string }> {
     const open = await this.getCloudSync();
-    if (!open) return { ok: false, reason: 'cloudSync off' };
+    if (!open) {return { ok: false, reason: 'cloudSync off' };}
 
     const token = await this.ensureToken();
-    if (!token) return { ok: false, reason: 'no token' };
+    if (!token) {return { ok: false, reason: 'no token' };}
 
     const dirty = await this.getDirty();
-    if (options?.skipIfDirty && dirty) return { ok: false, reason: 'dirty' };
+    if (options?.skipIfDirty && dirty) {return { ok: false, reason: 'dirty' };}
 
     const state = await this.getSyncState();
     if (!options?.force && !dirty && state.lastPullAt && Date.now() - state.lastPullAt < PULL_THROTTLE_MS) {
@@ -536,7 +625,7 @@ class Storage {
     }
 
     const gistId = await this.ensureGistId(token);
-    if (!gistId) return { ok: false, reason: 'no gistId' };
+    if (!gistId) {return { ok: false, reason: 'no gistId' };}
 
     await this.setSyncStatus('syncing');
     const etag = await this.getLastEtag();
@@ -546,39 +635,52 @@ class Storage {
       await this.handleAuthFailure(result.message);
       return { ok: false, reason: 'auth' };
     }
+
     if (result.errorKind === 'rate_limit') {
       await this.handleRateLimit(result);
       return { ok: false, reason: 'rate_limit' };
     }
+
     if (result.errorKind === 'not_modified') {
       await this.patchSyncState({ lastPullAt: Date.now(), status: dirty ? 'pending' : 'synced' });
       return { ok: true, reason: 'not_modified' };
     }
+
     if (result.errorKind !== 'ok' || !result.data) {
       await this.handleTransientFailure(result.message || `GET HTTP ${result.status}`);
       return { ok: false, reason: 'http' };
     }
 
-    if (result.etag) await this.setLastEtag(result.etag);
+    if (result.etag) {await this.setLastEtag(result.etag);}
+
     await this.patchSyncState({ lastPullAt: Date.now() });
 
     const cloud = result.data;
+    const local = await this.getGistsTabs();
+    if (isInitialCanvas(local) && cloud.pages?.length && !isInitialCanvas(cloud)) {
+      await this.applyCloudData(cloud, result.etag, 'pull-init');
+      return { ok: true, reason: 'applied-init' };
+    }
+
     const lastSynced = await this.getLastSyncedRevision();
     const cloudRev = cloud.syncMeta?.revision;
 
     if (dirty && !cloudRev) {
       const local = await this.getGistsTabs();
-      await this.enterConflict(local, cloud, result.etag, '云端为旧格式（无 revision），覆盖前需确认');
+      if (local) {await this.enterConflict(local, cloud, result.etag, t('errLegacy'));}
+
       return { ok: false, reason: 'conflict' };
     }
 
     if (dirty && this.revisionsConflict(cloudRev, lastSynced)) {
       const local = await this.getGistsTabs();
+      if (!local) {return { ok: false, reason: 'conflict' };}
+
       await this.enterConflict(
         local,
         cloud,
         result.etag,
-        lastSynced ? '检测到云端与本机 revision 不一致' : '本机无同步锚点且云端已有 revision，覆盖前需确认',
+        lastSynced ? t('errRevision') : t('errNoAnchor'),
       );
       return { ok: false, reason: 'conflict' };
     }
@@ -601,13 +703,16 @@ class Storage {
 
   /** 用户确认后从云端拉取覆盖本机 */
   async pullFromCloudConfirmed() {
+    if (!this.engineActive) {return sendMessage('pullFromCloud');}
+
     const open = await this.getCloudSync();
-    if (!open) return { ok: false, reason: 'cloudSync off' };
+    if (!open) {return { ok: false, reason: 'cloudSync off' };}
+
     const token = await this.ensureToken();
-    if (!token) return { ok: false, reason: 'no token' };
+    if (!token) {return { ok: false, reason: 'no token' };}
 
     const gistId = await this.ensureGistId(token);
-    if (!gistId) return { ok: false, reason: 'no gistId' };
+    if (!gistId) {return { ok: false, reason: 'no gistId' };}
 
     await this.setSyncStatus('syncing');
     const got = await githubGetGist(token, gistId);
@@ -615,10 +720,12 @@ class Storage {
       await this.handleAuthFailure(got.message);
       return { ok: false, reason: 'auth' };
     }
+
     if (got.errorKind === 'rate_limit') {
       await this.handleRateLimit(got);
       return { ok: false, reason: 'rate_limit' };
     }
+
     if (got.errorKind !== 'ok' || !got.data) {
       await this.handleTransientFailure(got.message || `GET HTTP ${got.status}`);
       return { ok: false, reason: 'http' };
@@ -629,33 +736,54 @@ class Storage {
   }
 
   async resolveConflictKeepLocal() {
+    if (!this.engineActive) {
+      await sendMessage('resolveConflict', 'keepLocal');
+      return;
+    }
+
     const state = await this.getSyncState();
-    if (!state.conflict) return;
+    if (!state.conflict) {return;}
+
     // 用户明确覆盖云端：用冲突时的 cloudEtag 作 If-Match；清冲突后强制推
     await this.set(storageKeys.gistsTabs, state.conflict.local);
-    if (state.conflict.cloudEtag) await this.setLastEtag(state.conflict.cloudEtag);
+    if (state.conflict.cloudEtag) {await this.setLastEtag(state.conflict.cloudEtag);}
+
     const cloudRev = state.conflict.cloud.syncMeta?.revision ?? null;
     await this.setLastSyncedRevision(cloudRev);
     // 旧格式云端无 revision：一次已确认的 legacy 覆盖，避免再次无限进冲突
     if (!cloudRev) {
       await this.setLegacyOverwriteConfirmed(true);
     }
+
     await this.setDirty(true);
     await this.setSyncStatus('pending', { conflict: undefined, lastError: undefined });
     await this.pushToCloud();
   }
 
   async resolveConflictUseCloud() {
+    if (!this.engineActive) {
+      await sendMessage('resolveConflict', 'useCloud');
+      return;
+    }
+
     const state = await this.getSyncState();
-    if (!state.conflict) return;
+    if (!state.conflict) {return;}
+
     await this.setLegacyOverwriteConfirmed(false);
     await this.applyCloudData(state.conflict.cloud, state.conflict.cloudEtag, 'conflict-use-cloud');
   }
 
   async retrySync() {
+    if (!this.engineActive) {
+      await sendMessage('retrySync');
+      return;
+    }
+
     const state = await this.getSyncState();
-    if (state.status === 'auth_failed') return;
-    if (state.status === 'conflict') return;
+    if (state.status === 'auth_failed') {return;}
+
+    if (state.status === 'conflict') {return;}
+
     await this.patchSyncState({ backoffUntil: undefined, lastError: undefined });
     await this.setDirty(true);
     await this.setSyncStatus('pending');
@@ -678,15 +806,14 @@ class Storage {
 
   async setCloudSync(open: boolean) {
     await this.set(storageKeys.cloudSync, open);
-    if (open) {
-      await this.coldStartPull();
-      const dirty = await this.getDirty();
-      if (dirty) this.debouncePush(0);
-    } else {
-      if (this.syncGistsTimer) clearTimeout(this.syncGistsTimer);
-      if (this.backoffTimer) clearTimeout(this.backoffTimer);
-      await this.setSyncStatus('synced', { lastError: undefined, conflict: undefined, backoffUntil: undefined });
+    if (this.engineActive) {
+      if (open) {await this.coldStartFromEngine();}
+      else {await this.stopSyncFromEngine();}
+
+      return;
     }
+
+    await sendMessage(open ? 'coldStart' : 'stopSync');
   }
 
   /**
@@ -722,11 +849,13 @@ class Storage {
       await this.setSyncStatus('synced');
       return;
     }
+
     const state = await this.getSyncState();
     if (state.status === 'conflict' || state.status === 'auth_failed') {
       await this.setSyncStatus(state.status, { lastError: state.lastError, conflict: state.conflict });
       return;
     }
+
     await this.setSyncStatus('pending');
     this.debouncePush();
   }
@@ -742,8 +871,13 @@ class Storage {
 
   /** 立即同步（手动）：走完整冲突检查的 push */
   async syncGists() {
+    if (!this.engineActive) {
+      await sendMessage('syncNow');
+      return;
+    }
+
     const open = await this.getCloudSync();
-    if (!open) return;
+    if (!open) {return;}
 
     await this.setDirty(true);
     const state = await this.getSyncState();
@@ -751,9 +885,11 @@ class Storage {
       // 手动仍提示鉴权，不假装可推
       return;
     }
+
     if (state.status === 'conflict') {
       return;
     }
+
     await this.setSyncStatus('pending', { backoffUntil: undefined });
     await this.pushToCloud();
   }

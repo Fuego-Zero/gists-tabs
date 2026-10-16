@@ -25,9 +25,9 @@ export type BookmarkProps = {
   onTitleMouseDown?: MouseEventHandler<HTMLDivElement>;
 } & Pick<WidgetsHandler, 'copyWidget' | 'delWidget' | 'editWidget'>;
 
-export type BookmarkHandler = {
+export interface BookmarkHandler {
   addBookmark: (url: string) => void;
   copyBookmark: (id: BookmarkId) => void;
   deleteBookmark: (id: BookmarkId, force?: boolean) => void;
   updateBookmark: (bookmarkId: BookmarkId, newData: BookmarkData) => void;
-};
+}

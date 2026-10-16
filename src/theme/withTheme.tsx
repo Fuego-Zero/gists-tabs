@@ -1,29 +1,74 @@
-import React from 'react';
-
-import { App, ConfigProvider } from 'antd';
-
+import { App, ConfigProvider, theme } from 'antd';
+import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
+import React, { useLayoutEffect } from 'react';
 
+import { useStorageItem } from '@/hooks/useStorageItem';
+import { setActiveLocale } from '@/i18n/translate';
+import { localeItem, themeItem } from '@/storage/items';
 import type { ReactComponent } from '@/types/utils';
 
 import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
 
-dayjs.locale('zh-cn');
-
-const themeProps = {
-  theme: {
-    token: {
-      colorPrimary: '#1677ff',
-    },
-    components: {
-      Layout: {
-        headerHeight: 48,
-      },
-    },
+const themeToken = {
+  token: {
+    colorPrimary: '#1677ff',
   },
-  locale: zhCN,
 };
+
+function ThemeFrame(props: { children: React.ReactNode }) {
+  const { token } = theme.useToken();
+
+  useLayoutEffect(() => {
+    document.body.style.backgroundColor = token.colorBgLayout;
+    document.body.style.color = token.colorText;
+  }, [token.colorBgLayout, token.colorText]);
+
+  return props.children;
+}
+
+function ThemeRoot(props: { children: React.ReactNode }) {
+  const mode = useStorageItem(themeItem, 'light');
+  const locale = useStorageItem(localeItem, 'zh_CN');
+  setActiveLocale(locale);
+  dayjs.locale(locale === 'en' ? 'en' : 'zh-cn');
+
+  return (
+    <ConfigProvider
+      locale={locale === 'en' ? enUS : zhCN}
+      theme={{
+        ...themeToken,
+        algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        components: {
+          Layout: {
+            headerBg: mode === 'dark' ? '#141414' : '#ffffff',
+            headerHeight: 48,
+          },
+          ...(mode === 'dark'
+            ? {
+                Menu: {
+                  itemColor: 'rgba(255, 255, 255, 0.65)',
+                  itemHoverColor: '#ffffff',
+                  itemSelectedColor: '#ffffff',
+                  itemSelectedBg: '#1677ff',
+                  horizontalItemSelectedColor: '#ffffff',
+                  horizontalItemSelectedBg: '#1677ff',
+                  horizontalItemHoverColor: '#ffffff',
+                  activeBarHeight: 0,
+                },
+              }
+            : {}),
+        },
+      }}
+    >
+      <App component={false}>
+        <ThemeFrame>{props.children}</ThemeFrame>
+      </App>
+    </ConfigProvider>
+  );
+}
 
 /**
  * 应用主题（HOC）
@@ -32,11 +77,9 @@ const themeProps = {
  */
 function withTheme<P extends {}>(Component: ReactComponent<P>) {
   return (props: P) => (
-    <ConfigProvider {...themeProps}>
-      <App component={false}>
-        <Component {...props} />
-      </App>
-    </ConfigProvider>
+    <ThemeRoot>
+      <Component {...props} />
+    </ThemeRoot>
   );
 }
 
@@ -46,11 +89,7 @@ function withTheme<P extends {}>(Component: ReactComponent<P>) {
  * @description 用于组件需要使用 ConfigProvider 配置的包裹组件。
  */
 function WithTheme(props: { children: React.ReactNode }) {
-  return (
-    <ConfigProvider {...themeProps}>
-      <App component={false}>{props.children}</App>
-    </ConfigProvider>
-  );
+  return <ThemeRoot>{props.children}</ThemeRoot>;
 }
 
 export { WithTheme, withTheme };

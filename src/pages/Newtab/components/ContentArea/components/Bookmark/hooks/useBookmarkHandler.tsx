@@ -1,22 +1,21 @@
+import { ExclamationCircleFilled } from '@ant-design/icons';
+import { App, type FormInstance, notification  } from 'antd';
 import React from 'react';
 
-import { ExclamationCircleFilled } from '@ant-design/icons';
-import type { FormInstance } from 'antd';
-import { App, notification } from 'antd';
+import { t } from '@/i18n/translate';
 
 import { createBookmark } from '../dataFactory';
+import type { BookmarkHandler, BookmarkProps } from '../types';
 import { analyzeURL } from '../utils';
 
-import type { BookmarkHandler, BookmarkProps } from '../types';
-
-type Params = {
+interface Params {
   data: BookmarkProps['data'];
   editWidget: BookmarkProps['editWidget'];
   form: FormInstance;
   id: BookmarkProps['id'];
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   unselectBookmark: () => void;
-};
+}
 
 export default function useBookmarkHandler({
   editWidget,
@@ -48,7 +47,7 @@ export default function useBookmarkHandler({
       const message = await error;
 
       notification.error({
-        message: '添加失败',
+        message: t('addFail'),
         description: message as string,
       });
 
@@ -66,15 +65,15 @@ export default function useBookmarkHandler({
       editWidget(id, { data: { ...data, bookmarks: filteredData } });
 
       unselectBookmark();
-      message.success('删除成功');
+      message.success(t('deleteOk'));
     }
 
-    if (force) return onOk();
+    if (force) {return onOk();}
 
     confirm({
-      title: '您确定要删除吗?',
+      title: t('deleteConfirm'),
       icon: <ExclamationCircleFilled />,
-      content: '删除后数据消失',
+      content: t('deleteDataShort'),
       okType: 'danger',
       onOk,
     });
@@ -82,7 +81,7 @@ export default function useBookmarkHandler({
 
   const updateBookmark: BookmarkHandler['updateBookmark'] = (bookmarkId, newData) => {
     const target = data.bookmarks.find((item) => item.id === bookmarkId);
-    if (!target) return;
+    if (!target) {return;}
 
     Object.assign(target, newData);
 
@@ -90,12 +89,12 @@ export default function useBookmarkHandler({
     editWidget(id, { data });
 
     unselectBookmark();
-    message.success('编辑成功');
+    message.success(t('editOk'));
   };
 
   const copyBookmark: BookmarkHandler['copyBookmark'] = (bookmarkId) => {
     const target = data.bookmarks.find((item) => item.id === bookmarkId);
-    if (!target) return;
+    if (!target) {return;}
 
     const copied = createBookmark({ icon: target.icon, title: target.title, url: target.url });
     data.bookmarks.push(copied);
@@ -103,7 +102,7 @@ export default function useBookmarkHandler({
     form.setFieldValue('bookmarks', data.bookmarks);
     editWidget(id, { data });
 
-    message.success('复制成功');
+    message.success(t('copyOk'));
   };
 
   return {

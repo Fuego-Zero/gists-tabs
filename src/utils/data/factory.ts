@@ -1,6 +1,6 @@
-import { uuid } from '..';
-
 import type { Page, Widget, WidgetDataMap, WidgetType } from '@/types';
+
+import { uuid } from '..';
 
 export const createId = () => uuid();
 

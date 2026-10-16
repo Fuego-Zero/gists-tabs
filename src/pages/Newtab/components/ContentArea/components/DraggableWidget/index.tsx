@@ -2,15 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 
-import { WIDGET_DRAG_TYPE } from '../../dnd';
-import { infoSortDndLog, roundMs } from '../../utils/sortDndLog';
-
 import type { Widget } from '@/types';
 
 import type { WidgetInsertPosition } from '../../../../types';
-import type { WidgetDragItem } from '../../dnd';
+import { WIDGET_DRAG_TYPE, type WidgetDragItem  } from '../../dnd';
+import { infoSortDndLog, roundMs } from '../../utils/sortDndLog';
 
-type Props = {
+interface Props {
   children: (params: {
     containerRef: React.RefCallback<HTMLDivElement>;
     dragHandleRef: React.RefCallback<HTMLDivElement>;
@@ -24,7 +22,7 @@ type Props = {
   onDragStart: (widgetId: Widget['id']) => void;
   previewTitle: string;
   widgetId: Widget['id'];
-};
+}
 
 const DraggableWidget = (props: Props) => {
   const { children, hideSourcePreviewOnDragStart, onDragEnd, onDragHover, onDragStart, previewTitle, widgetId } = props;
@@ -115,8 +113,9 @@ const DraggableWidget = (props: Props) => {
         const element = containerRef.current;
         const clientOffset = monitor.getClientOffset();
 
-        if (!monitor.canDrop()) return;
-        if (!element || !clientOffset) return;
+        if (!monitor.canDrop()) {return;}
+
+        if (!element || !clientOffset) {return;}
 
         const hoverRect = element.getBoundingClientRect();
         const hoverMiddleY = (hoverRect.bottom - hoverRect.top) / 2;
@@ -124,7 +123,7 @@ const DraggableWidget = (props: Props) => {
         const insertPosition: WidgetInsertPosition = hoverClientY > hoverMiddleY ? 'after' : 'before';
 
         // React DnD hover 会高频触发，同一目标同一落点不重复通知上层。
-        if (item.lastTargetId === widgetId && item.lastInsertPosition === insertPosition) return;
+        if (item.lastTargetId === widgetId && item.lastInsertPosition === insertPosition) {return;}
 
         item.lastTargetId = widgetId;
         item.lastInsertPosition = insertPosition;
@@ -148,7 +147,7 @@ const DraggableWidget = (props: Props) => {
 
   const handleTitleMouseDown = useCallback<React.MouseEventHandler<HTMLDivElement>>(
     (event) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0) {return;}
 
       const pointerDownAt = performance.now();
 

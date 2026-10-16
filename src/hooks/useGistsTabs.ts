@@ -1,72 +1,69 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import Storage from '@/classes/Storage';
-import { clone } from '@/utils';
+import { useStorageItem } from '@/hooks/useStorageItem';
+import { setActiveLocale, t } from '@/i18n/translate';
+import { gistsTabsItem, localeItem } from '@/storage/items';
+import { isInitialCanvas, tagLegacyHome } from '@/storage/initialCanvas';
+import type { GistsTabs } from '@/types';
 import { createPage } from '@/utils/data/factory';
 import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
 
-import type { GistsTabs } from '@/types';
-
 const VERSION = 1;
 
-export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (data: GistsTabs) => void] {
-  const [gistsTabs, setGistsTabs] = useState<GistsTabs>({
-    pages: [],
-    updateAt: -1,
-    version: VERSION,
-  });
+const EMPTY_GISTS_TABS: GistsTabs = {
+  pages: [],
+  updateAt: -1,
+  version: VERSION,
+};
 
-  // User edits only (sets dirty). onChanged / engine writebacks update React only — do not re-persist via this handler.
-  const setGistsTabsHandler = useCallback((data: GistsTabs) => {
-    data.updateAt = Date.now();
-    setGistsTabs(clone(data));
-    Storage.setGistsTabs(data);
-  }, []);
+let ensurePromise: Promise<void> | null = null;
 
-  useEffect(() => {
-    (async () => {
+/** 缺省主页和 v1 升级只跑一次，避免每个订阅组件各写一份主页。 */
+function ensureGistsTabs() {
+  if (!ensurePromise) {
+    ensurePromise = (async () => {
       let data = await Storage.getGistsTabs();
-
       if (!data) {
+        const locale = (await localeItem.getValue()) ?? 'zh_CN';
+        setActiveLocale(locale);
+        const home = createPage(t('home'));
+        home.nameKey = 'home';
         data = {
-          pages: [createPage('主页')],
+          pages: [home],
           updateAt: Date.now(),
           version: VERSION,
         };
-
         await Storage.setGistsTabs(data);
-      }
-
-      if (data.version === VERSION) {
-        setGistsTabs(data);
         return;
       }
 
-      data = upgradeGistsTabsToV1(data);
-      setGistsTabsHandler(data);
+      const home = data.pages.length === 1 ? tagLegacyHome(data.pages[0]) : data.pages[0];
+      if (isInitialCanvas(data) && home && home.nameKey === 'home' && data.pages[0].nameKey !== 'home') {
+        await Storage.setGistsTabs({ ...data, pages: [home] });
+        return;
+      }
+
+      if (data.version === VERSION) {return;}
+
+      await Storage.setGistsTabs(upgradeGistsTabsToV1(data));
     })();
-  }, [setGistsTabsHandler]);
+  }
 
-  // Cross-tab sync via chrome.storage.onChanged (React only; never Storage.setGistsTabs — avoids re-dirty after synced)
+  return ensurePromise;
+}
+
+export default function useGistsTabs(): [gistsTabs: GistsTabs, setGistsTabs: (data: GistsTabs) => Promise<void>] {
+  const gistsTabs = useStorageItem(gistsTabsItem, EMPTY_GISTS_TABS);
+
   useEffect(() => {
-    const onChanged: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (changes, areaName) => {
-      if (areaName !== 'local') return;
-      if (!changes.gistsTabs) return;
-      const next = changes.gistsTabs.newValue as GistsTabs | undefined;
-      if (!next) return;
-      setGistsTabs((prev) => {
-        if (prev.updateAt === next.updateAt && prev.syncMeta?.revision === next.syncMeta?.revision) {
-          return prev;
-        }
-        return next;
-      });
-    };
-
-    chrome.storage.onChanged.addListener(onChanged);
-    return () => {
-      chrome.storage.onChanged.removeListener(onChanged);
-    };
+    void ensureGistsTabs();
   }, []);
 
-  return [gistsTabs, setGistsTabsHandler];
+  const setGistsTabsHandler = useCallback((data: GistsTabs) => {
+    data.updateAt = Date.now();
+    return Storage.setGistsTabs(data);
+  }, []);
+
+  return [gistsTabs ?? EMPTY_GISTS_TABS, setGistsTabsHandler];
 }

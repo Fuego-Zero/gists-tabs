@@ -1,18 +1,16 @@
 import { useCallback, useRef, useState } from 'react';
 
+import type { Page, Widget } from '@/types';
 import { clone } from '@/utils';
 
-import { moveBookmarkInWidgets } from '../../../utils/bookmarkPosition';
-
-import type { Page, Widget } from '@/types';
-
 import type { WidgetsHandler } from '../../../types';
-import type { MoveBookmarkParams } from '../../../utils/bookmarkPosition';
+import { moveBookmarkInWidgets, type MoveBookmarkParams  } from '../../../utils/bookmarkPosition';
 
-type Params = {
+
+interface Params {
   saveWidgetsData: WidgetsHandler['saveWidgetsData'];
   widgets: Page['widgets'];
-};
+}
 
 const getBookmarkIds = (widget: Extract<Widget, { type: 'bookmarks' }>) =>
   widget.data.bookmarks.map(({ id }) => id).join('|');
@@ -25,11 +23,12 @@ const getChangedBookmarkWidgetsData = (
 
   // 只比较 bookmark id 顺序和归属，避免拖拽保存时误覆盖标题、展开状态等其它字段。
   draftWidgets.forEach((widget) => {
-    if (widget.type !== 'bookmarks') return;
+    if (widget.type !== 'bookmarks') {return;}
 
     const baseWidget = baseWidgets.find((item) => item.id === widget.id);
-    if (baseWidget?.type !== 'bookmarks') return;
-    if (getBookmarkIds(baseWidget) === getBookmarkIds(widget)) return;
+    if (baseWidget?.type !== 'bookmarks') {return;}
+
+    if (getBookmarkIds(baseWidget) === getBookmarkIds(widget)) {return;}
 
     changedWidgetsData.push({ id: widget.id, data: widget.data });
   });
@@ -44,7 +43,7 @@ const useBookmarkDragDraft = (params: Params) => {
   const draftWidgetsRef = useRef<Page['widgets'] | null>(null);
 
   const startDrag = useCallback(() => {
-    if (draftWidgetsRef.current) return;
+    if (draftWidgetsRef.current) {return;}
 
     // Bookmark 内部拖拽使用独立草稿渲染；真实数据只在 drop/end 后统一提交。
     const nextWidgets = clone(widgets);

@@ -1,9 +1,8 @@
 import { GISTS_FILE_DESCRIPTION, GISTS_FILE_NAME } from '@/config';
-import http from '@/utils/http';
-
 import type { GistsTabs } from '@/types';
 import type { Gists } from '@/types/gists';
 import type { InferArrayItem } from '@/types/utils';
+import http from '@/utils/http';
 
 /**
  * 检测 token 是否有效

@@ -1,12 +1,11 @@
 import React, { useMemo } from 'react';
 
+import type { SortModeWidget } from '../../types';
 import DragPreviewLayer from './components/DragPreviewLayer';
 import SortModeContextMenu from './components/SortModeContextMenu';
 import WidgetGrid from './components/WidgetGrid';
 import useBookmarkDragDraft from './hooks/useBookmarkDragDraft';
 import useWidgetSortDnd from './hooks/useWidgetSortDnd';
-
-import type { SortModeWidget } from '../../types';
 import type { Props } from './types';
 
 const ContentArea = (props: Props) => {
@@ -33,7 +32,7 @@ const ContentArea = (props: Props) => {
 
   const displayWidgets = useMemo<SortModeWidget[]>(() => {
     // ContentArea 只决定当前展示哪份 widgets：sort 草稿、Bookmark 拖拽草稿或真实数据。
-    if (isSortMode) return sortModeWidgets ?? [];
+    if (isSortMode) {return sortModeWidgets ?? [];}
 
     return bookmarkDraft.draftWidgets ?? widgets;
   }, [bookmarkDraft.draftWidgets, isSortMode, sortModeWidgets, widgets]);
@@ -56,12 +55,19 @@ const ContentArea = (props: Props) => {
         onSelect={sortDnd.selectSortContextMenu}
       />
       <WidgetGrid
+        addWidget={addWidget}
         bookmarkDraft={{
           isDragging: bookmarkDraft.isDragging,
           moveBookmark: bookmarkDraft.moveBookmark,
           onDragEnd: bookmarkDraft.endDrag,
           onDragStart: bookmarkDraft.startDrag,
         }}
+        columns={sortDnd.columns}
+        copyWidget={copyWidget}
+        delWidget={delWidget}
+        editWidget={editWidget}
+        isSortMode={isSortMode}
+        moveWidgetToPageModal={moveWidgetToPageModal}
         sortDnd={{
           draggingWidgetId: sortDnd.draggingWidgetId,
           dropPreview: sortDnd.dropPreview,
@@ -72,13 +78,6 @@ const ContentArea = (props: Props) => {
           onOpenContextMenu: sortDnd.openSortContextMenu,
           setItemRef: sortDnd.setItemRef,
         }}
-        addWidget={addWidget}
-        columns={sortDnd.columns}
-        copyWidget={copyWidget}
-        delWidget={delWidget}
-        editWidget={editWidget}
-        isSortMode={isSortMode}
-        moveWidgetToPageModal={moveWidgetToPageModal}
       />
     </>
   );

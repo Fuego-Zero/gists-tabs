@@ -24,7 +24,7 @@
       }
 
       &:hover {
-        background-color: #f0f1f1;
+        background-color: color-mix(in srgb, currentColor 8%, transparent);
       }
 
       &.disabled {

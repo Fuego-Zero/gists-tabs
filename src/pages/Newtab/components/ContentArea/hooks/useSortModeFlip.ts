@@ -4,11 +4,11 @@ import type { Widget } from '@/types';
 
 import type { SortModeWidget } from '../../../types';
 
-type Params = {
+interface Params {
   displayWidgets: SortModeWidget[];
   draggingWidgetId: Widget['id'] | null;
   isSortMode: boolean;
-};
+}
 
 const useSortModeFlip = (params: Params) => {
   const { displayWidgets, draggingWidgetId, isSortMode } = params;
@@ -24,7 +24,7 @@ const useSortModeFlip = (params: Params) => {
     const sourceWidget = currentWidgets.find(({ id }) => id === sourceId);
     const targetWidget = currentWidgets.find(({ id }) => id === targetId);
 
-    if (!sourceWidget || !targetWidget) return [];
+    if (!sourceWidget || !targetWidget) {return [];}
 
     if (sourceWidget.col === targetWidget.col) {
       // 同列移动只会影响两个 row 之间的卡片，缩小测量范围能减少拖拽卡顿。
@@ -39,8 +39,9 @@ const useSortModeFlip = (params: Params) => {
     // 跨列移动会影响源列被移除位置之后、目标列插入位置之后的卡片。
     return currentWidgets
       .filter(({ col, row }) => {
-        if (col === sourceWidget.col) return row >= sourceWidget.row;
-        if (col === targetWidget.col) return row >= targetWidget.row;
+        if (col === sourceWidget.col) {return row >= sourceWidget.row;}
+
+        if (col === targetWidget.col) {return row >= targetWidget.row;}
 
         return false;
       })
@@ -54,7 +55,7 @@ const useSortModeFlip = (params: Params) => {
       // FLIP 的 First：提交排序前记录受影响元素的旧位置。
       getAffectedWidgetIds(sourceId, targetId).forEach((widgetId) => {
         const node = itemRefs.current.get(widgetId);
-        if (!node) return;
+        if (!node) {return;}
 
         const { left, top } = node.getBoundingClientRect();
         rects.set(widgetId, { left, top });
@@ -97,21 +98,21 @@ const useSortModeFlip = (params: Params) => {
     }
 
     const previousRects = previousItemRectsRef.current;
-    if (previousRects.size === 0) return;
+    if (previousRects.size === 0) {return;}
 
     previousItemRectsRef.current = new Map();
 
     previousRects.forEach((previousRect, widgetId) => {
-      if (widgetId === draggingWidgetId) return;
+      if (widgetId === draggingWidgetId) {return;}
 
       const node = itemRefs.current.get(widgetId);
-      if (!node) return;
+      if (!node) {return;}
 
       const { left, top } = node.getBoundingClientRect();
       const deltaX = previousRect.left - left;
       const deltaY = previousRect.top - top;
 
-      if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
+      if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) {return;}
 
       runningAnimationsRef.current.get(widgetId)?.cancel();
 

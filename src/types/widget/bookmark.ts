@@ -1,11 +1,11 @@
-export type Bookmark = {
+export interface Bookmark {
   icon: null | string;
   id: string;
   title: string;
   url: string;
-};
+}
 
-export type Bookmarks = {
+export interface Bookmarks {
   bookmarks: Bookmark[];
   expanded: boolean;
-};
+}

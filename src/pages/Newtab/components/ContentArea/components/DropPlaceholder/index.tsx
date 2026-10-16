@@ -1,6 +1,5 @@
-import React from 'react';
-
 import { Col } from 'antd';
+import React from 'react';
 
 import styles from '../../style.module.scss';
 

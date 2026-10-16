@@ -1,21 +1,15 @@
+import { CopyOutlined, DeleteOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 
-import { CopyOutlined, DeleteOutlined } from '@ant-design/icons';
-
-import classNames from 'classnames';
-
 import ContextMenu from '@/components/ContextMenu';
+import { t } from '@/i18n/translate';
 
-import { BOOKMARK_DRAG_TYPE } from '../../dnd';
-import mark from './mark.svg';
-
-import type { ContextMenuItems } from '@/components/ContextMenu/types';
-
-import type { BookmarkDragItem } from '../../dnd';
+import { BOOKMARK_DRAG_TYPE, type BookmarkDragItem  } from '../../dnd';
 import type { BookmarkHandler, BookmarkId, BookmarkProps } from '../../types';
-
+import mark from './mark.svg';
 import styles from './style.module.scss';
 
 const Icon = (props: { src: null | string }) => {
@@ -39,24 +33,25 @@ enum MenuAction {
   COPY = 'copy',
 }
 
-const ITEMS: ContextMenuItems<MenuAction> = [
-  { title: '删除', value: MenuAction.DELETE, icon: <DeleteOutlined className="text-danger" /> },
-  { title: '复制', value: MenuAction.COPY, icon: <CopyOutlined /> },
+const ITEMS: { icon: React.ReactNode; title: 'copy' | 'delete'; value: MenuAction }[] = [
+  { title: 'delete', value: MenuAction.DELETE, icon: <DeleteOutlined className="text-danger" /> },
+  { title: 'copy', value: MenuAction.COPY, icon: <CopyOutlined /> },
 ];
 
 const ShowUrl = (props: { url: string }) => {
   const { url } = props;
-  if (!url) return null;
+  if (!url) {return null;}
+
   return (
-    <div className="fixed z-[1000] bottom-0 left-0 bg-zinc-300 px-[5px] rounded-r truncate max-w-[75%]">{url}</div>
+    <div className="fixed bottom-0 left-0 z-[1000] max-w-[75%] truncate rounded-r bg-zinc-300 px-[5px] text-[rgba(0,0,0,0.88)]">{url}</div>
   );
 };
 
-type BookmarkDropPreview = {
+interface BookmarkDropPreview {
   insertPosition: NonNullable<BookmarkDragItem['lastInsertPosition']>;
   sourceBookmarkId: BookmarkId;
   targetBookmarkId?: BookmarkId;
-};
+}
 
 const BookmarkDropPlaceholder = () => (
   <li className="flex h-[32px] items-center px-[15px]">
@@ -145,8 +140,9 @@ const BookmarkItem = (props: BookmarkItemProps) => {
         const element = itemRef.current;
         const clientOffset = monitor.getClientOffset();
 
-        if (!element || !clientOffset) return;
-        if (item.sourceWidgetId === id && item.bookmarkId === bookmark.id) return;
+        if (!element || !clientOffset) {return;}
+
+        if (item.sourceWidgetId === id && item.bookmarkId === bookmark.id) {return;}
 
         const hoverRect = element.getBoundingClientRect();
         const hoverMiddleY = (hoverRect.bottom - hoverRect.top) / 2;
@@ -162,8 +158,8 @@ const BookmarkItem = (props: BookmarkItemProps) => {
         setDropPreview((current) => {
           if (
             current?.sourceBookmarkId === nextDropPreview.sourceBookmarkId &&
-            current.targetBookmarkId === nextDropPreview.targetBookmarkId &&
-            current.insertPosition === nextDropPreview.insertPosition
+            current?.targetBookmarkId === nextDropPreview.targetBookmarkId &&
+            current?.insertPosition === nextDropPreview.insertPosition
           ) {
             return current;
           }
@@ -230,10 +226,11 @@ const BookmarkItem = (props: BookmarkItemProps) => {
 
   return (
     <ContextMenu
-      items={ITEMS}
+      items={ITEMS.map((item) => ({ ...item, title: t(item.title) }))}
       onSelect={(value, { shiftKey }) => {
-        if (value === MenuAction.DELETE) return deleteBookmark(bookmark.id, shiftKey);
-        if (value === MenuAction.COPY) return copyBookmark(bookmark.id);
+        if (value === MenuAction.DELETE) {return deleteBookmark(bookmark.id, shiftKey);}
+
+        if (value === MenuAction.COPY) {return copyBookmark(bookmark.id);}
       }}
     >
       <li
@@ -289,12 +286,13 @@ const ShowCard = (props: Props) => {
     () => ({
       accept: BOOKMARK_DRAG_TYPE,
       hover: (item, monitor) => {
-        if (!monitor.isOver({ shallow: true })) return;
+        if (!monitor.isOver({ shallow: true })) {return;}
+
         // 有具体 li 时由 li 自己计算落点；列表级 hover 只服务空列表承接。
-        if (data.bookmarks.length > 0) return;
+        if (data.bookmarks.length > 0) {return;}
 
         const lastBookmark = data.bookmarks[data.bookmarks.length - 1];
-        if (item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) return;
+        if (item.sourceWidgetId === id && lastBookmark?.id === item.bookmarkId) {return;}
 
         const nextDropPreview: BookmarkDropPreview = {
           insertPosition: 'after',
@@ -305,8 +303,8 @@ const ShowCard = (props: Props) => {
         setDropPreview((current) => {
           if (
             current?.sourceBookmarkId === nextDropPreview.sourceBookmarkId &&
-            current.targetBookmarkId === nextDropPreview.targetBookmarkId &&
-            current.insertPosition === nextDropPreview.insertPosition
+            current?.targetBookmarkId === nextDropPreview.targetBookmarkId &&
+            current?.insertPosition === nextDropPreview.insertPosition
           ) {
             return current;
           }
@@ -321,7 +319,7 @@ const ShowCard = (props: Props) => {
       drop: (item, monitor) => {
         setDropPreview(null);
 
-        if (monitor.didDrop()) return;
+        if (monitor.didDrop()) {return;}
 
         // 行级 drop 没命中时，列表级 drop 用最近一次 hover 记录的落点兜底，避免跨 card 默认追加到尾部。
         const hasRecordedTarget = item.lastTargetWidgetId === id;
@@ -360,7 +358,7 @@ const ShowCard = (props: Props) => {
   }, [isOver]);
 
   useEffect(() => {
-    if (!isBookmarkDragging) return;
+    if (!isBookmarkDragging) {return;}
 
     // 跨 card 拖拽时禁用普通 hover/url 展示，避免悬浮样式和落点占位混在一起。
     setHoveredBookmarkId(null);
@@ -369,10 +367,10 @@ const ShowCard = (props: Props) => {
 
   return (
     <>
-      <ul ref={dropList}>
+      <ul ref={dropList as unknown as React.Ref<HTMLUListElement>}>
         {data.bookmarks.map((bookmark) => (
           <React.Fragment key={bookmark.id}>
-            {dropPreview?.targetBookmarkId === bookmark.id && dropPreview.insertPosition === 'before' && (
+            {dropPreview?.targetBookmarkId != null && dropPreview.targetBookmarkId === bookmark.id && dropPreview.insertPosition === 'before' && (
               <BookmarkDropPlaceholder />
             )}
             <BookmarkItem
@@ -390,7 +388,7 @@ const ShowCard = (props: Props) => {
               onBookmarkDragEnd={onBookmarkDragEnd}
               onBookmarkDragStart={onBookmarkDragStart}
             />
-            {dropPreview?.targetBookmarkId === bookmark.id && dropPreview.insertPosition === 'after' && (
+            {dropPreview?.targetBookmarkId != null && dropPreview.targetBookmarkId === bookmark.id && dropPreview.insertPosition === 'after' && (
               <BookmarkDropPlaceholder />
             )}
           </React.Fragment>

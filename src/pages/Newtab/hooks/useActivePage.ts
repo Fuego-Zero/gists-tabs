@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import Storage from '@/classes/Storage';
-
 import type { GistsTabs } from '@/types';
 
 export default function useActivePage(
@@ -24,8 +23,10 @@ export default function useActivePage(
   useEffect(() => {
     //* 当前激活页面被删除时，自动回退到第一个页面，避免内容区空白。
     (async () => {
-      if (gistTabs.pages.length === 0) return;
-      if (gistTabs.pages.find((page) => page.id === activePageId)) return;
+      if (gistTabs.pages.length === 0) {return;}
+
+      if (gistTabs.pages.find((page) => page.id === activePageId)) {return;}
+
       setActivePageId(gistTabs.pages[0].id);
     })();
   }, [activePageId, gistTabs]);

@@ -9,11 +9,12 @@ export function uploadFile(accept = 'application/json'): Promise<File | null> {
 
       const cleanup = () => {
         controller.abort();
-        if (input.parentNode) document.body.removeChild(input);
+        if (input.parentNode) {document.body.removeChild(input);}
       };
 
       const finish = (file: File | null) => {
-        if (settled) return;
+        if (settled) {return;}
+
         settled = true;
         cleanup();
         resolve(file);
@@ -31,7 +32,7 @@ export function uploadFile(accept = 'application/json'): Promise<File | null> {
 
       const handleBlur = () => {
         setTimeout(() => {
-          if (!settled && !input.files?.length) finish(null);
+          if (!settled && !input.files?.length) {finish(null);}
         });
       };
 

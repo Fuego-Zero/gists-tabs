@@ -1,16 +1,17 @@
+import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { App, Button, Form, Input, Layout, List, Space, Switch, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 
-import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { App, Button, Form, Input, Layout, List, Space, Switch, Typography } from 'antd';
-
-import { checkToken } from '@/api/gists'; // eslint-disable-line perfectionist/sort-imports
+import { checkToken } from '@/api/gists';  
 import Storage from '@/classes/Storage';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
+import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
+import { formatLastError, t } from '@/i18n/translate';
+import { cloudSyncItem, gistsTokenItem, localeItem, syncSnapshotsItem, themeItem } from '@/storage/items';
 import withTheme from '@/theme/withTheme';
-import { downloadFile } from '@/utils/file';
-
 import type { SyncSnapshot } from '@/types/sync';
+import { downloadFile } from '@/utils/file';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -40,34 +41,21 @@ const CheckStatusIcon = (props: { status: CheckStatus }) => {
   }
 };
 
+const EMPTY_SNAPSHOTS: SyncSnapshot[] = [];
+
 const Options = () => {
+  const savedToken = useStorageItem(gistsTokenItem, '');
+  const cloudSync = useStorageItem(cloudSyncItem, false);
+  const snapshots = useStorageItem(syncSnapshotsItem, EMPTY_SNAPSHOTS) ?? EMPTY_SNAPSHOTS;
+  const mode = useStorageItem(themeItem, 'light');
+  const locale = useStorageItem(localeItem, 'zh_CN');
   const [token, setToken] = useState('');
-  const [cloudSync, setCloudSync] = useState(false);
-  const [snapshots, setSnapshots] = useState<SyncSnapshot[]>([]);
   const syncState = useSyncState();
   const { message, modal } = App.useApp();
 
-  const refreshSnapshots = () => {
-    Storage.getSnapshots().then(setSnapshots);
-  };
-
   useEffect(() => {
-    Storage.getGistsToken().then((res) => {
-      setToken(res || '');
-    });
-
-    Storage.getCloudSync().then((res) => {
-      setCloudSync(res);
-    });
-
-    refreshSnapshots();
-  }, []);
-
-  useEffect(() => {
-    if (syncState.status === 'synced' || syncState.status === 'conflict') {
-      refreshSnapshots();
-    }
-  }, [syncState.status]);
+    setToken(savedToken || '');
+  }, [savedToken]);
 
   function resetHandler() {
     Storage.getGistsToken().then((res) => {
@@ -77,7 +65,7 @@ const Options = () => {
 
   function saveHandler() {
     Storage.setGistsToken(token);
-    message.success('保存成功');
+    message.success(t('saveOk'));
   }
 
   const [checking, setChecking] = useState(CheckStatus.none);
@@ -96,52 +84,52 @@ const Options = () => {
   async function exportCurrent() {
     const data = await Storage.getGistsTabs();
     if (!data) {
-      message.warning('没有数据可导出');
+      message.warning(t('noData'));
       return;
     }
+
     await downloadFile(data, `yunjian-current-${Date.now()}.json`);
-    message.success('已导出当前数据');
+    message.success(t('exportedCurrent'));
   }
 
   async function exportSnapshot(snap: SyncSnapshot) {
     await downloadFile(snap.data, `yunjian-snapshot-${snap.id}.json`);
-    message.success('已导出快照');
+    message.success(t('exportSnapshotOk'));
   }
 
   async function pushNow() {
     await Storage.syncGists();
-    message.info('已触发立即同步');
+    message.info(t('syncTriggeredInfo'));
   }
 
   function pullNow() {
     modal.confirm({
-      title: '从云端拉取？',
-      content: '将用云端数据覆盖本机（覆盖前会写入本地快照环）。是否继续？',
-      okText: '拉取',
-      cancelText: '取消',
+      title: t('pullTitle'),
+      content: t('pullConfirmOptions'),
+      okText: t('pull'),
+      cancelText: t('cancel'),
       onOk: async () => {
         const res = await Storage.pullFromCloudConfirmed();
-        if (res.ok) message.success('已从云端拉取');
-        else message.error(res.reason || '拉取失败');
-        refreshSnapshots();
+        if (res.ok) {message.success(t('pullOkOptions'));}
+        else {message.error(res.reason || t('pullFail'));}
       },
     });
   }
 
   async function retry() {
     await Storage.retrySync();
-    message.info('已重试同步队列');
+    message.info(t('retryQueued'));
   }
 
   return (
     <Layout>
       <Content className="h-[100vh] overflow-auto px-[20px] pt-[100px]">
         <div className="mb-8 w-[650px]">
-          <h1 className="m-0 text-2xl font-semibold">芸笺 · Gists Tabs</h1>
-          <p className="mb-0 mt-1 text-gray-500">设置</p>
+          <h1 className="m-0 text-2xl font-semibold">{t('appTitle')}</h1>
+          <p className="mb-0 mt-1 text-gray-500">{t('settings')}</p>
         </div>
         <Form className="w-[650px]" labelCol={{ span: 4 }}>
-          <Form.Item label="Gists Token">
+          <Form.Item label={t('token')}>
             <Space.Compact style={{ width: '100%' }}>
               <Input
                 suffix={<CheckStatusIcon status={checking} />}
@@ -151,55 +139,76 @@ const Options = () => {
                   setToken(e.target.value);
                 }}
               />
-              <Button onClick={resetHandler}>重置</Button>
-              <Button onClick={checkHandler}>检测</Button>
+              <Button onClick={resetHandler}>{t('reset')}</Button>
+              <Button onClick={checkHandler}>{t('check')}</Button>
               <Button type="primary" onClick={saveHandler}>
-                保存
+                {t('save')}
               </Button>
             </Space.Compact>
           </Form.Item>
-          <Form.Item extra="开启后：数据改动将防抖落云（强云同步）。关闭则纯本机，零 GitHub 写请求。" label="云同步">
+          <Form.Item extra={t('cloudSyncExtra')} label={t('cloudSync')}>
             <Switch
-              value={cloudSync}
-              onChange={(e) => {
-                setCloudSync(e);
-                Storage.setCloudSync(e);
+              checked={Boolean(cloudSync)}
+              onChange={(open) => {
+                void Storage.setCloudSync(open);
               }}
             />
           </Form.Item>
-          <Form.Item label="同步状态">
+          <Form.Item label={t('theme')}>
+            <Switch
+              checked={mode === 'dark'}
+              checkedChildren={<MoonOutlined />}
+              unCheckedChildren={<SunOutlined />}
+              onChange={(dark) => {
+                void themeItem.setValue(dark ? 'dark' : 'light');
+              }}
+            />
+          </Form.Item>
+          <Form.Item label={t('language')}>
+            <Switch
+              checked={locale === 'en'}
+              checkedChildren={t('en')}
+              unCheckedChildren={t('zh')}
+              onChange={(english) => {
+                void localeItem.setValue(english ? 'en' : 'zh_CN');
+              }}
+            />
+          </Form.Item>
+          <Form.Item label={t('syncStatus')}>
             <Space>
               <SyncStatusIndicator />
-              {syncState.lastError ? <Text type="danger">{syncState.lastError}</Text> : null}
+              {syncState.lastError ? <Text type="danger">{formatLastError(syncState.lastError)}</Text> : null}
             </Space>
           </Form.Item>
           {cloudSync ? (
-            <Form.Item label="同步操作">
+              <Form.Item label={t('syncActions')}>
               <Space wrap>
-                <Button onClick={pushNow}>立即同步</Button>
-                <Button onClick={pullNow}>从云端拉取</Button>
+                <Button onClick={pushNow}>{t('syncNow')}</Button>
+                <Button onClick={pullNow}>{t('pullFromCloud')}</Button>
                 <Button
                   disabled={syncState.status === 'auth_failed' || syncState.status === 'conflict'}
                   onClick={retry}
                 >
-                  重试队列
+                  {t('retryQueue')}
                 </Button>
-                <Button onClick={exportCurrent}>导出当前 JSON</Button>
+                <Button onClick={exportCurrent}>{t('exportCurrent')}</Button>
               </Space>
             </Form.Item>
           ) : (
-            <Form.Item label="导出">
-              <Button onClick={exportCurrent}>导出当前 JSON</Button>
+            <Form.Item label={t('export')}>
+              <Button onClick={exportCurrent}>{t('exportCurrent')}</Button>
             </Form.Item>
           )}
-          <Form.Item label="本地快照">
+          <Form.Item label={t('localSnapshots')}>
             <List
               bordered
+              dataSource={snapshots}
+              locale={{ emptyText: t('emptySnapshots') }}
               renderItem={(item) => (
                 <List.Item
                   actions={[
                     <Button key="export" size="small" type="link" onClick={() => exportSnapshot(item)}>
-                      导出
+                      {t('export')}
                     </Button>,
                   ]}
                 >
@@ -209,8 +218,6 @@ const Options = () => {
                   />
                 </List.Item>
               )}
-              dataSource={snapshots}
-              locale={{ emptyText: '暂无快照' }}
               size="small"
             />
           </Form.Item>

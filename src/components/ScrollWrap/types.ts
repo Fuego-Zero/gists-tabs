@@ -5,14 +5,14 @@ import type { ReactProps } from '@/types/utils';
 
 export type ScrollBoundaryEventName = 'bottom' | 'left' | 'right' | 'top';
 
-export type UseHandlerParams = {
-  content: RefObject<HTMLElement | undefined>;
+export interface UseHandlerParams {
+  content: RefObject<HTMLElement | null>;
   onBoundary: (eventName: ScrollBoundaryEventName) => void;
   onScroll: (data: ScrollStatus, xy: XY) => void;
-};
+}
 
 export type XY = 'x' | 'y';
-export type EL = {
+export interface EL {
   boundaryEventName: {
     end: ScrollBoundaryEventName;
     start: ScrollBoundaryEventName;
@@ -29,9 +29,9 @@ export type EL = {
     position: 'left' | 'top';
     size: 'height' | 'width';
   };
-};
+}
 
-export type ScrollStatus = {
+export interface ScrollStatus {
   /**
    * 滚动百分比
    */
@@ -40,7 +40,7 @@ export type ScrollStatus = {
    * 滚动值
    */
   value: number;
-};
+}
 
 export type ScrollWrapProps = ReactProps<
   {
@@ -60,4 +60,4 @@ export type ScrollWrapProps = ReactProps<
 >;
 
 type Fn = () => void;
-export type ExposeMethods = { toBottom: Fn; toLeft: Fn; toRight: Fn; toTop: Fn };
+export interface ExposeMethods { toBottom: Fn; toLeft: Fn; toRight: Fn; toTop: Fn }

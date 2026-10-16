@@ -1,16 +1,12 @@
-import type { CSSProperties, Ref } from 'react';
-import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
-
 import classNames from 'classnames';
+import React, { type CSSProperties, forwardRef , type Ref, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 
 import { isString } from '@/utils/typeUtil';
 
 import useHandler from './hooks/useHandler';
 import useScrollbar from './hooks/useScrollbar';
-
-import type { ExposeMethods, ScrollBoundaryEventName, ScrollStatus, ScrollWrapProps, XY } from './types';
-
 import styles from './style.module.scss';
+import type { ExposeMethods, ScrollBoundaryEventName, ScrollStatus, ScrollWrapProps, XY } from './types';
 
 export * from './types';
 
@@ -112,7 +108,8 @@ function ScrollWrap(props: ScrollWrapProps, ref: Ref<ExposeMethods>) {
     let off = () => {};
 
     if (isShowScrollbarX) {
-      if (!(wrap.current && thumbX.current && thumbHandlerX.current)) return;
+      if (!(wrap.current && thumbX.current && thumbHandlerX.current)) {return;}
+
       const res = thumbHandlerX.current?.(wrap.current, thumbX.current);
       ({ setThumb: resetThumbX.current, off } = res);
     }
@@ -126,7 +123,8 @@ function ScrollWrap(props: ScrollWrapProps, ref: Ref<ExposeMethods>) {
     let off = () => {};
 
     if (isShowScrollbarY) {
-      if (!(wrap.current && thumbY.current)) return;
+      if (!(wrap.current && thumbY.current)) {return;}
+
       const res = thumbHandlerY.current(wrap.current, thumbY.current);
       ({ setThumb: resetThumbY.current, off } = res);
     }

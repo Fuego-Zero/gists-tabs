@@ -1,11 +1,9 @@
+import { EditOutlined, MenuOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
 import React from 'react';
 import { useDragLayer } from 'react-dnd';
 
-import { EditOutlined, MenuOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
+import { WIDGET_DRAG_TYPE, type WidgetDragItem  } from '../../dnd';
 
-import { WIDGET_DRAG_TYPE } from '../../dnd';
-
-import type { WidgetDragItem } from '../../dnd';
 
 const isWidgetDragItem = (item: WidgetDragItem | null): item is WidgetDragItem =>
   Boolean(item && typeof item.title === 'string' && typeof item.width === 'number');
@@ -18,7 +16,7 @@ const WidgetDragPreview = () => {
     itemType: monitor.getItemType(),
   }));
 
-  if (itemType !== WIDGET_DRAG_TYPE || !isDragging || !currentOffset || !isWidgetDragItem(item)) return null;
+  if (itemType !== WIDGET_DRAG_TYPE || !isDragging || !currentOffset || !isWidgetDragItem(item)) {return null;}
 
   return (
     <div

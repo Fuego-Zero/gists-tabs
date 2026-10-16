@@ -13,13 +13,13 @@ const formatLog = (label: string, values: Record<string, LogValue>) =>
     .join(' ')}`;
 
 export const infoSortDndLog = (label: string, values: Record<string, LogValue>, options?: { verbose?: boolean }) => {
-  if (options?.verbose && !isVerboseEnabled()) return;
+  if (options?.verbose && !isVerboseEnabled()) {return;}
 
   console.info(formatLog(label, values));
 };
 
 export const warnSortDndLog = (label: string, values: Record<string, LogValue>, options?: { verbose?: boolean }) => {
-  if (options?.verbose && !isVerboseEnabled()) return;
+  if (options?.verbose && !isVerboseEnabled()) {return;}
 
   console.warn(formatLog(label, values));
 };

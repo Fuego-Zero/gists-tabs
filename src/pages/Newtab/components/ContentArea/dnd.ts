@@ -4,10 +4,10 @@ import type { WidgetInsertPosition } from '../../types';
 
 export const WIDGET_DRAG_TYPE = 'widget';
 
-export type WidgetDragItem = {
+export interface WidgetDragItem {
   id: Widget['id'];
   lastInsertPosition?: WidgetInsertPosition;
   lastTargetId?: Widget['id'];
   title: string;
   width: number;
-};
+}

@@ -3,7 +3,7 @@ import { isArray, isFunction } from './typeUtil';
 type Listener = (...args: any[]) => void;
 type Listeners<T> = Record<keyof T, T[keyof T][] | null>;
 
-class EventEmitter<T extends Record<string, Listener>> {
+class EventEmitter<T extends Record<keyof T, Listener>> {
   private _listeners: Listeners<T> = {} as Listeners<T>;
   private _maxListener = 10;
 
@@ -15,10 +15,10 @@ class EventEmitter<T extends Record<string, Listener>> {
    */
   emit<P extends keyof T>(eventName: P, ...args: Parameters<T[P]>) {
     const listeners = this._listeners[eventName];
-    if (!isArray(listeners)) return;
+    if (!isArray(listeners)) {return;}
 
     listeners.forEach((listener) => {
-      if (isFunction(listener)) listener(...args);
+      if (isFunction(listener)) {listener(...args);}
     });
   }
 
@@ -28,7 +28,8 @@ class EventEmitter<T extends Record<string, Listener>> {
    * @param eventName 事件名称，可选参数，传了返回指定事件名称监听器，不传返回所有监听器
    */
   listeners<P extends keyof T>(eventName?: P) {
-    if (eventName === undefined) return this._listeners;
+    if (eventName === undefined) {return this._listeners;}
+
     return this._listeners[eventName];
   }
 
@@ -41,7 +42,7 @@ class EventEmitter<T extends Record<string, Listener>> {
   off<P extends keyof T>(eventName: P, listener?: T[P]) {
     if (listener) {
       const listeners = this._listeners[eventName];
-      if (listeners === null) return;
+      if (listeners === null) {return;}
 
       this._listeners[eventName] = listeners.filter((_listener) => _listener !== listener);
     } else {
@@ -97,4 +98,4 @@ class EventEmitter<T extends Record<string, Listener>> {
 
 const emitter = new EventEmitter();
 
-export { EventEmitter, emitter };
+export { emitter, EventEmitter };

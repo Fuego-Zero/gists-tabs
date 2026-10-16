@@ -1,8 +1,8 @@
 import { message } from 'antd';
-
 import axios from 'axios';
 
 import Storage from '@/classes/Storage';
+import { t } from '@/i18n/translate';
 
 const http = axios.create({
   baseURL: 'https://api.github.com',
@@ -26,7 +26,7 @@ http.interceptors.response.use(
 
     switch (response.status) {
       case 401:
-        msg = `Token 错误 ${response.data.message}`;
+        msg = `${t('tokenError')} ${response.data.message}`;
         break;
       default:
         msg = response.data.message;
