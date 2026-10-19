@@ -132,8 +132,9 @@ const HeaderMenu = (props: Props) => {
         icon: <CloudSyncOutlined />,
         disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
         onClick: async () => {
-          await Storage.syncGists();
-          message.success(t('syncTriggered'));
+          const res = await Storage.syncGists();
+          if (res?.ok) {message.success(t('syncTriggered'));}
+          else {message.error(res?.reason || t('errSync'));}
         },
       },
       {

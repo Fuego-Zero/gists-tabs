@@ -1,7 +1,7 @@
 import { GISTS_FILE_DESCRIPTION } from '@/config';
 import { RATE_LIMIT_ERROR_PREFIX, t } from '@/i18n/translate';
 import { isInitialCanvas } from '@/storage/initialCanvas';
-import { sendMessage } from '@/messaging';
+import { sendMessage, type SyncCommandResult } from '@/messaging';
 import { storageItems } from '@/storage/items';
 import type { GistsTabs } from '@/types';
 import {
@@ -83,15 +83,50 @@ class Storage {
     await this.setSyncStatus('synced', { backoffUntil: undefined, conflict: undefined, lastError: undefined });
   }
 
-  private async applyCloudData(cloud: GistsTabs, etag: null | string, reason: string) {
+  private async applyCloudData(cloud: GistsTabs, etag: null | string, reason: string): Promise<boolean> {
+    const anchored = await this.anchorLegacyCloud(cloud, etag);
+    if (!cloud.syncMeta?.revision && !anchored.data.syncMeta?.revision) {return false;}
+
     const local = await this.getGistsTabs();
     await this.pushSnapshot(local, reason);
-    await this.set(storageKeys.gistsTabs, cloud);
-    await this.setLastSyncedRevision(cloud.syncMeta?.revision ?? null);
-    if (etag) {await this.setLastEtag(etag);}
+    await this.set(storageKeys.gistsTabs, anchored.data);
+    await this.setLastSyncedRevision(anchored.data.syncMeta?.revision ?? null);
+    if (anchored.etag) {await this.setLastEtag(anchored.etag);}
 
     await this.setDirty(false);
+    await this.setLegacyOverwriteConfirmed(false);
     await this.setSyncStatus('synced', { conflict: undefined, lastError: undefined, lastPullAt: Date.now() });
+    return true;
+  }
+
+  /**
+   * 旧 Gist 没有 revision。采纳这份云端数据时补写一次锚点，否则下一次推送会再次进入冲突。
+   */
+  private async anchorLegacyCloud(data: GistsTabs, etag: null | string): Promise<{ data: GistsTabs; etag: null | string }> {
+    if (data.syncMeta?.revision) {return { data, etag };}
+
+    const token = await this.ensureToken();
+    const gistId = await this.getGistId();
+    if (!token || !gistId) {return { data, etag };}
+
+    const deviceId = await this.getOrCreateDeviceId();
+    const revision = uuid();
+    const payload: GistsTabs = {
+      ...data,
+      syncMeta: {
+        deviceId,
+        revision,
+        updateAt: data.updateAt ?? Date.now(),
+      },
+    };
+    const patched = await githubPatchGist(token, gistId, payload);
+
+    if (patched.errorKind !== 'ok') {
+      await this.setSyncStatus('failed', { lastError: patched.message || `legacy anchor HTTP ${patched.status}` });
+      return { data, etag };
+    }
+
+    return { data: payload, etag: patched.etag || etag };
   }
 
   private async bootstrap() {
@@ -448,8 +483,8 @@ class Storage {
         },
       };
 
-      const ifMatch = got.etag;
-      const patched = await githubPatchGist(token, gistId, payload, { ifMatch });
+      // Gist 的 PATCH 不接受 If-Match，带上会直接 400。推送后用 GET 核对 revision。
+      const patched = await githubPatchGist(token, gistId, payload);
 
       if (patched.errorKind === 'auth') {
         await this.handleAuthFailure(patched.message);
@@ -461,29 +496,19 @@ class Storage {
         return;
       }
 
-      if (patched.errorKind === 'precondition') {
-        const latest = await githubGetGist(token, gistId);
-        await this.enterConflict(local, latest.data || got.data, latest.etag || got.etag);
-        return;
-      }
-
       if (patched.errorKind !== 'ok') {
         await this.handleTransientFailure(patched.message || `PATCH HTTP ${patched.status}`);
         return;
       }
 
-      // 无 ETag 回退：PATCH 后立刻 GET 校验 revision
-      if (!ifMatch) {
-        const verify = await githubGetGist(token, gistId);
-        if (verify.errorKind === 'ok' && verify.data && verify.data.syncMeta?.revision !== newRevision) {
-          await this.enterConflict(local, verify.data, verify.etag);
-          return;
-        }
-
-        if (verify.etag) {await this.setLastEtag(verify.etag);}
-      } else if (patched.etag) {
-        await this.setLastEtag(patched.etag);
+      const verify = await githubGetGist(token, gistId);
+      if (verify.errorKind === 'ok' && verify.data && verify.data.syncMeta?.revision !== newRevision) {
+        await this.enterConflict(local, verify.data, verify.etag);
+        return;
       }
+
+      if (verify.etag) {await this.setLastEtag(verify.etag);}
+      else if (patched.etag) {await this.setLastEtag(patched.etag);}
 
       await this.set(storageKeys.gistsTabs, payload);
       await this.setLastSyncedRevision(newRevision);
@@ -732,6 +757,9 @@ class Storage {
     }
 
     await this.applyCloudData(got.data, got.etag, 'manual-pull');
+    const after = await this.getSyncState();
+    if (after.status !== 'synced') {return { ok: false, reason: after.lastError || after.status };}
+
     return { ok: true };
   }
 
@@ -869,29 +897,33 @@ class Storage {
     }
   }
 
-  /** 立即同步（手动）：走完整冲突检查的 push */
-  async syncGists() {
-    if (!this.engineActive) {
-      await sendMessage('syncNow');
-      return;
-    }
+  /** 立即同步（手动）：走完整冲突检查的 push。旧格式云端视为用户已确认覆盖。 */
+  async syncGists(): Promise<SyncCommandResult> {
+    if (!this.engineActive) {return sendMessage('syncNow');}
 
     const open = await this.getCloudSync();
-    if (!open) {return;}
+    if (!open) {return { ok: false, reason: 'cloudSync off' };}
 
-    await this.setDirty(true);
     const state = await this.getSyncState();
-    if (state.status === 'auth_failed') {
-      // 手动仍提示鉴权，不假装可推
-      return;
+    if (state.status === 'auth_failed') {return { ok: false, reason: state.lastError || 'auth' };}
+
+    if (state.status === 'conflict' && state.conflict?.cloud.syncMeta?.revision) {
+      return { ok: false, reason: state.lastError || t('errRevision') };
     }
 
     if (state.status === 'conflict') {
-      return;
+      await this.resolveConflictKeepLocal();
+    } else {
+      await this.setLegacyOverwriteConfirmed(true);
+      await this.setDirty(true);
+      await this.setSyncStatus('pending', { backoffUntil: undefined, lastError: undefined });
+      await this.pushToCloud();
     }
 
-    await this.setSyncStatus('pending', { backoffUntil: undefined });
-    await this.pushToCloud();
+    const after = await this.getSyncState();
+    if (after.status === 'synced') {return { ok: true };}
+
+    return { ok: false, reason: after.lastError || after.status };
   }
 }
 
