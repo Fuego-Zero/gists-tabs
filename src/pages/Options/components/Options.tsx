@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 import { checkToken } from '@/api/gists';  
 import Storage from '@/classes/Storage';
+import SyncConflictModal from '@/components/SyncConflictModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
@@ -98,8 +99,9 @@ const Options = () => {
   }
 
   async function pushNow() {
-    await Storage.syncGists();
-    message.info(t('syncTriggeredInfo'));
+    const res = await Storage.syncGists();
+    if (res?.ok) {message.success(t('syncTriggeredInfo'));}
+    else {message.error(res?.reason || t('errSync'));}
   }
 
   function pullNow() {
@@ -223,6 +225,7 @@ const Options = () => {
           </Form.Item>
         </Form>
       </Content>
+      <SyncConflictModal />
     </Layout>
   );
 };

@@ -18,9 +18,7 @@ export default defineBackground(() => {
   onMessage('stopSync', () => {
     void Storage.stopSyncFromEngine();
   });
-  onMessage('syncNow', () => {
-    void Storage.syncGists();
-  });
+  onMessage('syncNow', () => Storage.syncGists());
   onMessage('pullFromCloud', () => Storage.pullFromCloudConfirmed());
   onMessage('retrySync', () => {
     void Storage.retrySync();
