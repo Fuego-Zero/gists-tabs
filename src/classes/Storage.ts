@@ -1,12 +1,11 @@
 import { GISTS_FILE_DESCRIPTION } from '@/config';
 import { RATE_LIMIT_ERROR_PREFIX, t } from '@/i18n/translate';
 import { isInitialCanvas } from '@/storage/initialCanvas';
+import { nextRetryDelayMs } from '@/storage/retryDelay';
 import { sendMessage, type SyncCommandResult } from '@/messaging';
 import { storageItems } from '@/storage/items';
 import type { GistsTabs } from '@/types';
 import {
-  BACKOFF_BASE_MS,
-  BACKOFF_CAP_MS,
   PULL_THROTTLE_MS,
   PUSH_DEBOUNCE_MS,
   SNAPSHOT_RING_SIZE,
@@ -80,7 +79,12 @@ class Storage {
     this.clearTimer(BACKOFF_ALARM);
     await chrome.alarms.clear(PUSH_ALARM);
     await chrome.alarms.clear(BACKOFF_ALARM);
-    await this.setSyncStatus('synced', { backoffUntil: undefined, conflict: undefined, lastError: undefined });
+    await this.setSyncStatus('synced', {
+      backoffUntil: undefined,
+      conflict: undefined,
+      failureCount: 0,
+      lastError: undefined,
+    });
   }
 
   private async applyCloudData(cloud: GistsTabs, etag: null | string, reason: string): Promise<boolean> {
@@ -95,7 +99,13 @@ class Storage {
 
     await this.setDirty(false);
     await this.setLegacyOverwriteConfirmed(false);
-    await this.setSyncStatus('synced', { conflict: undefined, lastError: undefined, lastPullAt: Date.now() });
+    await this.setSyncStatus('synced', {
+      backoffUntil: undefined,
+      conflict: undefined,
+      failureCount: 0,
+      lastError: undefined,
+      lastPullAt: Date.now(),
+    });
     return true;
   }
 
@@ -121,8 +131,13 @@ class Storage {
     };
     const patched = await githubPatchGist(token, gistId, payload);
 
+    if (patched.errorKind === 'rate_limit') {
+      await this.handleRateLimit(patched);
+      return { data, etag };
+    }
+
     if (patched.errorKind !== 'ok') {
-      await this.setSyncStatus('failed', { lastError: patched.message || `legacy anchor HTTP ${patched.status}` });
+      await this.handleTransientFailure(patched.message || `legacy anchor HTTP ${patched.status}`);
       return { data, etag };
     }
 
@@ -136,7 +151,12 @@ class Storage {
       this.initialized = true;
       const dirty = await this.getDirty();
       if (dirty && (await this.getCloudSync())) {
-        this.debouncePush(0);
+        const state = await this.getSyncState();
+        if (this.inAutomaticBackoff(state)) {
+          this.scheduleBackoffResume((state.backoffUntil ?? Date.now()) - Date.now());
+        } else {
+          this.debouncePush(0);
+        }
       }
     }
   }
@@ -153,12 +173,6 @@ class Storage {
     if (dirty) {return;}
 
     await this.pullFromCloud({ force: false, applyIfClean: true });
-  }
-
-  private computeBackoffMs(attemptHint = 0): number {
-    const exp = Math.min(BACKOFF_CAP_MS, BACKOFF_BASE_MS * 2 ** Math.min(attemptHint, 6));
-    const jitter = Math.floor(Math.random() * 1000);
-    return Math.min(BACKOFF_CAP_MS, exp + jitter);
   }
 
   private debouncePush(delay = PUSH_DEBOUNCE_MS) {
@@ -256,7 +270,13 @@ class Storage {
     await this.setLastSyncedRevision(newRevision);
     await this.setLegacyOverwriteConfirmed(false);
     await this.setDirty(false);
-    await this.setSyncStatus('synced', { conflict: undefined, lastError: undefined, lastPushAt: Date.now() });
+    await this.setSyncStatus('synced', {
+      backoffUntil: undefined,
+      conflict: undefined,
+      failureCount: 0,
+      lastError: undefined,
+      lastPushAt: Date.now(),
+    });
     return created.data.id;
   }
 
@@ -326,31 +346,44 @@ class Storage {
     await this.setDirty(true);
     await this.setSyncStatus('auth_failed', {
       backoffUntil: undefined,
+      failureCount: 0,
       lastError: message || t('errToken'),
     });
   }
 
   private async handleRateLimit(result: GitHubResult<unknown>) {
-    const fromHeader = result.rate.retryAfter || (result.rate.reset ? result.rate.reset - Date.now() : 0);
-    const delay = Math.min(BACKOFF_CAP_MS, Math.max(fromHeader, this.computeBackoffMs()));
-    const backoffUntil = Date.now() + delay;
+    const failureCount = (await this.getSyncState()).failureCount ?? 0;
+    const delay = nextRetryDelayMs({
+      failureCount,
+      kind: 'rate_limit',
+      resetAtMs: result.rate.reset,
+      retryAfterMs: result.rate.retryAfter,
+    });
     await this.setDirty(true);
     await this.setSyncStatus('rate_limited', {
-      backoffUntil,
+      backoffUntil: Date.now() + delay,
+      failureCount: failureCount + 1,
       lastError: result.message || `${RATE_LIMIT_ERROR_PREFIX}${result.status}`,
     });
     this.scheduleBackoffResume(delay);
   }
 
-  private async handleTransientFailure(message?: string, attemptHint = 0) {
-    const delay = this.computeBackoffMs(attemptHint);
-    const backoffUntil = Date.now() + delay;
+  private async handleTransientFailure(message?: string) {
+    const failureCount = (await this.getSyncState()).failureCount ?? 0;
+    const delay = nextRetryDelayMs({ failureCount, kind: 'transient' });
     await this.setDirty(true);
     await this.setSyncStatus('failed', {
-      backoffUntil,
+      backoffUntil: Date.now() + delay,
+      failureCount: failureCount + 1,
       lastError: message || t('errSync'),
     });
     this.scheduleBackoffResume(delay);
+  }
+
+  /** 自动推送在失败或限流窗口内必须停住。手动同步会先清掉这个窗口。 */
+  private inAutomaticBackoff(state: SyncState): boolean {
+    return (state.status === 'failed' || state.status === 'rate_limited')
+      && Boolean(state.backoffUntil && Date.now() < state.backoffUntil);
   }
 
   private isAutoPushPaused(state: SyncState): boolean {
@@ -387,8 +420,8 @@ class Storage {
     const state = await this.getSyncState();
     if (this.isAutoPushPaused(state)) {return;}
 
-    if (state.backoffUntil && Date.now() < state.backoffUntil && state.status === 'rate_limited') {
-      this.scheduleBackoffResume(state.backoffUntil - Date.now());
+    if (this.inAutomaticBackoff(state)) {
+      this.scheduleBackoffResume((state.backoffUntil ?? Date.now()) - Date.now());
       return;
     }
 
@@ -399,7 +432,7 @@ class Storage {
 
     const dirty = await this.getDirty();
     if (!dirty) {
-      await this.setSyncStatus('synced');
+      await this.setSyncStatus('synced', { backoffUntil: undefined, failureCount: 0, lastError: undefined });
       return;
     }
 
@@ -440,7 +473,7 @@ class Storage {
       const local = await this.getGistsTabs();
       if (!local) {
         await this.setDirty(false);
-        await this.setSyncStatus('synced');
+        await this.setSyncStatus('synced', { backoffUntil: undefined, failureCount: 0, lastError: undefined });
         return;
       }
 
@@ -515,7 +548,9 @@ class Storage {
       await this.setLegacyOverwriteConfirmed(false);
       await this.setDirty(false);
       await this.setSyncStatus('synced', {
+        backoffUntil: undefined,
         conflict: undefined,
+        failureCount: 0,
         lastError: undefined,
         lastPushAt: Date.now(),
       });
@@ -526,7 +561,9 @@ class Storage {
       this.pushInFlight = false;
       if (this.dirtyDuringFlight) {
         this.dirtyDuringFlight = false;
-        this.debouncePush(0);
+        const state = await this.getSyncState();
+        // 失败时退避闹钟已经排好，不能再用编辑防抖立刻再推。
+        if (!this.inAutomaticBackoff(state)) {this.debouncePush();}
       }
     }
   }
@@ -722,7 +759,11 @@ class Storage {
       return { ok: true, reason: 'applied-init' };
     }
 
-    await this.setSyncStatus(dirty ? 'pending' : 'synced');
+    await this.setSyncStatus(dirty ? 'pending' : 'synced', dirty ? undefined : {
+      backoffUntil: undefined,
+      failureCount: 0,
+      lastError: undefined,
+    });
     return { ok: true, reason: 'checked' };
   }
 
@@ -874,7 +915,7 @@ class Storage {
     await this.setDirty(true);
     const open = await this.getCloudSync();
     if (!open) {
-      await this.setSyncStatus('synced');
+      await this.setSyncStatus('synced', { backoffUntil: undefined, failureCount: 0, lastError: undefined });
       return;
     }
 
@@ -883,6 +924,9 @@ class Storage {
       await this.setSyncStatus(state.status, { lastError: state.lastError, conflict: state.conflict });
       return;
     }
+
+    // 退避窗口内只保留脏标记，不把自动重试提前到 3 秒防抖。
+    if (this.inAutomaticBackoff(state)) {return;}
 
     await this.setSyncStatus('pending');
     this.debouncePush();
@@ -906,6 +950,9 @@ class Storage {
 
     const state = await this.getSyncState();
     if (state.status === 'auth_failed') {return { ok: false, reason: state.lastError || 'auth' };}
+
+    // 手动同步是唯一可以提前结束退避的入口。
+    await this.patchSyncState({ backoffUntil: undefined, failureCount: 0 });
 
     if (state.status === 'conflict' && state.conflict?.cloud.syncMeta?.revision) {
       return { ok: false, reason: state.lastError || t('errRevision') };

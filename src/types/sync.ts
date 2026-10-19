@@ -18,6 +18,8 @@ export interface SyncConflictPayload {
 export interface SyncState {
   backoffUntil?: number;
   conflict?: SyncConflictPayload;
+  /** 连续自动重试失败的次数。成功、关闭同步或鉴权失败后清零。 */
+  failureCount?: number;
   lastError?: string;
   lastPullAt?: number;
   lastPushAt?: number;
