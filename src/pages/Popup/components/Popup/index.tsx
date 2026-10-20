@@ -191,43 +191,45 @@ const Popup = () => {
     <div className="flex h-full w-full flex-col" style={{ background: token.colorBgContainer, color: token.colorText }}>
       <div className="shrink-0 border-b border-current/10 px-6 py-4 text-base font-medium">{t('addBookmark')}</div>
 
-      <Form requiredMark className="flex min-h-0 flex-1 flex-col px-6 pt-4" form={form} layout="vertical">
-        <Form.Item className="shrink-0" label={t('title')} name="title" rules={[{ required: true, message: t('titleRequired') }]}>
-          <Input.TextArea rows={2} style={{ resize: 'none' }} />
-        </Form.Item>
-
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="mb-2 shrink-0 text-sm">
-            <span className="mr-1 text-[#ff4d4f]">*</span>
-            {t('bookmark')}
-          </div>
-          <Form.Item
-            noStyle
-            name="widget"
-            rules={[
-              {
-                validator: (_, selected) =>
-                  selected?.length === 2 ? Promise.resolve() : Promise.reject(new Error(t('pickBookmark'))),
-              },
-            ]}
-            validateTrigger={[]}
-          >
-            <WidgetPicker options={options} />
+      <Form requiredMark className="flex min-h-0 flex-1 flex-col" form={form} layout="vertical">
+        <div className="flex min-h-0 flex-1 flex-col px-6 pt-4 pb-4">
+          <Form.Item className="shrink-0" label={t('title')} name="title" rules={[{ required: true, message: t('titleRequired') }]}>
+            <Input.TextArea rows={2} style={{ resize: 'none' }} />
           </Form.Item>
-          <Form.Item noStyle shouldUpdate>
-            {() => {
-              const error = form.getFieldError('widget')[0];
-              return error ? <div className="mt-1 shrink-0 text-sm text-[#ff4d4f]">{error}</div> : null;
-            }}
+
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="mb-2 shrink-0 text-sm">
+              <span className="mr-1 text-[#ff4d4f]">*</span>
+              {t('bookmark')}
+            </div>
+            <Form.Item
+              noStyle
+              name="widget"
+              rules={[
+                {
+                  validator: (_, selected) =>
+                    selected?.length === 2 ? Promise.resolve() : Promise.reject(new Error(t('pickBookmark'))),
+                },
+              ]}
+              validateTrigger={[]}
+            >
+              <WidgetPicker options={options} />
+            </Form.Item>
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const error = form.getFieldError('widget')[0];
+                return error ? <div className="mt-1 shrink-0 text-sm text-[#ff4d4f]">{error}</div> : null;
+              }}
+            </Form.Item>
+          </div>
+
+          <Form.Item hidden name="url">
+            <Input />
+          </Form.Item>
+          <Form.Item hidden name="favIconUrl">
+            <Input />
           </Form.Item>
         </div>
-
-        <Form.Item hidden name="url">
-          <Input />
-        </Form.Item>
-        <Form.Item hidden name="favIconUrl">
-          <Input />
-        </Form.Item>
       </Form>
 
       <div className="shrink-0 border-t border-current/10 px-6 py-3 text-center">
