@@ -10,7 +10,7 @@ export default defineBackground(() => {
   Storage.startEngine();
 
   onMessage('schedulePush', ({ data }) => {
-    void Storage.schedulePushFromEngine(data);
+    Storage.schedulePushFromEngine(data);
   });
   onMessage('coldStart', () => {
     void Storage.coldStartFromEngine();
@@ -18,11 +18,12 @@ export default defineBackground(() => {
   onMessage('stopSync', () => {
     void Storage.stopSyncFromEngine();
   });
+  onMessage('tokenChanged', () => {
+    void Storage.tokenChangedFromEngine();
+  });
   onMessage('syncNow', () => Storage.syncGists());
   onMessage('pullFromCloud', () => Storage.pullFromCloudConfirmed());
-  onMessage('retrySync', () => {
-    void Storage.retrySync();
-  });
+  onMessage('retrySync', () => Storage.retrySync());
   onMessage('resolveConflict', ({ data }) => {
     if (data === 'keepLocal') {return Storage.resolveConflictKeepLocal();}
 

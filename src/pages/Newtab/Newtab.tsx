@@ -1,5 +1,5 @@
 import { App, Button, Form, Layout, Modal, Select, Space } from 'antd';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -8,6 +8,7 @@ import SyncConflictModal from '@/components/SyncConflictModal';
 import useGistsTabs from '@/hooks/useGistsTabs';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import { pageTitle, setActiveLocale, t } from '@/i18n/translate';
+import { sendMessage } from '@/messaging';
 import { localeItem } from '@/storage/items';
 import withTheme from '@/theme/withTheme';
 import type { Page, Widget } from '@/types';
@@ -49,6 +50,13 @@ const Newtab = () => {
   const { message } = App.useApp();
   const [modal, contextHolder] = Modal.useModal();
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    // 每次打开新标签页都让后台检查云端（自动拉取有节流与 ETag），避免另一台设备推过后本机基于旧数据编辑。
+    sendMessage('coldStart').catch((error: unknown) => {
+      console.error('coldStart 通知发送失败', error);
+    });
+  }, []);
 
   const startSortMode = useCallback(
     (reason: SortModeStartReason = 'manual'): SortModeStartResult => {

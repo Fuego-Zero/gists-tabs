@@ -14,6 +14,7 @@ export const gistIdItem = storage.defineItem<string>('local:gistId');
 export const gistsTabsItem = storage.defineItem<GistsTabs>('local:gistsTabs');
 export const gistsTokenItem = storage.defineItem<string>('local:gistsToken');
 export const lastEtagItem = storage.defineItem<string>('local:lastEtag');
+export const lastSyncedHashItem = storage.defineItem<string>('local:lastSyncedHash');
 export const lastSyncedRevisionItem = storage.defineItem<string>('local:lastSyncedRevision');
 export const legacyOverwriteConfirmedItem = storage.defineItem<boolean>('local:legacyOverwriteConfirmed');
 export const syncSnapshotsItem = storage.defineItem<SyncSnapshot[]>('local:syncSnapshots');
@@ -32,6 +33,7 @@ export const storageItems = {
   gistsTabs: gistsTabsItem,
   gistsToken: gistsTokenItem,
   lastEtag: lastEtagItem,
+  lastSyncedHash: lastSyncedHashItem,
   lastSyncedRevision: lastSyncedRevisionItem,
   legacyOverwriteConfirmed: legacyOverwriteConfirmedItem,
   syncSnapshots: syncSnapshotsItem,

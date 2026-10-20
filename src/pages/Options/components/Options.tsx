@@ -64,8 +64,8 @@ const Options = () => {
     });
   }
 
-  function saveHandler() {
-    Storage.setGistsToken(token);
+  async function saveHandler() {
+    await Storage.setGistsToken(token);
     message.success(t('saveOk'));
   }
 
@@ -119,8 +119,9 @@ const Options = () => {
   }
 
   async function retry() {
-    await Storage.retrySync();
-    message.info(t('retryQueued'));
+    const res = await Storage.retrySync();
+    if (res.ok) {message.info(t('retryQueued'));}
+    else {message.error(res.reason || t('errSync'));}
   }
 
   return (
