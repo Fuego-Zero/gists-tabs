@@ -22,6 +22,8 @@ import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
 import { formatLastError, pageTitle, syncStatusLabel, t } from '@/i18n/translate';
 import { localeItem, themeItem } from '@/storage/items';
+import { parseCanvas } from '@/storage/syncRules';
+import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
 import { downloadFile, uploadFile } from '@/utils/file';
 
 import EditForm from './components/EditForm';
@@ -163,8 +165,9 @@ const HeaderMenu = (props: Props) => {
         icon: <ReloadOutlined />,
         disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
         onClick: async () => {
-          await Storage.retrySync();
-          message.info(t('retryOk'));
+          const res = await Storage.retrySync();
+          if (res.ok) {message.info(t('retryOk'));}
+          else {message.error(res.reason || t('errSync'));}
         },
       },
       {
@@ -204,10 +207,15 @@ const HeaderMenu = (props: Props) => {
                 const file = await uploadFile();
                 if (!file) {return;}
 
-                const text = await file.text();
-                const data = JSON.parse(text);
+                const parsed = parseCanvas(JSON.parse(await file.text()));
+                if (!parsed) {
+                  message.error(t('importFail'));
+                  return;
+                }
 
-                setGistsTabs(data);
+                // 导入的是画布内容；文件里的 syncMeta 属于别的同步位置，不能带进本机。
+                const { pages, version } = parsed.version === 1 ? parsed : upgradeGistsTabsToV1(parsed);
+                await setGistsTabs({ pages, updateAt: Date.now(), version });
                 message.success(t('importOk'));
               } catch (error) {
                 console.error('导入数据失败', error);
