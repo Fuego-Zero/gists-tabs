@@ -24,9 +24,9 @@ const SyncConflictModal = () => {
   async function keepLocal() {
     setBusy(true);
     try {
-      await Storage.resolveConflictKeepLocal();
-      message.success(t('keepLocalOk'));
-      setOpen(false);
+      const res = await Storage.resolveConflictKeepLocal();
+      if (res.ok) {message.success(t('keepLocalOk'));}
+      else {message.error(res.reason || t('conflictFail'));}
     } catch (error) {
       console.error(error);
       message.error(t('conflictFail'));
@@ -38,9 +38,9 @@ const SyncConflictModal = () => {
   async function useCloud() {
     setBusy(true);
     try {
-      await Storage.resolveConflictUseCloud();
-      message.success(t('useCloudOk'));
-      setOpen(false);
+      const res = await Storage.resolveConflictUseCloud();
+      if (res.ok) {message.success(t('useCloudOk'));}
+      else {message.error(res.reason || t('conflictFail'));}
     } catch (error) {
       console.error(error);
       message.error(t('conflictFail'));
