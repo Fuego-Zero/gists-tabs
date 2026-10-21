@@ -1,6 +1,6 @@
 {
   "name": "gists-tabs",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "芸笺 · Gists Tabs：Chrome 新标签页个人工作台（多页画布小组件；本机存储，可选 Gist 同步）",
   "license": "MIT",
   "type": "module",
