@@ -23,6 +23,7 @@ import useSyncState from '@/hooks/useSyncState';
 import { formatLastError, pageTitle, syncStatusLabel, t } from '@/i18n/translate';
 import { localeItem, themeItem } from '@/storage/items';
 import { parseCanvas } from '@/storage/syncRules';
+import { repairWidgetPositions } from '@/storage/widgetPositions';
 import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
 import { downloadFile, uploadFile } from '@/utils/file';
 
@@ -207,7 +208,8 @@ const HeaderMenu = (props: Props) => {
                 const file = await uploadFile();
                 if (!file) {return;}
 
-                const parsed = parseCanvas(JSON.parse(await file.text()));
+                const repaired = repairWidgetPositions(JSON.parse(await file.text()));
+                const parsed = parseCanvas(repaired.value);
                 if (!parsed) {
                   message.error(t('importFail'));
                   return;
