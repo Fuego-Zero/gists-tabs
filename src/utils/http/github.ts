@@ -2,6 +2,7 @@ import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 import { GISTS_FILE_DESCRIPTION, GISTS_FILE_NAME } from '@/config';
 import { parseCanvas } from '@/storage/syncRules';
+import { repairWidgetPositions } from '@/storage/widgetPositions';
 import type { GistsTabs } from '@/types';
 
 const github = axios.create({
@@ -34,6 +35,8 @@ export interface GitHubResult<T> {
   etag: null | string;
   message?: string;
   rate: GitHubRateInfo;
+  /** 读取时补过历史组件的位置。云端文件本身还是旧的，调用方需要再推一次。 */
+  repaired?: boolean;
   status: number;
 }
 
@@ -102,14 +105,14 @@ function hasNextPage(res: AxiosResponse, pageLength: number): boolean {
   return pageLength === LIST_PAGE_SIZE;
 }
 
-function parseGistContent(resData: unknown): { data: GistsTabs } | { invalid: GistInvalidReason } {
+function parseGistContent(resData: unknown): { data: GistsTabs; repaired: boolean } | { invalid: GistInvalidReason } {
   const files = (resData as { files?: Record<string, { content?: string; truncated?: boolean }> })?.files;
   const file = files?.[GISTS_FILE_NAME];
   // 超过 1MB 的文件 content 只有前一部分，解析出来也是残缺数据。
   if (file?.truncated) {return { invalid: 'truncated' };}
 
   if (!file?.content) {
-    return { data: { pages: [], updateAt: -1, version: 1 } };
+    return { data: { pages: [], updateAt: -1, version: 1 }, repaired: false };
   }
 
   let raw: unknown;
@@ -119,8 +122,9 @@ function parseGistContent(resData: unknown): { data: GistsTabs } | { invalid: Gi
     return { invalid: 'json' };
   }
 
-  const data = parseCanvas(raw);
-  return data ? { data } : { invalid: 'shape' };
+  const repaired = repairWidgetPositions(raw);
+  const data = parseCanvas(repaired.value);
+  return data ? { data, repaired: repaired.repaired } : { invalid: 'shape' };
 }
 
 export async function githubGetGist(
@@ -138,7 +142,7 @@ export async function githubGetGist(
     const parsed = parseGistContent(res.data);
     if ('invalid' in parsed) {return invalidResult(res, parsed.invalid);}
 
-    return fromResponse(res, parsed.data);
+    return { ...fromResponse(res, parsed.data), repaired: parsed.repaired };
   } catch (error) {
     return fromNetworkError(error);
   }

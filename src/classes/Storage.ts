@@ -5,6 +5,7 @@ import { isInitialCanvas } from '@/storage/initialCanvas';
 import { storageItems } from '@/storage/items';
 import { nextRetryDelayMs } from '@/storage/retryDelay';
 import { canvasHash, canvasKey, decidePull, decidePush, decideVerify, type PushDecision } from '@/storage/syncRules';
+import { repairWidgetPositions } from '@/storage/widgetPositions';
 import type { GistsTabs } from '@/types';
 import {
   PULL_THROTTLE_MS,
@@ -50,6 +51,13 @@ interface CloudRead {
   data: GistsTabs;
   etag: null | string;
   gistId: string;
+  /** 读取时补过组件位置，这份哈希不能和本机认作相同，否则修好的数据不会写回云端。 */
+  repaired: boolean;
+}
+
+/** 修过的云端实际文件还是旧的，比较时加标记，避免被认领后不再推送。 */
+function cloudCompareHash(hash: string, repaired: boolean): string {
+  return repaired ? `${hash}:repaired` : hash;
 }
 
 /** 云端有用户内容：不是空画布，也不是自动生成的空首页。 */
@@ -227,7 +235,8 @@ class Storage {
 
   /** 本机有未同步的修改就推，否则拉。force 时拉取不受节流与 ETag 限制。 */
   private async syncOnce(force: boolean) {
-    const local = await this.getGistsTabs();
+    // 页面加载也会修，但后台可能先同步。先修再比较，避免把缺位置的历史组件当成另一份内容。
+    const local = await this.repairStoredCanvas();
     const changed = local ? await this.hasLocalChanges(local) : false;
     const token = await this.ensureToken();
     if (!token) {
@@ -238,6 +247,20 @@ class Storage {
 
     if (changed) {await this.push(token);}
     else {await this.pull(token, force);}
+  }
+
+  /** 页面还没打开时，后台同步也要先补上历史组件的位置，否则会拿旧数据去和修好的云端比较。 */
+  private async repairStoredCanvas(): Promise<GistsTabs | undefined> {
+    const local = await this.getGistsTabs();
+    if (!local) {return undefined;}
+
+    const repaired = repairWidgetPositions(local);
+    if (!repaired.repaired) {return local;}
+
+    const next = repaired.value as GistsTabs;
+    await this.set(storageKeys.gistsTabs, next);
+    await this.setDirty(true);
+    return next;
   }
 
   /** 有基线哈希时以内容为准，脏标记只在没有基线时作参考。 */
@@ -262,11 +285,12 @@ class Storage {
 
     const cloud = remote.data;
     const cloudRevision = cloud.syncMeta?.revision ?? null;
-    const [localHash, cloudHash] = await Promise.all([canvasHash(local), canvasHash(cloud)]);
+    const [localHash, rawCloudHash] = await Promise.all([canvasHash(local), canvasHash(cloud)]);
+    const cloudHash = cloudCompareHash(rawCloudHash, remote.repaired);
     const anchor = await this.getLastSyncedRevision();
     if (cloudRevision && cloudRevision === anchor) {await this.setBase(anchor, cloudHash);}
 
-    const decision = decidePush({
+    let decision = decidePush({
       anchor,
       baseHash: await this.getLastSyncedHash(),
       cloudHash,
@@ -276,6 +300,10 @@ class Storage {
       localHash,
       localIsInitial: isInitialCanvas(local),
     });
+    // 标记让修好后内容相同的两边不相等。revision 又对不上时会误报冲突，这里改回推送。
+    if (remote.repaired && decision.kind === 'conflict' && rawCloudHash === localHash) {
+      decision = { kind: 'push' };
+    }
 
     if (decision.kind === 'use-cloud') {
       await this.applyCloud(cloud, cloudHash, local, 'pull-init');
@@ -356,7 +384,7 @@ class Storage {
 
     const cloud = remote.data;
     const cloudRevision = cloud.syncMeta?.revision ?? null;
-    const cloudHash = await canvasHash(cloud);
+    const cloudHash = cloudCompareHash(await canvasHash(cloud), remote.repaired);
     const anchor = await this.getLastSyncedRevision();
     if (cloudRevision && cloudRevision === anchor) {await this.setBase(anchor, cloudHash);}
 
@@ -448,7 +476,7 @@ class Storage {
       if (got.errorKind === 'ok' && got.data) {
         if (got.etag) {await this.setLastEtag(got.etag);}
 
-        return { data: got.data, etag: got.etag, gistId };
+        return { data: got.data, etag: got.etag, gistId, repaired: Boolean(got.repaired) };
       }
 
       await this.handleRequestFailure(got, 'GET');
@@ -548,7 +576,8 @@ class Storage {
     const remote = await this.fetchCloud(token);
     if (!remote || remote === 'not_modified') {return this.commandResult();}
 
-    const applied = await this.applyCloud(remote.data, await canvasHash(remote.data), local, reason);
+    const cloudHash = cloudCompareHash(await canvasHash(remote.data), remote.repaired);
+    const applied = await this.applyCloud(remote.data, cloudHash, local, reason);
     if (!applied) {return { ok: false, reason: t('errLocalChanged') };}
 
     return this.commandResult();

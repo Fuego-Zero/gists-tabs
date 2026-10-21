@@ -15,7 +15,7 @@
     "build:firefox": "tsc --noEmit && wxt build -b firefox",
     "lint": "tsc --noEmit && eslint .",
     "postinstall": "wxt prepare",
-    "test": "node --experimental-strip-types --test src/storage/snapshotCache.test.ts src/storage/initialCanvas.test.ts src/storage/retryDelay.test.ts src/storage/syncRules.test.ts src/pages/Newtab/components/ContentArea/components/clock/formatClock.test.ts",
+    "test": "node --experimental-strip-types --test src/storage/snapshotCache.test.ts src/storage/initialCanvas.test.ts src/storage/retryDelay.test.ts src/storage/syncRules.test.ts src/storage/widgetPositions.test.ts src/pages/Newtab/components/ContentArea/components/clock/formatClock.test.ts",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md,yml}\""
   },
   "dependencies": {

@@ -3,8 +3,9 @@ import { useCallback, useEffect } from 'react';
 import Storage from '@/classes/Storage';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import { setActiveLocale, t } from '@/i18n/translate';
-import { gistsTabsItem, localeItem } from '@/storage/items';
 import { isInitialCanvas, tagLegacyHome } from '@/storage/initialCanvas';
+import { gistsTabsItem, localeItem } from '@/storage/items';
+import { repairWidgetPositions } from '@/storage/widgetPositions';
 import type { GistsTabs } from '@/types';
 import { createPage } from '@/utils/data/factory';
 import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
@@ -38,15 +39,22 @@ function ensureGistsTabs() {
         return;
       }
 
-      const home = data.pages.length === 1 ? tagLegacyHome(data.pages[0]) : data.pages[0];
-      if (isInitialCanvas(data) && home && home.nameKey === 'home' && data.pages[0].nameKey !== 'home') {
-        await Storage.setGistsTabs({ ...data, pages: [home] });
-        return;
+      const repaired = repairWidgetPositions(data);
+      let next: GistsTabs = repaired.repaired ? repaired.value as GistsTabs : data;
+      let changed = repaired.repaired;
+
+      const home = next.pages.length === 1 ? tagLegacyHome(next.pages[0]) : next.pages[0];
+      if (isInitialCanvas(next) && home && home.nameKey === 'home' && next.pages[0].nameKey !== 'home') {
+        next = { ...next, pages: [home] };
+        changed = true;
       }
 
-      if (data.version === VERSION) {return;}
+      if (next.version !== VERSION) {
+        next = upgradeGistsTabsToV1(next);
+        changed = true;
+      }
 
-      await Storage.setGistsTabs(upgradeGistsTabsToV1(data));
+      if (changed) {await Storage.setGistsTabs(next);}
     })();
   }
 
