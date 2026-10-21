@@ -1,4 +1,4 @@
-import { App, ConfigProvider, theme } from 'antd';
+import { App, type AppProps, ConfigProvider, theme } from 'antd';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
@@ -16,6 +16,11 @@ const themeToken = {
   token: {
     colorPrimary: '#1677ff',
   },
+};
+
+// antd 默认让整行列表接收点击，会挡住提示下方的顶栏；提示条本身仍保留点击与悬停。
+const messageConfig: AppProps['message'] = {
+  styles: { listContent: { pointerEvents: 'none' } },
 };
 
 function ThemeFrame(props: { children: React.ReactNode }) {
@@ -63,7 +68,7 @@ function ThemeRoot(props: { children: React.ReactNode }) {
         },
       }}
     >
-      <App component={false}>
+      <App component={false} message={messageConfig}>
         <ThemeFrame>{props.children}</ThemeFrame>
       </App>
     </ConfigProvider>
