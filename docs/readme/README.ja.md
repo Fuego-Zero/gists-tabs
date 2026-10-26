@@ -1,77 +1,128 @@
 <div align="center">
 
-<img src="../assets/logo.png" width="96" alt="Gists Tabs のロゴ">
+<img src="../assets/logo.png" width="96" alt="ロゴ">
 
 # Gists Tabs
 
-自分で並べる、新しいタブ。ブックマークと世界時計を、複数ページのキャンバスに置きます。同期するまで、データはこの端末に残ります。同期先は、あなた自身の非公開 GitHub Gist です。
+自分で並べる、新しいタブ。ブックマークと世界時計を、複数ページのキャンバスに置きます。同期するまで、データはこの端末に残ります。
 
 [Chrome に追加](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/cghagphlkcfafhacjgkfidbbkiklhacp?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
-[![ユーザー](https://img.shields.io/chrome-web-store/users/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
-[![評価](https://img.shields.io/chrome-web-store/rating/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
+[![Users](https://img.shields.io/chrome-web-store/users/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
+[![Rating](https://img.shields.io/chrome-web-store/rating/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
 [![License: MIT](https://img.shields.io/github/license/Fuego-Zero/gists-tabs)](../../LICENSE)
 [![Stars](https://img.shields.io/github/stars/Fuego-Zero/gists-tabs?style=social)](https://github.com/Fuego-Zero/gists-tabs/stargazers)
 
 [English](../../README.md) · [简体中文](./README.zh-CN.md) · [繁體中文](./README.zh-TW.md) · **日本語** · [한국어](./README.ko.md) · [Español](./README.es.md) · [Português](./README.pt-BR.md) · [Deutsch](./README.de.md) · [Français](./README.fr.md) · [Русский](./README.ru.md)
 
-<img src="../store/images/ja/screenshot-1.jpg" width="1280" alt="ブックマークの列と世界時計がある新しいタブ">
+<img src="../assets/tour/ja/home-light.jpg" width="1280" alt="新しいタブ">
 
 </div>
 
-Gists Tabs は Chrome の新しいタブを、個人の作業台に置き換えます。ブックマークのまとまりと時計を列に置き、ページで分けます。同期をオンにするまで、内容はこのブラウザの外へ出ません。
+Gists Tabs は Chrome の新しいタブを、自分で並べる作業台に置き換えます。仕事、学習、それ以外をページで分けます。各ページは 3 列のブックマークと時計です。アカウントは要らず、同期をオンにするまで何も送信されません。
 
-画面の言語は English と中文です。拡張機能の設定ページで切り替えます。
+言語を選んでいなければ、画面はブラウザに従います。設定で English、简体中文、繁體中文、日本語、한국어、Español、Português、Deutsch、Français、Русский に切り替えられます。
 
-## ページ、ブックマーク、時計
+## なぜこれか
 
-各ページは 3 列のキャンバスです。ブックマークのウィジェットには、サイトのアイコン付きリンクが並びます。時計のウィジェットは、追加した都市の時刻を表示します。仕事とそれ以外を同じ画面に置きたくないときは、ページを増やします。
+ブラウザ標準の新しいタブは検索欄と少しのショートカットです。ブックマークバーは長い一行です。多くのダッシュボード拡張は独自アカウントを求め、配置は相手のサーバーにあります。
 
-<img src="../store/images/ja/screenshot-2.jpg" width="1280" alt="ダークテーマの同じ新しいタブ">
+Gists Tabs は逆です。配置はあなたのもの。同期するなら、ファイルはあなたの GitHub アカウントの非公開 Gist です。拡張機能の作者にサーバーはなく、ブックマークは見えません。
 
-## ドラッグしてから保存
+| | Chrome の新しいタブ | ブックマークバー | アカウント制のダッシュボード | Gists Tabs |
+| --- | --- | --- | --- | --- |
+| 複数ページ、3 列 | なし | なし | 場合による | あり |
+| 世界時計 | なし | なし | 場合による | あり |
+| アカウントなしで使える | はい | はい | いいえ | はい |
+| データは自分の非公開 Gist | なし | なし | なし | あり |
+| オープンソース | いいえ | — | まれ | はい |
+| JSON の書き出しと読み込み | なし | ブラウザの書き出しのみ | 場合による | あり |
+| 広告や追跡 | ショートカット | なし | 多い | なし |
 
-ヘッダーから並べ替えに入り、ウィジェットを別の列へドラッグして保存します。並べ替えを終了すると下書きは捨てられるので、途中の移動がキャンバスを上書きすることはありません。
+## 3 ステップ
 
-<img src="../assets/drag-sort.gif" width="640" alt="世界時計を別の列へドラッグしているところ">
+1. Chrome ウェブストアからインストールします。次の新しいタブがキャンバスです。
+2. ブックマークグループを作るか、Chrome にあるフォルダを読み込みます。
+3. ツールバーのボタンで、今開いているページを保存します。
 
-## 開いているタブを保存
+<img src="../assets/tour/ja/popup.jpg" width="500" alt="ポップアップ">
 
-ツールバーのボタンは、表示中のタブのタイトルとアドレスを読み、ブックマークグループに入れます。
+## Chrome のブックマークを移す
 
-<img src="../store/images/ja/screenshot-4.jpg" width="1280" alt="表示中のタブをブックマークグループへ保存するポップアップ">
+ページメニューから **Chrome のブックマークを読み込む** を選びます。最初だけ Chrome がブックマーク権限を求めます。インストール時には求めません。フォルダを選びます。フォルダごとにグループになり、そのフォルダ直下のリンクだけが入ります。現在のページにも、新しいページにも置けます。
 
-## 初期状態ではこの端末だけ
+アイコンはあとから編集するまで既定の印です。`javascript:` など、新しいタブで開けないアドレスは飛ばします。
 
-キャンバスは拡張機能のローカルストレージにあります。JSON として書き出せます。以前保存したファイルを読み込むこともできます。
+GitHub を使わずに別のブラウザへ移すときは、ページメニューか設定から JSON を書き出し、向こうで読み込みます。読み込むと現在のキャンバスは置き換わります。
 
-クラウド同期は、GitHub の Token を貼り付けてオンにするまでオフです。Token はローカルストレージに残り、あなたのアカウントの非公開 Gist を読み書きするためだけに使われます。クラシックな個人アクセス Token には `gist` スコープが必要です。Fine-grained Token には Gist の読み書き権限が必要です。拡張機能の作者が運用するサーバーはありません。
+<img src="../assets/tour/ja/import-chrome.jpg" width="1280" alt="ブックマークの読み込み">
 
-<img src="../store/images/ja/screenshot-5.jpg" width="1280" alt="クラウド同期がオンで、Token が隠された設定">
+## キャンバス
 
-| 権限 | 理由 |
-| --- | --- |
-| `storage` | 作業台をこの端末に残す |
-| `tabs`、`activeTab` | 表示中のタブを読み、ツールバーから保存する |
-| `alarms` | クラウド同期をオンにしたあと、再試行をスケジュールする |
+ページはヘッダーに並びます。メニューから名前の変更、コピー、削除ができます。最後の 1 ページは削除できません。
+
+<img src="../assets/tour/ja/page-menu.jpg" width="1280" alt="ページメニュー">
+
+ブックマークグループは名前付きのリストです。タイトルとリンクをその場で編集し、リスト内でドラッグし、右クリックでコピーや削除ができます。タイトルをダブルクリックすると折りたたみます。
+
+<img src="../assets/tour/ja/bookmark-edit.jpg" width="1280" alt="ブックマークの編集">
+
+時計は追加した都市の時刻を表示します。12 時間制か 24 時間制かは、画面の言語の習慣に従います。
+
+<img src="../assets/tour/ja/clock-edit.jpg" width="1280" alt="世界時計">
+
+並べ替えでは各グループが一本のバーになります。別の列へドラッグして保存します。終了すると下書きは捨てられます。
+
+<img src="../assets/tour/ja/drag-sort.gif" width="640" alt="ドラッグで並べ替え">
+
+ライトとダークはヘッダーの一つのスイッチで、この端末に保存されます。
+
+<img src="../assets/tour/ja/home-dark.jpg" width="1280" alt="ダークテーマ">
+
+## 自分の Gist に同期する
+
+同期は、Token を貼り付けてオンにするまでオフです。
+
+- クラシックな個人アクセス Token には `gist` スコープが必要です。
+- Fine-grained Token には Gist の読み書きだけが必要で、リポジトリ権限は要りません。
+
+設定で貼り付け、確認し、保存してからクラウド同期をオンにします。Token はローカルストレージに残り、あなたのアカウントの非公開 Gist を読み書きするためだけに使われます。連続した編集は一つの書き込みにまとまります。
+
+2 台目では同じ GitHub アカウントの Token を貼り付けて同期をオンにすると、その Gist からキャンバスが降ります。
+
+<img src="../assets/tour/ja/options.jpg" width="1040" alt="設定">
+
+両方に変更があると、同期は止まって選択を求めます。両方の JSON を書き出す、この端末を残して送る、クラウドでこの端末を置き換える、の三つです。置き換える前に、それまでのキャンバスはローカルスナップショットに残ります。
+
+GitHub が書き込みを制限することがあります。拡張機能は待って再試行し、間隔は最長 10 分まで伸びます。
+
+<img src="../assets/tour/ja/conflict.jpg" width="1280" alt="同期の競合">
+
+## プライバシーと権限
+
+| 権限 | いつ | 理由 |
+| --- | --- | --- |
+| `storage` | インストール時 | キャンバス、テーマ、言語、Token をこの端末に残す |
+| `tabs`、`activeTab` | インストール時 | 表示中のタブを読み、ツールバーから保存する |
+| `alarms` | インストール時 | クラウド同期のあと、再試行をスケジュールする |
+| `bookmarks` | 読み込むときだけ | Chrome のブックマークフォルダを読む。インストール時には求めない |
+
+分析も広告もなく、拡張機能の作者が運用するサーバーもありません。
 
 ## 質問
 
-**GitHub アカウントは必要ですか？**
-いいえ。同期をオフにしたままで、新しいタブは使えます。
+**GitHub は必要ですか？**
+いいえ。同期をオフにしたままで使えます。
 
 **ブックマークはどこにありますか？**
-このブラウザの拡張機能ストレージです。同期をオンにすると、あなたの GitHub アカウントに非公開 Gist のコピーもできます。
+このブラウザの拡張機能ストレージです。同期をオンにすると、あなたの GitHub アカウントに非公開 Gist もできます。
 
-**GitHub を使わずにキャンバスを移せますか？**
-はい。新しいタブのメニューか設定から JSON を書き出し、別のブラウザで読み込みます。
-
-**製品の画面は何語ですか？**
-画面は English と中文です。この説明は、プロジェクトを見つけやすくするために、より多くの言語で置いています。
+**更新で言語は変わりますか？**
+一度も選んでいなければブラウザに従います。設定で選べば、その選択が残ります。
 
 **Firefox でも動きますか？**
-公開されているのは Chrome ウェブストアです。同じソースから Firefox 向けにもビルドできます。下のコマンドを見てください。
+公開されているのは Chrome ウェブストアです。同じソースから Firefox 向けにもビルドできます。Chrome のブックマーク読み込みは Chrome だけの権限です。
 
 ## 開発
 
@@ -84,9 +135,9 @@ Node.js と npm が必要です。
 | `npm run build` | 型チェックのあと、Chrome の本番ビルド |
 | `npm run build:firefox` | 型チェックのあと、Firefox の本番ビルド |
 | `npm run lint` | `tsc --noEmit` と ESLint |
-| `npm test` | ストレージと時計表示のユニットテスト |
+| `npm test` | 言語判定、ブックマーク読み込み、ストレージ、時計のユニットテスト |
 
-パッケージ化されていない拡張機能を読み込むときは `.output/chrome-mv3` を選びます。Firefox の出力は `.output/firefox-mv2` または `.output/firefox-mv3` で、コマンドが表示したディレクトリです。
+パッケージ化されていない拡張機能は `.output/chrome-mv3` を読み込みます。Firefox の出力は `.output/firefox-mv2` または `.output/firefox-mv3` です。
 
 ## ライセンス
 

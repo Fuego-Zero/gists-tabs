@@ -1,77 +1,128 @@
 <div align="center">
 
-<img src="../assets/logo.png" width="96" alt="Logotipo do Gists Tabs">
+<img src="../assets/logo.png" width="96" alt="logotipo">
 
 # Gists Tabs
 
-Uma nova guia que você organiza. Favoritos e relógios mundiais num espaço de várias páginas. Os dados ficam neste dispositivo, a menos que você sincronize com o seu próprio Gist privado do GitHub.
+A nova guia, organizada por você. Grupos de favoritos e relógios mundiais num espaço de várias páginas. Os dados ficam neste dispositivo até você sincronizar com um Gist privado do GitHub.
 
 [Adicionar ao Chrome](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/cghagphlkcfafhacjgkfidbbkiklhacp?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
-[![Usuários](https://img.shields.io/chrome-web-store/users/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
-[![Avaliação](https://img.shields.io/chrome-web-store/rating/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
+[![Users](https://img.shields.io/chrome-web-store/users/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
+[![Rating](https://img.shields.io/chrome-web-store/rating/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
 [![License: MIT](https://img.shields.io/github/license/Fuego-Zero/gists-tabs)](../../LICENSE)
 [![Stars](https://img.shields.io/github/stars/Fuego-Zero/gists-tabs?style=social)](https://github.com/Fuego-Zero/gists-tabs/stargazers)
 
 [English](../../README.md) · [简体中文](./README.zh-CN.md) · [繁體中文](./README.zh-TW.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Español](./README.es.md) · **Português** · [Deutsch](./README.de.md) · [Français](./README.fr.md) · [Русский](./README.ru.md)
 
-<img src="../store/images/pt_BR/screenshot-1.jpg" width="1280" alt="Nova guia com colunas de favoritos e um relógio mundial">
+<img src="../assets/tour/pt_BR/home-light.jpg" width="1280" alt="nova guia">
 
 </div>
 
-O Gists Tabs troca a nova guia do Chrome por um espaço pessoal. Coloque grupos de favoritos e relógios em colunas e separe-os em páginas. Nada sai do navegador até você ligar a sincronização.
+O Gists Tabs troca a nova guia do Chrome por um espaço que você organiza. Trabalho, estudo e o resto do dia ficam em páginas separadas. Cada página tem três colunas de grupos e relógios. Não há conta para criar e nada é enviado, a menos que você ligue a sincronização.
 
-A interface está em English e 中文. A troca fica na página de configurações da extensão.
+Se você ainda não escolheu um idioma, a interface segue o navegador. Nas Configurações dá para mudar para English, 简体中文, 繁體中文, 日本語, 한국어, Español, Português, Deutsch, Français ou Русский.
 
-## Páginas, favoritos e relógios
+## Por que este
 
-Cada página é uma tela de três colunas. Um widget de favoritos guarda links com o ícone do site. Um widget de relógio mostra a hora das cidades que você adiciona. Abra outra página quando trabalho e o resto do dia não deveriam dividir a mesma tela.
+A nova guia do navegador é uma busca e alguns atalhos. A barra de favoritos é uma fileira longa. A maioria dos painéis pede a própria conta e guarda o layout no servidor deles.
 
-<img src="../store/images/pt_BR/screenshot-2.jpg" width="1280" alt="A mesma nova guia no tema escuro">
+O Gists Tabs faz o contrário. O layout é seu. Se sincronizar, o arquivo é um Gist privado da sua conta do GitHub. Quem fez a extensão não opera um servidor e não vê seus favoritos.
 
-## Arraste e depois salve
+| | Nova guia do Chrome | Barra de favoritos | Painéis com conta | Gists Tabs |
+| --- | --- | --- | --- | --- |
+| Várias páginas, três colunas | Não | Não | Às vezes | Sim |
+| Relógios mundiais | Não | Não | Às vezes | Sim |
+| Sem conta | Sim | Sim | Não | Sim |
+| Seus dados, no seu Gist privado | Não | Não | Não | Sim |
+| Código aberto | Não | — | Raramente | Sim |
+| Exportar e importar JSON | Não | Só a exportação do navegador | Varia | Sim |
+| Anúncios ou rastreamento | Atalhos | Não | Com frequência | Não |
 
-Entre no modo de ordenar pelo cabeçalho, arraste um widget para outra coluna e salve. Sair desse modo descarta o rascunho, então um movimento pela metade não substitui a tela.
+## Três passos
 
-<img src="../assets/drag-sort.gif" width="640" alt="Arrastando o relógio mundial para outra coluna">
+1. Instale pela Chrome Web Store. A próxima nova guia é a tela.
+2. Crie um grupo ou importe as pastas que você já tem no Chrome.
+3. Use o botão da barra para guardar a página que você está lendo.
 
-## Salve a guia que já está aberta
+<img src="../assets/tour/pt_BR/popup.jpg" width="500" alt="janela">
 
-O botão da barra de ferramentas pega o título e o endereço da guia atual e guarda num grupo de favoritos.
+## Traga os favoritos do Chrome
 
-<img src="../store/images/pt_BR/screenshot-4.jpg" width="1280" alt="Janela para salvar a guia atual num grupo de favoritos">
+Abra o menu da página e escolha **Importar favoritos do Chrome**. Na primeira vez o Chrome pede a permissão de favoritos; ela é opcional e não é pedida na instalação. Marque as pastas. Cada uma vira um grupo só com os links que estão diretamente nela. Dá para colocar na página atual ou numa nova.
 
-## Neste dispositivo, salvo se você decidir o contrário
+Os ícones ficam na marca padrão até você editar um link. Endereços `javascript:` e outros que a nova guia não abre são ignorados.
 
-A tela fica no armazenamento local da extensão. Dá para exportar em JSON ou importar um arquivo que você tenha guardado antes.
+Para levar a tela a outro navegador sem GitHub, exporte o JSON pelo menu ou pelas Configurações e importe lá. Importar substitui a tela atual.
 
-A sincronização na nuvem fica desligada até você colar um token do GitHub e ligá-la. O token permanece no armazenamento local. A extensão usa o token só para ler e gravar um Gist privado da sua conta. Um token clássico precisa do escopo `gist`. Um token refinado precisa de leitura e gravação em Gists. Quem fez a extensão não opera um servidor.
+<img src="../assets/tour/pt_BR/import-chrome.jpg" width="1280" alt="importar favoritos">
 
-<img src="../store/images/pt_BR/screenshot-5.jpg" width="1280" alt="Configurações com a sincronização ligada e o token oculto">
+## A tela
 
-| Permissão | Por que existe |
-| --- | --- |
-| `storage` | Manter o espaço de trabalho neste dispositivo |
-| `tabs`, `activeTab` | Ler a guia atual para o botão poder salvá-la |
-| `alarms` | Tentar de novo a sincronização depois que você liga a nuvem |
+As páginas ficam no cabeçalho. Renomeie, copie ou apague pelo menu. A última página não pode ser apagada.
+
+<img src="../assets/tour/pt_BR/page-menu.jpg" width="1280" alt="menu da página">
+
+Um grupo é uma lista com nome. Edite o título e os links no lugar, arraste dentro da lista ou clique com o botão direito para copiar ou excluir. Um clique duplo no título recolhe o grupo.
+
+<img src="../assets/tour/pt_BR/bookmark-edit.jpg" width="1280" alt="editar favoritos">
+
+Um relógio mostra a hora das cidades que você adiciona. O ciclo de 12 ou 24 horas segue o costume do idioma da interface.
+
+<img src="../assets/tour/pt_BR/clock-edit.jpg" width="1280" alt="relógio mundial">
+
+O modo de ordenar transforma cada grupo numa barra. Arraste para outra coluna e salve. Sair descarta o rascunho.
+
+<img src="../assets/tour/pt_BR/drag-sort.gif" width="640" alt="arrastar para ordenar">
+
+Claro e escuro são um interruptor no cabeçalho. A escolha fica neste dispositivo.
+
+<img src="../assets/tour/pt_BR/home-dark.jpg" width="1280" alt="tema escuro">
+
+## Sincronize com o seu Gist
+
+A sincronização fica desligada até você colar um token e ligá-la.
+
+- Um token clássico precisa do escopo `gist`.
+- Um token refinado só precisa ler e gravar Gists. Não precisa de permissão de repositório.
+
+Nas Configurações, cole, verifique, salve e ligue a nuvem. O token fica no armazenamento local e só lê e grava um Gist privado da sua conta. Várias edições seguidas viram uma escrita só.
+
+No segundo dispositivo, instale a extensão, cole um token da mesma conta e ligue a sincronização. A tela desce desse Gist.
+
+<img src="../assets/tour/pt_BR/options.jpg" width="1040" alt="configurações">
+
+Se os dois lados mudaram, a sincronização para e pergunta. Dá para exportar os dois JSON, manter este dispositivo e enviar, ou substituí-lo pela cópia da nuvem. Antes da substituição, a tela anterior fica nos instantâneos locais.
+
+O GitHub pode limitar as escritas. A extensão espera e tenta de novo, até 10 minutos.
+
+<img src="../assets/tour/pt_BR/conflict.jpg" width="1280" alt="conflito de sincronização">
+
+## Privacidade e permissões
+
+| Permissão | Quando | Por quê |
+| --- | --- | --- |
+| `storage` | Na instalação | Guardar a tela, o tema, o idioma e o token neste dispositivo |
+| `tabs`, `activeTab` | Na instalação | Ler a guia atual para o botão poder salvá-la |
+| `alarms` | Na instalação | Tentar de novo a sincronização depois de ligar a nuvem |
+| `bookmarks` | Só ao importar | Ler pastas do Chrome. Não é pedida na instalação |
+
+Não há análise, nem anúncio, nem um servidor de quem fez a extensão.
 
 ## Perguntas
 
-**Preciso de uma conta do GitHub?**
-Não. A nova guia funciona com a sincronização desligada.
+**Preciso do GitHub?**
+Não. Com a sincronização desligada, a nova guia funciona do mesmo jeito.
 
 **Onde ficam os favoritos?**
-No armazenamento da extensão deste navegador. Com a sincronização ligada, também existe uma cópia num Gist privado da sua conta do GitHub.
+No armazenamento da extensão deste navegador. Com a sincronização ligada, também existe uma cópia num Gist privado da sua conta.
 
-**Consigo levar a tela sem o GitHub?**
-Sim. Exporte o JSON pelo menu da nova guia ou pelas configurações e importe no outro navegador.
-
-**Em quais idiomas o produto aparece?**
-A interface está em English e 中文. Esta página está traduzida para mais idiomas para o projeto ser mais fácil de achar.
+**O idioma muda numa atualização?**
+Se você nunca escolheu, a interface segue o navegador. Se escolher nas Configurações, a escolha permanece.
 
 **Funciona no Firefox?**
-A ficha publicada está na Chrome Web Store. O mesmo código gera uma build para Firefox; veja os comandos abaixo.
+A ficha publicada está na Chrome Web Store. O mesmo código gera uma build para Firefox. Importar favoritos do Chrome usa uma permissão exclusiva do Chrome.
 
 ## Desenvolvimento
 
@@ -81,12 +132,12 @@ A ficha publicada está na Chrome Web Store. O mesmo código gera uma build para
 | --- | --- |
 | `npm run dev` | Build de desenvolvimento para Chrome |
 | `npm run dev:firefox` | Build de desenvolvimento para Firefox |
-| `npm run build` | Verifica tipos e gera a build de produção do Chrome |
-| `npm run build:firefox` | Verifica tipos e gera a build de produção do Firefox |
+| `npm run build` | Verifica tipos e gera a build do Chrome |
+| `npm run build:firefox` | Verifica tipos e gera a build do Firefox |
 | `npm run lint` | `tsc --noEmit` e ESLint |
-| `npm test` | Testes de unidade do armazenamento e do relógio |
+| `npm test` | Testes de idioma, importação, armazenamento e relógios |
 
-Carregue a extensão descompactada a partir de `.output/chrome-mv3`. A saída do Firefox é `.output/firefox-mv2` ou `.output/firefox-mv3`, o diretório que o comando imprimir.
+Carregue a extensão descompactada a partir de `.output/chrome-mv3`. A saída do Firefox é `.output/firefox-mv2` ou `.output/firefox-mv3`.
 
 ## Licença
 
