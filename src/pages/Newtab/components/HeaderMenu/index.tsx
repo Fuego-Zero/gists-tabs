@@ -14,19 +14,21 @@ import {
   SunOutlined,
 } from '@ant-design/icons';
 import { App, Button, Dropdown, Menu, type MenuProps, Space, Tooltip  } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import Storage from '@/classes/Storage';
 import useGistsTabs from '@/hooks/useGistsTabs';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
-import { formatLastError, pageTitle, syncStatusLabel, t } from '@/i18n/translate';
+import { pageTitle, t } from '@/i18n/translate';
 import { localeItem, themeItem } from '@/storage/items';
 import { parseCanvas } from '@/storage/syncRules';
 import { repairWidgetPositions } from '@/storage/widgetPositions';
 import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
 import { downloadFile, uploadFile } from '@/utils/file';
+import { runSyncCommand } from '@/utils/syncNotice';
 
+import { useSyncErrorNotice } from '../../hooks/useSyncErrorNotice';
 import EditForm from './components/EditForm';
 import type { Props } from './types';
 
@@ -35,7 +37,6 @@ const HeaderMenu = (props: Props) => {
   const syncState = useSyncState();
   const mode = useStorageItem(themeItem, 'light');
   const locale = useStorageItem(localeItem, 'zh_CN');
-  const skipInitialSyncNotice = useRef(true);
 
   const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage, onSortModeStart } = props;
 
@@ -49,39 +50,8 @@ const HeaderMenu = (props: Props) => {
   );
 
   const { message, modal } = App.useApp();
-  const messageRef = useRef(message);
-  messageRef.current = message;
+  useSyncErrorNotice(message);
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    if (skipInitialSyncNotice.current) {
-      skipInitialSyncNotice.current = false;
-      return;
-    }
-
-    if (syncState.status === 'conflict') {return;}
-
-    const label = syncStatusLabel(syncState.status);
-    const detail = formatLastError(syncState.lastError);
-    const text = detail ? `${label}: ${detail}` : label;
-    const notice = messageRef.current;
-    if (syncState.status === 'failed' || syncState.status === 'auth_failed') {
-      notice.error(text);
-      return;
-    }
-
-    if (syncState.status === 'rate_limited') {
-      notice.warning(text);
-      return;
-    }
-
-    if (syncState.status === 'synced') {
-      notice.success(text);
-      return;
-    }
-
-    notice.info(text);
-  }, [syncState.lastError, syncState.status]);
 
   const dropdowns: MenuProps['items'] = useMemo(
     () => [
@@ -134,10 +104,11 @@ const HeaderMenu = (props: Props) => {
         label: <span className="select-none">{t('syncNow')}</span>,
         icon: <CloudSyncOutlined />,
         disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
-        onClick: async () => {
-          const res = await Storage.syncGists();
-          if (res?.ok) {message.success(t('syncTriggered'));}
-          else {message.error(res?.reason || t('errSync'));}
+        onClick: () => {
+          void runSyncCommand(message, () => Storage.syncGists(), {
+            failText: t('errSync'),
+            okText: t('statusSynced'),
+          });
         },
       },
       {
@@ -152,11 +123,10 @@ const HeaderMenu = (props: Props) => {
             okText: t('pull'),
             okType: 'danger',
             cancelText: t('cancel'),
-            onOk: async () => {
-              const res = await Storage.pullFromCloudConfirmed();
-              if (res.ok) {message.success(t('pullOk'));}
-              else {message.error(res.reason || t('pullFail'));}
-            },
+            onOk: () => runSyncCommand(message, () => Storage.pullFromCloudConfirmed(), {
+              failText: t('pullFail'),
+              okText: t('pullOk'),
+            }),
           });
         },
       },
@@ -165,10 +135,11 @@ const HeaderMenu = (props: Props) => {
         label: <span className="select-none">{t('retry')}</span>,
         icon: <ReloadOutlined />,
         disabled: syncState.status === 'conflict' || syncState.status === 'auth_failed',
-        onClick: async () => {
-          const res = await Storage.retrySync();
-          if (res.ok) {message.info(t('retryOk'));}
-          else {message.error(res.reason || t('errSync'));}
+        onClick: () => {
+          void runSyncCommand(message, () => Storage.retrySync(), {
+            failText: t('errSync'),
+            okText: t('statusSynced'),
+          });
         },
       },
       {

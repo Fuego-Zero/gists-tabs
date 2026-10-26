@@ -6,6 +6,7 @@ import Storage from '@/classes/Storage';
 import useSyncState from '@/hooks/useSyncState';
 import { formatLastError, t } from '@/i18n/translate';
 import { downloadFile } from '@/utils/file';
+import { runSyncCommand } from '@/utils/syncNotice';
 
 const { Paragraph } = Typography;
 
@@ -24,12 +25,10 @@ const SyncConflictModal = () => {
   async function keepLocal() {
     setBusy(true);
     try {
-      const res = await Storage.resolveConflictKeepLocal();
-      if (res.ok) {message.success(t('keepLocalOk'));}
-      else {message.error(res.reason || t('conflictFail'));}
-    } catch (error) {
-      console.error(error);
-      message.error(t('conflictFail'));
+      await runSyncCommand(message, () => Storage.resolveConflictKeepLocal(), {
+        failText: t('conflictFail'),
+        okText: t('keepLocalOk'),
+      });
     } finally {
       setBusy(false);
     }
@@ -38,12 +37,10 @@ const SyncConflictModal = () => {
   async function useCloud() {
     setBusy(true);
     try {
-      const res = await Storage.resolveConflictUseCloud();
-      if (res.ok) {message.success(t('useCloudOk'));}
-      else {message.error(res.reason || t('conflictFail'));}
-    } catch (error) {
-      console.error(error);
-      message.error(t('conflictFail'));
+      await runSyncCommand(message, () => Storage.resolveConflictUseCloud(), {
+        failText: t('conflictFail'),
+        okText: t('useCloudOk'),
+      });
     } finally {
       setBusy(false);
     }

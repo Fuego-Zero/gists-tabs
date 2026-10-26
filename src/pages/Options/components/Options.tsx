@@ -13,6 +13,7 @@ import { cloudSyncItem, gistsTokenItem, localeItem, syncSnapshotsItem, themeItem
 import withTheme from '@/theme/withTheme';
 import type { SyncSnapshot } from '@/types/sync';
 import { downloadFile } from '@/utils/file';
+import { runSyncCommand } from '@/utils/syncNotice';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -98,10 +99,11 @@ const Options = () => {
     message.success(t('exportSnapshotOk'));
   }
 
-  async function pushNow() {
-    const res = await Storage.syncGists();
-    if (res?.ok) {message.success(t('syncTriggeredInfo'));}
-    else {message.error(res?.reason || t('errSync'));}
+  function pushNow() {
+    void runSyncCommand(message, () => Storage.syncGists(), {
+      failText: t('errSync'),
+      okText: t('statusSynced'),
+    });
   }
 
   function pullNow() {
@@ -110,18 +112,18 @@ const Options = () => {
       content: t('pullConfirmOptions'),
       okText: t('pull'),
       cancelText: t('cancel'),
-      onOk: async () => {
-        const res = await Storage.pullFromCloudConfirmed();
-        if (res.ok) {message.success(t('pullOkOptions'));}
-        else {message.error(res.reason || t('pullFail'));}
-      },
+      onOk: () => runSyncCommand(message, () => Storage.pullFromCloudConfirmed(), {
+        failText: t('pullFail'),
+        okText: t('pullOk'),
+      }),
     });
   }
 
-  async function retry() {
-    const res = await Storage.retrySync();
-    if (res.ok) {message.info(t('retryQueued'));}
-    else {message.error(res.reason || t('errSync'));}
+  function retry() {
+    void runSyncCommand(message, () => Storage.retrySync(), {
+      failText: t('errSync'),
+      okText: t('statusSynced'),
+    });
   }
 
   return (
