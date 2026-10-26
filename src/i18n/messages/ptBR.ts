@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const ptBR: Record<MessageKey, string> = {
+  importChromeBookmarks: "Importar favoritos do Chrome",
+  importChromeCurrentPage: "Para a página atual",
+  importChromeDenied: "É preciso a permissão de favoritos para importar",
+  importChromeEmpty: "Nenhuma pasta de favoritos para importar",
+  importChromeHint: "Cada pasta selecionada vira um grupo contendo só os links dessa pasta.",
+  importChromeNewPage: "Para uma nova página",
+  importChromeOk: "Pastas de favoritos importadas",
+  importChromeTarget: "Importar para",
+  importChromeTitle: "Importar favoritos do Chrome",
   addFail: "Não foi possível adicionar",
   addOk: "Adicionado",
   bottom: "Para o fim",

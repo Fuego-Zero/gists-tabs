@@ -1,4 +1,5 @@
 import {
+  BookOutlined,
   CloudDownloadOutlined,
   CloudSyncOutlined,
   CloudUploadOutlined,
@@ -25,11 +26,13 @@ import { pageTitle, t } from '@/i18n/translate';
 import { themeItem } from '@/storage/items';
 import { parseCanvas } from '@/storage/syncRules';
 import { repairWidgetPositions } from '@/storage/widgetPositions';
+import { ensureBookmarksPermission } from '@/utils/chrome/bookmarks';
 import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
 import { downloadFile, uploadFile } from '@/utils/file';
 import { runSyncCommand } from '@/utils/syncNotice';
 
 import { useSyncErrorNotice } from '../../hooks/useSyncErrorNotice';
+import ChromeBookmarksImport from './components/ChromeBookmarksImport';
 import EditForm from './components/EditForm';
 import type { Props } from './types';
 
@@ -53,6 +56,7 @@ const HeaderMenu = (props: Props) => {
   const { message, modal } = App.useApp();
   useSyncErrorNotice(message);
   const [isOpen, setIsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const dropdowns: MenuProps['items'] = useMemo(
     () => [
@@ -199,6 +203,21 @@ const HeaderMenu = (props: Props) => {
           });
         },
       },
+      {
+        key: 'import-chrome',
+        label: <span className="select-none">{t('importChromeBookmarks')}</span>,
+        icon: <BookOutlined />,
+        onClick: () => {
+          void ensureBookmarksPermission().then((granted) => {
+            if (!granted) {
+              message.warning(t('importChromeDenied'));
+              return;
+            }
+
+            setImportOpen(true);
+          });
+        },
+      },
     ],
     [activePageId, copyPage, delPage, gistsTabs, locale, message, modal, pages.length, setGistsTabs, syncState.status],
   );
@@ -259,6 +278,17 @@ const HeaderMenu = (props: Props) => {
           <Button icon={<MenuOutlined />} shape="circle" size="small" type="text" />
         </Dropdown>
       </Space>
+      <ChromeBookmarksImport
+        activePageId={activePageId}
+        gistsTabs={gistsTabs}
+        open={importOpen}
+        pages={pages}
+        setActivePageId={setActivePageId}
+        setGistsTabs={setGistsTabs}
+        onClose={() => {
+          setImportOpen(false);
+        }}
+      />
       <EditForm
         name={currentPageName}
         open={isOpen}

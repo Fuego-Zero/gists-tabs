@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const ko: Record<MessageKey, string> = {
+  importChromeBookmarks: "Chrome 북마크 가져오기",
+  importChromeCurrentPage: "현재 페이지로",
+  importChromeDenied: "가져오려면 북마크 권한이 필요합니다",
+  importChromeEmpty: "가져올 북마크 폴더가 없습니다",
+  importChromeHint: "선택한 폴더마다 북마크 그룹이 되며, 그 폴더에 바로 있는 링크만 들어갑니다.",
+  importChromeNewPage: "새 페이지로",
+  importChromeOk: "선택한 북마크 폴더를 가져왔습니다",
+  importChromeTarget: "가져올 위치",
+  importChromeTitle: "Chrome 북마크 가져오기",
   addFail: "추가하지 못했습니다",
   addOk: "추가했습니다",
   bottom: "맨 아래로",

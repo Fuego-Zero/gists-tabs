@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const zhTW: Record<MessageKey, string> = {
+  importChromeBookmarks: "從 Chrome 書籤匯入",
+  importChromeCurrentPage: "匯入到目前頁面",
+  importChromeDenied: "需要書籤權限才能匯入",
+  importChromeEmpty: "沒有可匯入的書籤資料夾",
+  importChromeHint: "每個勾選的資料夾會變成一個書籤組，只包含這個資料夾裡的連結。",
+  importChromeNewPage: "匯入到新頁面",
+  importChromeOk: "已匯入所選書籤資料夾",
+  importChromeTarget: "匯入到",
+  importChromeTitle: "從 Chrome 書籤匯入",
   addFail: "新增失敗",
   addOk: "新增成功",
   bottom: "置底",

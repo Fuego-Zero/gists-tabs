@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const ja: Record<MessageKey, string> = {
+  importChromeBookmarks: "Chrome のブックマークを読み込む",
+  importChromeCurrentPage: "現在のページへ",
+  importChromeDenied: "読み込むにはブックマークの権限が必要です",
+  importChromeEmpty: "読み込めるブックマークフォルダがありません",
+  importChromeHint: "選んだフォルダごとにブックマークグループになり、そのフォルダ直下のリンクだけが入ります。",
+  importChromeNewPage: "新しいページへ",
+  importChromeOk: "選択したブックマークフォルダを読み込みました",
+  importChromeTarget: "読み込み先",
+  importChromeTitle: "Chrome のブックマークを読み込む",
   addFail: "追加できませんでした",
   addOk: "追加しました",
   bottom: "一番下へ",

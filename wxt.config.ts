@@ -13,6 +13,7 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'zh_CN',
     permissions: ['storage', 'tabs', 'activeTab', 'alarms'],
+    optional_permissions: ['bookmarks'],
     action: {
       default_title: '__MSG_extActionTitle__',
       default_icon: {

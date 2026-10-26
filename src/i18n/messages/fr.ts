@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const fr: Record<MessageKey, string> = {
+  importChromeBookmarks: "Importer les marque-pages Chrome",
+  importChromeCurrentPage: "Dans la page actuelle",
+  importChromeDenied: "L’autorisation des marque-pages est nécessaire pour importer",
+  importChromeEmpty: "Aucun dossier de marque-pages à importer",
+  importChromeHint: "Chaque dossier sélectionné devient un groupe qui ne contient que les liens de ce dossier.",
+  importChromeNewPage: "Dans une nouvelle page",
+  importChromeOk: "Dossiers de marque-pages importés",
+  importChromeTarget: "Importer dans",
+  importChromeTitle: "Importer les marque-pages Chrome",
   addFail: "Ajout impossible",
   addOk: "Ajouté",
   bottom: "En bas",

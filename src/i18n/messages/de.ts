@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const de: Record<MessageKey, string> = {
+  importChromeBookmarks: "Chrome-Lesezeichen importieren",
+  importChromeCurrentPage: "Auf die aktuelle Seite",
+  importChromeDenied: "Zum Importieren wird die Lesezeichen-Berechtigung benötigt",
+  importChromeEmpty: "Keine Lesezeichenordner zum Importieren",
+  importChromeHint: "Jeder ausgewählte Ordner wird eine Lesezeichengruppe und enthält nur die Links in diesem Ordner.",
+  importChromeNewPage: "Auf eine neue Seite",
+  importChromeOk: "Ausgewählte Lesezeichenordner importiert",
+  importChromeTarget: "Importieren nach",
+  importChromeTitle: "Chrome-Lesezeichen importieren",
   addFail: "Hinzufügen fehlgeschlagen",
   addOk: "Hinzugefügt",
   bottom: "Nach unten",
