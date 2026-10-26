@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const es: Record<MessageKey, string> = {
+  importChromeBookmarks: "Importar marcadores de Chrome",
+  importChromeCurrentPage: "A la página actual",
+  importChromeDenied: "Hace falta el permiso de marcadores para importar",
+  importChromeEmpty: "No hay carpetas de marcadores para importar",
+  importChromeHint: "Cada carpeta seleccionada se convierte en un grupo que solo contiene los enlaces de esa carpeta.",
+  importChromeNewPage: "A una página nueva",
+  importChromeOk: "Carpetas de marcadores importadas",
+  importChromeTarget: "Importar a",
+  importChromeTitle: "Importar marcadores de Chrome",
   addFail: "No se pudo añadir",
   addOk: "Añadido",
   bottom: "Al final",

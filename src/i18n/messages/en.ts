@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const en: Record<MessageKey, string> = {
+  importChromeBookmarks: "Import Chrome bookmarks",
+  importChromeCurrentPage: "Into the current page",
+  importChromeDenied: "Bookmark permission is required to import",
+  importChromeEmpty: "No bookmark folders to import",
+  importChromeHint: "Each selected folder becomes a bookmark group containing only the links in that folder.",
+  importChromeNewPage: "Into a new page",
+  importChromeOk: "Selected bookmark folders imported",
+  importChromeTarget: "Import into",
+  importChromeTitle: "Import Chrome bookmarks",
   addFail: "Could not add",
   addOk: "Added",
   bottom: "Move to bottom",

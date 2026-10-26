@@ -1,6 +1,15 @@
 import type { MessageKey } from './zhCN';
 
 export const ru: Record<MessageKey, string> = {
+  importChromeBookmarks: "Импорт закладок Chrome",
+  importChromeCurrentPage: "На текущую страницу",
+  importChromeDenied: "Для импорта нужно разрешение на закладки",
+  importChromeEmpty: "Нет папок закладок для импорта",
+  importChromeHint: "Каждая выбранная папка становится группой закладок и содержит только ссылки из этой папки.",
+  importChromeNewPage: "На новую страницу",
+  importChromeOk: "Выбранные папки закладок импортированы",
+  importChromeTarget: "Куда импортировать",
+  importChromeTitle: "Импорт закладок Chrome",
   addFail: "Не удалось добавить",
   addOk: "Добавлено",
   bottom: "Вниз",

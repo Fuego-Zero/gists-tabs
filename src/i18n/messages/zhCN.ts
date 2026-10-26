@@ -1,4 +1,13 @@
 export const zhCN = {
+  importChromeBookmarks: "从 Chrome 书签导入",
+  importChromeCurrentPage: "导入到当前页面",
+  importChromeDenied: "需要书签权限才能导入",
+  importChromeEmpty: "没有可导入的书签文件夹",
+  importChromeHint: "每个勾选的文件夹会变成一个书签组，只包含这个文件夹里的链接。",
+  importChromeNewPage: "导入到新页面",
+  importChromeOk: "已导入所选书签文件夹",
+  importChromeTarget: "导入到",
+  importChromeTitle: "从 Chrome 书签导入",
   addFail: "添加失败",
   addOk: "添加成功",
   bottom: "置底",
