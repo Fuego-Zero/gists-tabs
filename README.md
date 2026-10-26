@@ -1,39 +1,93 @@
-# 芸笺 · Gists Tabs
+<div align="center">
 
-芸笺 · Gists Tabs 是一个 Chrome / Firefox 新标签页扩展：把浏览器首页变成你自己的多页工作台，在画布上放置书签、时钟等小组件。数据默认保存在本机扩展存储中；需要跨设备或备份时，可用自己的 GitHub Token 同步到个人 Gist。
+<img src="docs/assets/logo.png" width="96" alt="Gists Tabs logo">
 
-## 功能概要
+# Gists Tabs
 
-- 多页新标签画布
-- 书签、时钟等小组件，支持拖拽排序
-- Popup 快速添加书签
-- Options：配置 GitHub Token 与云同步开关
-- 本地存储；可选同步到个人 Gist
-- 数据导入 / 导出
-- 主题：light / dark，可在新标签页和设置页切换
-- 界面语言：中文 / English
+A new tab you arrange yourself. Bookmarks and world clocks on a multi-page canvas. Data stays on this device unless you sync it to your own private GitHub Gist.
 
-## 技术栈
+[Add to Chrome](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
 
-Chrome / Firefox MV3 · React 19 · TypeScript · Ant Design 6 · Tailwind CSS 4 · WXT
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/cghagphlkcfafhacjgkfidbbkiklhacp?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
+[![Users](https://img.shields.io/chrome-web-store/users/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
+[![Rating](https://img.shields.io/chrome-web-store/rating/cghagphlkcfafhacjgkfidbbkiklhacp)](https://chromewebstore.google.com/detail/cghagphlkcfafhacjgkfidbbkiklhacp)
+[![License: MIT](https://img.shields.io/github/license/Fuego-Zero/gists-tabs)](./LICENSE)
+[![Stars](https://img.shields.io/github/stars/Fuego-Zero/gists-tabs?style=social)](https://github.com/Fuego-Zero/gists-tabs/stargazers)
 
-当前版本见 `package.json`。
+**English** · [简体中文](docs/readme/README.zh-CN.md) · [繁體中文](docs/readme/README.zh-TW.md) · [日本語](docs/readme/README.ja.md) · [한국어](docs/readme/README.ko.md) · [Español](docs/readme/README.es.md) · [Português](docs/readme/README.pt-BR.md) · [Deutsch](docs/readme/README.de.md) · [Français](docs/readme/README.fr.md) · [Русский](docs/readme/README.ru.md)
 
-## 本地开发
+<img src="docs/store/images/en/screenshot-1.jpg" width="1280" alt="New tab with bookmark columns and a world clock">
 
-前置：Node.js 与 npm。
+</div>
 
-| 命令 | 说明 |
-|------|------|
-| `npm run dev` | Chrome 开发构建 |
-| `npm run dev:firefox` | Firefox 开发构建 |
-| `npm run build` | 类型检查并产出 Chrome 生产构建 |
-| `npm run build:firefox` | 类型检查并产出 Firefox 生产构建 |
-| `npm run lint` | `tsc --noEmit` + ESLint |
-| `npm test` | 存储快照读取的单元测试 |
+Gists Tabs replaces Chrome's new tab with a personal workspace. Put bookmark groups and clocks into columns, split them across pages, and keep the layout when you come back. Nothing leaves the browser until you turn on sync.
 
-Chrome 构建产物在 `.output/chrome-mv3`。Firefox 构建产物在 `.output/firefox-mv2` 或 `.output/firefox-mv3`，以命令实际输出目录为准。在浏览器中加载已解压的扩展时，选择对应目录即可。
+The interface is in English and 中文. Switch it from the extension's settings page.
 
-## 许可证
+## Pages, bookmarks, and clocks
 
-MIT
+Each page is a canvas of three columns. A bookmark widget holds links with site icons. A clock widget shows the time in the cities you add. Open another page when work and the rest of the day should not share a screen.
+
+<img src="docs/store/images/en/screenshot-2.jpg" width="1280" alt="The same new tab in the dark theme">
+
+## Drag, then save
+
+Enter sort mode from the header, drag a widget into another column, and save. Leaving sort mode drops the draft, so a half-finished move does not overwrite the canvas.
+
+<img src="docs/assets/drag-sort.gif" width="640" alt="Dragging the world clock into another column">
+
+## Save the tab you are already on
+
+The toolbar button takes the current tab's title and address and files it into a bookmark group.
+
+<img src="docs/store/images/en/screenshot-4.jpg" width="1280" alt="Popup for saving the current tab into a bookmark group">
+
+## On this device, unless you say otherwise
+
+The canvas is stored in the extension's local storage. Export it as JSON, or import a file you saved earlier.
+
+Cloud sync is off until you paste a GitHub token and turn it on. The token stays in local storage. The extension uses it only to read and write a private Gist on your account. A classic personal access token needs the `gist` scope. A fine-grained token needs read and write access to Gists. There is no server run by the extension author.
+
+<img src="docs/store/images/en/screenshot-5.jpg" width="1280" alt="Settings with cloud sync on and a saved token hidden">
+
+| Permission | Why it is there |
+| --- | --- |
+| `storage` | Keep the workspace on this device |
+| `tabs`, `activeTab` | Read the current tab so the toolbar button can save it |
+| `alarms` | Retry sync on a schedule after you turn cloud sync on |
+
+## Questions
+
+**Do I need a GitHub account?**
+No. The new tab works with sync left off.
+
+**Where do the bookmarks live?**
+In this browser's extension storage. With sync on, a copy also lives in a private Gist under your GitHub account.
+
+**Can I move the canvas without GitHub?**
+Yes. Export JSON from the new tab menu or from settings, then import that file on the other browser.
+
+**Which languages does the product speak?**
+The interface is English and 中文. This page is translated more widely so the project is easier to find.
+
+**Does it run in Firefox?**
+The published listing is the Chrome Web Store. The same source builds for Firefox; see below.
+
+## Develop
+
+Node.js and npm.
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Chrome development build |
+| `npm run dev:firefox` | Firefox development build |
+| `npm run build` | Typecheck, then Chrome production build |
+| `npm run build:firefox` | Typecheck, then Firefox production build |
+| `npm run lint` | `tsc --noEmit` and ESLint |
+| `npm test` | Unit tests for storage and clock formatting |
+
+Load the unpacked extension from `.output/chrome-mv3`. Firefox output is `.output/firefox-mv2` or `.output/firefox-mv3`, whichever the command prints.
+
+## License
+
+[MIT](./LICENSE)

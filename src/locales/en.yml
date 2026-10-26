@@ -1,4 +1,4 @@
-extName: Yunjian · Gists Tabs
-extActionTitle: Yunjian · Gists Tabs
-extShortName: Yunjian
-extDescription: A personal new tab workspace with bookmark and clock widgets. Data stays on this device, with optional GitHub Gist sync.
+extName: "Gists Tabs - New Tab Bookmarks Dashboard"
+extActionTitle: "Gists Tabs - New Tab Bookmarks Dashboard"
+extShortName: "Gists Tabs"
+extDescription: "A new tab workspace for bookmarks and world clocks. Data stays on this device, with optional GitHub Gist sync."
