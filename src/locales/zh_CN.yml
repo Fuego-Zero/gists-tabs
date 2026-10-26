@@ -1,4 +1,4 @@
-extName: 芸笺 · Gists Tabs
-extActionTitle: 芸笺 · Gists Tabs
-extShortName: 芸笺
-extDescription: 芸笺 · Gists Tabs：个人新标签页工作台，多页画布上挂书签、时钟等小组件；数据默认本机存储，可选同步到 GitHub Gist。
+extName: "芸笺 · Gists Tabs - 新标签页书签工作台"
+extActionTitle: "芸笺 · Gists Tabs - 新标签页书签工作台"
+extShortName: "Gists Tabs"
+extDescription: "把新标签页变成个人工作台：多页书签与世界时钟，数据默认存在本机，可选同步到你的 GitHub Gist。"
