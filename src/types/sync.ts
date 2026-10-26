@@ -33,16 +33,6 @@ export interface SyncSnapshot {
   reason: string;
 }
 
-export const SYNC_STATUS_LABEL: Record<SyncStatus, string> = {
-  auth_failed: '鉴权失败',
-  conflict: '冲突待处理',
-  failed: '失败',
-  pending: '待同步（已排队）',
-  rate_limited: '限流等待',
-  synced: '已同步',
-  syncing: '同步中',
-};
-
 export const PULL_THROTTLE_MS = 5 * 60 * 1000;
 export const PUSH_DEBOUNCE_MS = 3000;
 export const SNAPSHOT_RING_SIZE = 5;

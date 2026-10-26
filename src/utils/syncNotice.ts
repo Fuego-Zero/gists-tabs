@@ -41,7 +41,7 @@ export function syncErrorSignature(state: SyncState | null): null | string {
 function withReason(failText: string, reason?: string): string {
   if (!reason || reason === failText) {return failText;}
 
-  return `${failText}：${reason}`;
+  return `${failText}：${formatLastError(reason)}`;
 }
 
 /**

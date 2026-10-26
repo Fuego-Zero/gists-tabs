@@ -1,16 +1,35 @@
 import { App, type AppProps, ConfigProvider, theme } from 'antd';
+import type { Locale } from 'antd/es/locale';
+import deDE from 'antd/locale/de_DE';
 import enUS from 'antd/locale/en_US';
+import esES from 'antd/locale/es_ES';
+import frFR from 'antd/locale/fr_FR';
+import jaJP from 'antd/locale/ja_JP';
+import koKR from 'antd/locale/ko_KR';
+import ptBR from 'antd/locale/pt_BR';
+import ruRU from 'antd/locale/ru_RU';
 import zhCN from 'antd/locale/zh_CN';
+import zhTW from 'antd/locale/zh_TW';
 import dayjs from 'dayjs';
 import React, { useLayoutEffect } from 'react';
 
+import { useLocale } from '@/hooks/useLocale';
 import { useStorageItem } from '@/hooks/useStorageItem';
-import { setActiveLocale } from '@/i18n/translate';
-import { localeItem, themeItem } from '@/storage/items';
+import { type AppLocale, localeMeta } from '@/i18n/locales';
+import { setActiveLocale, t } from '@/i18n/translate';
+import { themeItem } from '@/storage/items';
 import type { ReactComponent } from '@/types/utils';
 
-import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/de';
 import 'dayjs/locale/en';
+import 'dayjs/locale/es';
+import 'dayjs/locale/fr';
+import 'dayjs/locale/ja';
+import 'dayjs/locale/ko';
+import 'dayjs/locale/pt-br';
+import 'dayjs/locale/ru';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/zh-tw';
 
 const themeToken = {
   token: {
@@ -34,15 +53,33 @@ function ThemeFrame(props: { children: React.ReactNode }) {
   return props.children;
 }
 
+const antdLocale: Record<AppLocale, Locale> = {
+  de: deDE,
+  en: enUS,
+  es: esES,
+  fr: frFR,
+  ja: jaJP,
+  ko: koKR,
+  pt_BR: ptBR,
+  ru: ruRU,
+  zh_CN: zhCN,
+  zh_TW: zhTW,
+};
+
 function ThemeRoot(props: { children: React.ReactNode }) {
   const mode = useStorageItem(themeItem, 'light');
-  const locale = useStorageItem(localeItem, 'zh_CN');
+  const locale = useLocale();
   setActiveLocale(locale);
-  dayjs.locale(locale === 'en' ? 'en' : 'zh-cn');
+  dayjs.locale(localeMeta(locale).dayjs);
+
+  useLayoutEffect(() => {
+    document.documentElement.lang = localeMeta(locale).intlTag;
+    document.title = t('appTitle');
+  }, [locale]);
 
   return (
     <ConfigProvider
-      locale={locale === 'en' ? enUS : zhCN}
+      locale={antdLocale[locale]}
       theme={{
         ...themeToken,
         algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,

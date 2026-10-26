@@ -1,5 +1,5 @@
 import { GISTS_FILE_DESCRIPTION } from '@/config';
-import { formatLastError, RATE_LIMIT_ERROR_PREFIX, t } from '@/i18n/translate';
+import { formatLastError, i18nError, RATE_LIMIT_ERROR_PREFIX } from '@/i18n/translate';
 import { sendMessage, type SyncCommandResult } from '@/messaging';
 import { isInitialCanvas } from '@/storage/initialCanvas';
 import { storageItems } from '@/storage/items';
@@ -72,11 +72,11 @@ function sameCanvas(a: GistsTabs | undefined, b: GistsTabs | undefined): boolean
 }
 
 function conflictMessage(reason: Extract<PushDecision, { kind: 'conflict' }>['reason']): string {
-  if (reason === 'legacy') {return t('errLegacy');}
+  if (reason === 'legacy') {return i18nError('errLegacy');}
 
-  if (reason === 'no-anchor') {return t('errNoAnchor');}
+  if (reason === 'no-anchor') {return i18nError('errNoAnchor');}
 
-  return t('errRevision');
+  return i18nError('errRevision');
 }
 
 class Storage {
@@ -240,7 +240,7 @@ class Storage {
     const changed = local ? await this.hasLocalChanges(local) : false;
     const token = await this.ensureToken();
     if (!token) {
-      if (changed) {await this.setSyncStatus('failed', { lastError: t('errNoToken') });}
+      if (changed) {await this.setSyncStatus('failed', { lastError: i18nError('errNoToken') });}
 
       return;
     }
@@ -348,7 +348,7 @@ class Storage {
       });
       if (result === 'conflict') {
         await this.setBase(revision, localHash);
-        await this.enterConflict(local, verify.data, verify.etag, t('errRevision'));
+        await this.enterConflict(local, verify.data, verify.etag, i18nError('errRevision'));
         return;
       }
 
@@ -566,10 +566,10 @@ class Storage {
 
   /** 用户确认后用最新云端覆盖本机。 */
   private async pullConfirmed(reason: string): Promise<SyncCommandResult> {
-    if (!(await this.getCloudSync())) {return { ok: false, reason: 'cloudSync off' };}
+    if (!(await this.getCloudSync())) {return { ok: false, reason: i18nError('errCloudOff') };}
 
     const token = await this.ensureToken();
-    if (!token) {return { ok: false, reason: t('errNoToken') };}
+    if (!token) {return { ok: false, reason: i18nError('errNoToken') };}
 
     await this.setSyncStatus('syncing');
     const local = await this.getGistsTabs();
@@ -578,7 +578,7 @@ class Storage {
 
     const cloudHash = cloudCompareHash(await canvasHash(remote.data), remote.repaired);
     const applied = await this.applyCloud(remote.data, cloudHash, local, reason);
-    if (!applied) {return { ok: false, reason: t('errLocalChanged') };}
+    if (!applied) {return { ok: false, reason: i18nError('errLocalChanged') };}
 
     return this.commandResult();
   }
@@ -603,7 +603,7 @@ class Storage {
     }
 
     if (result.errorKind === 'invalid') {
-      await this.handleTransientFailure(result.message === 'truncated' ? t('errCloudTooLarge') : t('errCloudInvalid'));
+      await this.handleTransientFailure(result.message === 'truncated' ? i18nError('errCloudTooLarge') : i18nError('errCloudInvalid'));
       return;
     }
 
@@ -616,7 +616,7 @@ class Storage {
     await this.setSyncStatus('auth_failed', {
       backoffUntil: undefined,
       failureCount: 0,
-      lastError: message || t('errToken'),
+      lastError: message || i18nError('errToken'),
     });
   }
 
@@ -642,7 +642,7 @@ class Storage {
     await this.setSyncStatus('failed', {
       backoffUntil: Date.now() + delay,
       failureCount: failureCount + 1,
-      lastError: message || t('errSync'),
+      lastError: message || i18nError('errSync'),
     });
     this.scheduleBackoffResume(delay);
   }
@@ -832,7 +832,7 @@ class Storage {
     if (!this.engineActive) {return sendMessage('retrySync');}
 
     return this.exclusive(async () => {
-      if (!(await this.getCloudSync())) {return { ok: false, reason: 'cloudSync off' };}
+      if (!(await this.getCloudSync())) {return { ok: false, reason: i18nError('errCloudOff') };}
 
       const state = await this.getSyncState();
       if (this.isAutoSyncPaused(state)) {return this.commandResult();}
@@ -907,7 +907,7 @@ class Storage {
     if (!this.engineActive) {return sendMessage('syncNow');}
 
     return this.exclusive(async () => {
-      if (!(await this.getCloudSync())) {return { ok: false, reason: 'cloudSync off' };}
+      if (!(await this.getCloudSync())) {return { ok: false, reason: i18nError('errCloudOff') };}
 
       const state = await this.getSyncState();
       if (state.status === 'auth_failed') {return this.commandResult();}

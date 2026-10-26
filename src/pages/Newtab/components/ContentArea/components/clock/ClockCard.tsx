@@ -1,17 +1,15 @@
 import { DeleteOutlined, EditOutlined, MenuOutlined, PlusOutlined } from '@ant-design/icons';
-import { App, Button, Card, Dropdown, Input, Select, type MenuProps } from 'antd';
+import { App, Button, Card, Dropdown, Input, type MenuProps, Select } from 'antd';
 import classNames from 'classnames';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { useStorageItem } from '@/hooks/useStorageItem';
-import { t, type AppLocale } from '@/i18n/translate';
-import { localeItem } from '@/storage/items';
+import { useLocale } from '@/hooks/useLocale';
+import { t } from '@/i18n/translate';
 import type { Widget } from '@/types';
 import type { Clocks } from '@/types/widget/clock';
 import { createId } from '@/utils/data/factory';
 
 import type { WidgetsHandler } from '../../../../types';
-
 import { currentTimeZone, formatClockTime, timeZoneLabel, timeZoneOptions } from './formatClock';
 
 interface Props {
@@ -28,7 +26,7 @@ type ClockCardProps = Props & Pick<WidgetsHandler, 'copyWidget' | 'delWidget' | 
 
 const ClockCard = (props: ClockCardProps) => {
   const { copyWidget, data, delWidget, dragHandleRef, editWidget, id, isTitleDragging, moveWidgetToPageModal, name, onTitleMouseDown } = props;
-  const locale = useStorageItem(localeItem, 'zh_CN');
+  const locale = useLocale();
   const { message, modal } = App.useApp();
   const [now, setNow] = useState(() => new Date());
   const [editing, setEditing] = useState(false);
@@ -79,7 +77,9 @@ const ClockCard = (props: ClockCardProps) => {
               items: menu,
               onClick: ({ key }) => {
                 if (key === 'copy') {copyWidget(id);}
+
                 if (key === 'move') {moveWidgetToPageModal(id);}
+
                 if (key === 'delete') {
                   modal.confirm({
                     title: t('deleteConfirm'),
@@ -124,7 +124,7 @@ const ClockCard = (props: ClockCardProps) => {
     >
       <div className="flex flex-col gap-3">
         {data.clocks.map((clock) => {
-          const shown = formatClockTime(clock.timezone, locale as AppLocale, now);
+          const shown = formatClockTime(clock.timezone, locale, now);
           return (
             <div key={clock.id} className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
