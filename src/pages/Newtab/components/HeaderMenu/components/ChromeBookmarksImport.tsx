@@ -122,6 +122,7 @@ const ChromeBookmarksImport = (props: Props) => {
       {nodes.length ? (
         <Tree
           checkable
+          defaultExpandAll
           className="max-h-80 overflow-auto"
           treeData={treeData(nodes)}
           onCheck={(keys) => {

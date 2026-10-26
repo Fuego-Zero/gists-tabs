@@ -55,7 +55,15 @@ export function bookmarkImportTree(nodes: ChromeBookmarkNode[]): ImportTreeNode[
     };
   };
 
-  return nodes.map(walk).filter((node): node is ImportTreeNode => Boolean(node));
+  return nodes.flatMap((node) => {
+    const current = walk(node);
+    if (!current) {return [];}
+
+    // Chrome 的根节点没有标题，展开后只剩一个 “0”。把它的子文件夹提上来。
+    if (!node.title.trim()) {return current.children;}
+
+    return [current];
+  });
 }
 
 export function foldersById(nodes: ImportTreeNode[]): Map<string, ImportFolder> {
