@@ -18,10 +18,11 @@ import React, { useMemo, useState } from 'react';
 
 import Storage from '@/classes/Storage';
 import useGistsTabs from '@/hooks/useGistsTabs';
+import { useLocale } from '@/hooks/useLocale';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
 import { pageTitle, t } from '@/i18n/translate';
-import { localeItem, themeItem } from '@/storage/items';
+import { themeItem } from '@/storage/items';
 import { parseCanvas } from '@/storage/syncRules';
 import { repairWidgetPositions } from '@/storage/widgetPositions';
 import { upgradeGistsTabsToV1 } from '@/utils/data/upgrade';
@@ -36,7 +37,7 @@ const HeaderMenu = (props: Props) => {
   const [gistsTabs, setGistsTabs] = useGistsTabs();
   const syncState = useSyncState();
   const mode = useStorageItem(themeItem, 'light');
-  const locale = useStorageItem(localeItem, 'zh_CN');
+  const locale = useLocale();
 
   const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage, onSortModeStart } = props;
 
@@ -225,11 +226,11 @@ const HeaderMenu = (props: Props) => {
       <Space className="mr-[10px]" size={8}>
         <Tooltip title={mode === 'dark' ? t('light') : t('dark')}>
           <Button
-            aria-label={mode === 'dark' ? t('light') : t('dark')}
             icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
             shape="circle"
             size="small"
             type="text"
+            aria-label={mode === 'dark' ? t('light') : t('dark')}
             onClick={() => {
               void themeItem.setValue(mode === 'dark' ? 'light' : 'dark');
             }}

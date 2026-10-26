@@ -6,10 +6,9 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import ScrollWrap from '@/components/ScrollWrap';
 import SyncConflictModal from '@/components/SyncConflictModal';
 import useGistsTabs from '@/hooks/useGistsTabs';
-import { useStorageItem } from '@/hooks/useStorageItem';
+import { useLocale } from '@/hooks/useLocale';
 import { pageTitle, setActiveLocale, t } from '@/i18n/translate';
 import { sendMessage } from '@/messaging';
-import { localeItem } from '@/storage/items';
 import withTheme from '@/theme/withTheme';
 import type { Page, Widget } from '@/types';
 
@@ -36,7 +35,7 @@ const { Header, Content } = Layout;
 
 const Newtab = () => {
   const [gistsTabs, setGistsTabs] = useGistsTabs();
-  const locale = useStorageItem(localeItem, 'zh_CN');
+  const locale = useLocale();
   setActiveLocale(locale);
   const [activePageId, setActivePageId] = useActivePage(gistsTabs);
   const pagesHandler = usePagesHandler(gistsTabs, setGistsTabs);

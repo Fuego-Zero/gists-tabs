@@ -1,14 +1,16 @@
 import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
-import { App, Button, Form, Input, Layout, List, Space, Switch, Typography } from 'antd';
+import { App, Button, Form, Input, Layout, List, Select, Space, Switch, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 import { checkToken } from '@/api/gists';  
 import Storage from '@/classes/Storage';
 import SyncConflictModal from '@/components/SyncConflictModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
+import { useLocale } from '@/hooks/useLocale';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
-import { formatLastError, t } from '@/i18n/translate';
+import { APP_LOCALES, type AppLocale, intlTag, localeMeta } from '@/i18n/locales';
+import { formatLastError, snapshotReasonLabel, t } from '@/i18n/translate';
 import { cloudSyncItem, gistsTokenItem, localeItem, syncSnapshotsItem, themeItem } from '@/storage/items';
 import withTheme from '@/theme/withTheme';
 import type { SyncSnapshot } from '@/types/sync';
@@ -50,7 +52,7 @@ const Options = () => {
   const cloudSync = useStorageItem(cloudSyncItem, false);
   const snapshots = useStorageItem(syncSnapshotsItem, EMPTY_SNAPSHOTS) ?? EMPTY_SNAPSHOTS;
   const mode = useStorageItem(themeItem, 'light');
-  const locale = useStorageItem(localeItem, 'zh_CN');
+  const locale = useLocale();
   const [token, setToken] = useState('');
   const syncState = useSyncState();
   const { message, modal } = App.useApp();
@@ -170,12 +172,11 @@ const Options = () => {
             />
           </Form.Item>
           <Form.Item label={t('language')}>
-            <Switch
-              checked={locale === 'en'}
-              checkedChildren={t('en')}
-              unCheckedChildren={t('zh')}
-              onChange={(english) => {
-                void localeItem.setValue(english ? 'en' : 'zh_CN');
+            <Select
+              options={APP_LOCALES.map((value) => ({ label: localeMeta(value).nativeName, value }))}
+              value={locale}
+              onChange={(value: AppLocale) => {
+                void localeItem.setValue(value);
               }}
             />
           </Form.Item>
@@ -218,8 +219,8 @@ const Options = () => {
                   ]}
                 >
                   <List.Item.Meta
-                    description={new Date(item.at).toLocaleString()}
-                    title={`${item.reason} · ${item.id.slice(0, 8)}`}
+                    description={new Date(item.at).toLocaleString(intlTag(locale))}
+                    title={`${snapshotReasonLabel(item.reason)} · ${item.id.slice(0, 8)}`}
                   />
                 </List.Item>
               )}

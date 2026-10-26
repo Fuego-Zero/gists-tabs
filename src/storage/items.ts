@@ -1,5 +1,6 @@
 import { storage } from 'wxt/utils/storage';
 
+import type { AppLocale } from '@/i18n/locales';
 import type { GistsTabs } from '@/types';
 import type { SyncSnapshot, SyncState } from '@/types/sync';
 
@@ -20,7 +21,7 @@ export const legacyOverwriteConfirmedItem = storage.defineItem<boolean>('local:l
 export const syncSnapshotsItem = storage.defineItem<SyncSnapshot[]>('local:syncSnapshots');
 export const syncStateItem = storage.defineItem<SyncState>('local:syncState');
 export const themeItem = storage.defineItem<'dark' | 'light'>('local:theme', { fallback: 'light' });
-export const localeItem = storage.defineItem<'en' | 'zh_CN'>('local:locale', { fallback: 'zh_CN' });
+export const localeItem = storage.defineItem<AppLocale | null>('local:locale');
 
 export const storageItems = {
   activePageId: activePageIdItem,

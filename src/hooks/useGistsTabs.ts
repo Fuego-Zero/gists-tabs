@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 
 import Storage from '@/classes/Storage';
 import { useStorageItem } from '@/hooks/useStorageItem';
+import { resolveLocale } from '@/i18n/locales';
 import { setActiveLocale, t } from '@/i18n/translate';
 import { isInitialCanvas, tagLegacyHome } from '@/storage/initialCanvas';
 import { gistsTabsItem, localeItem } from '@/storage/items';
@@ -26,7 +27,7 @@ function ensureGistsTabs() {
     ensurePromise = (async () => {
       let data = await Storage.getGistsTabs();
       if (!data) {
-        const locale = (await localeItem.getValue()) ?? 'zh_CN';
+        const locale = resolveLocale(await localeItem.getValue());
         setActiveLocale(locale);
         const home = createPage(t('home'));
         home.nameKey = 'home';
