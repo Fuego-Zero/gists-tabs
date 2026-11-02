@@ -15,11 +15,12 @@
     "build:firefox": "tsc --noEmit && wxt build -b firefox",
     "lint": "tsc --noEmit && eslint .",
     "postinstall": "wxt prepare",
-    "test": "node --experimental-strip-types --test src/i18n/locales.test.ts src/pages/Newtab/utils/chromeBookmarks.test.ts src/storage/snapshotCache.test.ts src/storage/initialCanvas.test.ts src/storage/retryDelay.test.ts src/storage/syncRules.test.ts src/storage/widgetPositions.test.ts src/pages/Newtab/components/ContentArea/components/clock/formatClock.test.ts",
+    "test": "node --experimental-strip-types --test src/i18n/locales.test.ts src/feedback/echoConfig.test.ts src/pages/Newtab/utils/chromeBookmarks.test.ts src/storage/snapshotCache.test.ts src/storage/initialCanvas.test.ts src/storage/retryDelay.test.ts src/storage/syncRules.test.ts src/storage/widgetPositions.test.ts src/pages/Newtab/components/ContentArea/components/clock/formatClock.test.ts",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md,yml}\""
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
+    "@echo-feedback/sdk": "^0.2.0",
     "@webext-core/messaging": "^2.3.0",
     "antd": "^6.6.6",
     "axios": "1.7.8",

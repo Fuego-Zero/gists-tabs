@@ -6,13 +6,14 @@ import { checkToken } from '@/api/gists';
 import Storage from '@/classes/Storage';
 import SyncConflictModal from '@/components/SyncConflictModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
+import { useEchoFeedback } from '@/hooks/useEchoFeedback';
 import { useLocale } from '@/hooks/useLocale';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
 import { APP_LOCALES, type AppLocale, intlTag, localeMeta } from '@/i18n/locales';
 import { formatLastError, snapshotReasonLabel, t } from '@/i18n/translate';
 import { cloudSyncItem, gistsTokenItem, localeItem, syncSnapshotsItem, themeItem } from '@/storage/items';
-import withTheme from '@/theme/withTheme';
+import { withTheme } from '@/theme/withTheme';
 import type { SyncSnapshot } from '@/types/sync';
 import { downloadFile } from '@/utils/file';
 import { runSyncCommand } from '@/utils/syncNotice';
@@ -53,6 +54,7 @@ const Options = () => {
   const snapshots = useStorageItem(syncSnapshotsItem, EMPTY_SNAPSHOTS) ?? EMPTY_SNAPSHOTS;
   const mode = useStorageItem(themeItem, 'light');
   const locale = useLocale();
+  const openFeedback = useEchoFeedback();
   const [token, setToken] = useState('');
   const syncState = useSyncState();
   const { message, modal } = App.useApp();
@@ -170,6 +172,9 @@ const Options = () => {
                 void themeItem.setValue(dark ? 'dark' : 'light');
               }}
             />
+          </Form.Item>
+          <Form.Item label={t('feedback')}>
+            <Button onClick={openFeedback}>{t('feedback')}</Button>
           </Form.Item>
           <Form.Item label={t('language')}>
             <Select

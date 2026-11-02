@@ -25,6 +25,7 @@ export const zhTW: Record<MessageKey, string> = {
   copyOk: "複製成功",
   copyPage: "複製頁面",
   dark: "深色",
+  feedback: "意見回饋",
   defaultBookmark: "未命名書籤",
   delete: "刪除",
   deleteConfirm: "確定要刪除嗎？",

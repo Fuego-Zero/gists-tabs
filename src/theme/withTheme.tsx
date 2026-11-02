@@ -135,4 +135,3 @@ function WithTheme(props: { children: React.ReactNode }) {
 }
 
 export { WithTheme, withTheme };
-export default withTheme;

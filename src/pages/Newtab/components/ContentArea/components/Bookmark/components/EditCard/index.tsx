@@ -2,7 +2,6 @@ import { App, Button, Divider, Form, Input, Space } from 'antd';
 import React, { useState } from 'react';
 
 import { t } from '@/i18n/translate';
-
 import type { Bookmark } from '@/types/widget/bookmark';
 
 import type { BookmarkHandler } from '../../types';

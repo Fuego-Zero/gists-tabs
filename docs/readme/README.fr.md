@@ -20,7 +20,7 @@ Le nouvel onglet, organisé par vous. Groupes de marque-pages et horloges mondia
 
 </div>
 
-Gists Tabs remplace le nouvel onglet de Chrome par un espace que vous organisez. Travail, études et le reste de la journée ont chacun leur page. Chaque page a trois colonnes de groupes et d’horloges. Pas de compte à créer, et rien n’est envoyé tant que vous n’activez pas la synchronisation.
+Gists Tabs remplace le nouvel onglet de Chrome par un espace que vous organisez. Travail, études et le reste de la journée ont chacun leur page. Chaque page a trois colonnes de groupes et d’horloges. Pas de compte à créer. Le canevas reste sur cet appareil tant que vous n’activez pas la synchronisation.
 
 Si vous n’avez pas choisi de langue, l’interface suit le navigateur. Dans les réglages, vous pouvez passer à English, 简体中文, 繁體中文, 日本語, 한국어, Español, Português, Deutsch, Français ou Русский.
 
@@ -28,7 +28,7 @@ Si vous n’avez pas choisi de langue, l’interface suit le navigateur. Dans le
 
 Le nouvel onglet du navigateur est un champ de recherche et quelques raccourcis. La barre de marque-pages est une longue ligne. La plupart des tableaux de bord demandent leur propre compte, et la disposition vit sur leur serveur.
 
-Gists Tabs fait l’inverse. La disposition est la vôtre. Si vous synchronisez, le fichier est un Gist privé de votre compte GitHub. L’auteur de l’extension n’a pas de serveur et ne voit pas vos marque-pages.
+Gists Tabs fait l’inverse. La disposition est la vôtre. Si vous synchronisez, le fichier est un Gist privé de votre compte GitHub. L’auteur de l’extension ne voit pas vos marque-pages. Les retours que vous envoyez vont à https://echo.fuego.site.
 
 | | Nouvel onglet Chrome | Barre de marque-pages | Tableaux de bord avec compte | Gists Tabs |
 | --- | --- | --- | --- | --- |
@@ -107,8 +107,9 @@ GitHub peut limiter les écritures. L’extension attend et réessaie, jusqu’�
 | `tabs`, `activeTab` | À l’installation | Lire l’onglet ouvert pour que le bouton puisse l’enregistrer |
 | `alarms` | À l’installation | Réessayer la synchronisation après l’activation du cloud |
 | `bookmarks` | Seulement à l’import | Lire les dossiers Chrome. Pas demandée à l’installation |
+| `https://echo.fuego.site/*` | À l’installation | Envoyer les retours que vous choisissez de soumettre |
 
-Pas d’analyse, pas de publicité, pas de serveur exploité par l’auteur de l’extension.
+Pas d’analyse ni de publicité. Les marque-pages, le canevas et le jeton GitHub restent sur cet appareil ou dans votre Gist privé. Les retours que vous envoyez vont à https://echo.fuego.site.
 
 ## Questions
 

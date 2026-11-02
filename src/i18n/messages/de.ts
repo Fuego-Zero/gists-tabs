@@ -25,6 +25,7 @@ export const de: Record<MessageKey, string> = {
   copyOk: "Kopiert",
   copyPage: "Seite kopieren",
   dark: "Dunkel",
+  feedback: "Feedback",
   defaultBookmark: "Unbenanntes Lesezeichen",
   delete: "Löschen",
   deleteConfirm: "Wirklich löschen?",

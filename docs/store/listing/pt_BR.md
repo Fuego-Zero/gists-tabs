@@ -17,7 +17,8 @@ Permissões
 • tabs e activeTab — ler a guia atual para salvá-la em um clique
 • alarms — tentar de novo a sincronização depois que você liga a nuvem
 • bookmarks — opcional, só ao importar pastas do Chrome
+• https://echo.fuego.site/* — enviar o feedback que você decide mandar
 
-O token fica apenas no armazenamento local da extensão. Ele serve para ler e gravar Gists da sua conta do GitHub. Um token clássico precisa do escopo gist. Um token refinado precisa de leitura e gravação em Gists. Nada é enviado ao servidor de quem fez a extensão.
+O token fica apenas no armazenamento local da extensão. Ele serve para ler e gravar Gists da sua conta do GitHub. Um token clássico precisa do escopo gist. Um token refinado precisa de leitura e gravação em Gists. Favoritos e o token não são enviados a quem fez a extensão. O feedback que você envia, incluindo imagens opcionais, vai para https://echo.fuego.site.
 
 Código-fonte: https://github.com/Fuego-Zero/gists-tabs

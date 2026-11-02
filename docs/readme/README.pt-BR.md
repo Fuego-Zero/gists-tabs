@@ -20,7 +20,7 @@ A nova guia, organizada por você. Grupos de favoritos e relógios mundiais num 
 
 </div>
 
-O Gists Tabs troca a nova guia do Chrome por um espaço que você organiza. Trabalho, estudo e o resto do dia ficam em páginas separadas. Cada página tem três colunas de grupos e relógios. Não há conta para criar e nada é enviado, a menos que você ligue a sincronização.
+O Gists Tabs troca a nova guia do Chrome por um espaço que você organiza. Trabalho, estudo e o resto do dia ficam em páginas separadas. Cada página tem três colunas de grupos e relógios. Não há conta para criar. A tela fica neste dispositivo, a menos que você ligue a sincronização.
 
 Se você ainda não escolheu um idioma, a interface segue o navegador. Nas Configurações dá para mudar para English, 简体中文, 繁體中文, 日本語, 한국어, Español, Português, Deutsch, Français ou Русский.
 
@@ -28,7 +28,7 @@ Se você ainda não escolheu um idioma, a interface segue o navegador. Nas Confi
 
 A nova guia do navegador é uma busca e alguns atalhos. A barra de favoritos é uma fileira longa. A maioria dos painéis pede a própria conta e guarda o layout no servidor deles.
 
-O Gists Tabs faz o contrário. O layout é seu. Se sincronizar, o arquivo é um Gist privado da sua conta do GitHub. Quem fez a extensão não opera um servidor e não vê seus favoritos.
+O Gists Tabs faz o contrário. O layout é seu. Se sincronizar, o arquivo é um Gist privado da sua conta do GitHub. Quem fez a extensão não vê seus favoritos. O feedback que você envia vai para https://echo.fuego.site.
 
 | | Nova guia do Chrome | Barra de favoritos | Painéis com conta | Gists Tabs |
 | --- | --- | --- | --- | --- |
@@ -107,8 +107,9 @@ O GitHub pode limitar as escritas. A extensão espera e tenta de novo, até 10 m
 | `tabs`, `activeTab` | Na instalação | Ler a guia atual para o botão poder salvá-la |
 | `alarms` | Na instalação | Tentar de novo a sincronização depois de ligar a nuvem |
 | `bookmarks` | Só ao importar | Ler pastas do Chrome. Não é pedida na instalação |
+| `https://echo.fuego.site/*` | Na instalação | Enviar o feedback que você decide mandar |
 
-Não há análise, nem anúncio, nem um servidor de quem fez a extensão.
+Não há análise nem anúncio. Favoritos, a tela e o token do GitHub ficam neste dispositivo ou no seu Gist privado. O feedback que você envia vai para https://echo.fuego.site.
 
 ## Perguntas
 

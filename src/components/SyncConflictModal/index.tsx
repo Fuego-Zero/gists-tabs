@@ -34,7 +34,7 @@ const SyncConflictModal = () => {
     }
   }
 
-  async function useCloud() {
+  async function applyCloud() {
     setBusy(true);
     try {
       await runSyncCommand(message, () => Storage.resolveConflictUseCloud(), {
@@ -68,7 +68,7 @@ const SyncConflictModal = () => {
           <Button disabled={busy} onClick={exportBoth}>
             {t('exportBoth')}
           </Button>
-          <Button danger disabled={busy} loading={busy} onClick={useCloud}>
+          <Button danger disabled={busy} loading={busy} onClick={applyCloud}>
             {t('useCloud')}
           </Button>
           <Button disabled={busy} loading={busy} type="primary" onClick={keepLocal}>

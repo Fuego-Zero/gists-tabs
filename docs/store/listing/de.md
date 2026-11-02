@@ -17,7 +17,8 @@ Berechtigungen
 • tabs und activeTab — den aktuellen Tab lesen, damit du ihn mit einem Klick sichern kannst
 • alarms — die Synchronisierung erneut versuchen, nachdem du die Cloud einschaltest
 • bookmarks — optional, nur beim Importieren von Chrome-Lesezeichen
+• https://echo.fuego.site/* — Rückmeldungen senden, die du selbst abschickst
 
-Das Token liegt nur im lokalen Speicher der Erweiterung. Es liest und schreibt Gists deines GitHub-Kontos. Ein klassisches persönliches Token braucht den Bereich gist. Ein fein abgestuftes Token braucht Lese- und Schreibzugriff auf Gists. Es wird nichts an einen Server der Erweiterungsautoren gesendet.
+Das Token liegt nur im lokalen Speicher der Erweiterung. Es liest und schreibt Gists deines GitHub-Kontos. Ein klassisches persönliches Token braucht den Bereich gist. Ein fein abgestuftes Token braucht Lese- und Schreibzugriff auf Gists. Lesezeichen und das Token werden nicht an die Autoren gesendet. Rückmeldungen, die du sendest, einschließlich optionaler Bilder, gehen an https://echo.fuego.site.
 
 Quellcode: https://github.com/Fuego-Zero/gists-tabs

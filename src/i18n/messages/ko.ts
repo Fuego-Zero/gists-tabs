@@ -25,6 +25,7 @@ export const ko: Record<MessageKey, string> = {
   copyOk: "복사했습니다",
   copyPage: "페이지 복사",
   dark: "다크",
+  feedback: "피드백",
   defaultBookmark: "이름 없는 북마크",
   delete: "삭제",
   deleteConfirm: "삭제할까요?",

@@ -23,6 +23,7 @@ export const zhCN = {
   copyOk: "复制成功",
   copyPage: "复制页面",
   dark: "深色",
+  feedback: "意见反馈",
   defaultBookmark: "默认书签名称",
   delete: "删除",
   deleteConfirm: "你确定要删除吗?",

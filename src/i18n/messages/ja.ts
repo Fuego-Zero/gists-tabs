@@ -25,6 +25,7 @@ export const ja: Record<MessageKey, string> = {
   copyOk: "コピーしました",
   copyPage: "ページをコピー",
   dark: "ダーク",
+  feedback: "フィードバック",
   defaultBookmark: "無題のブックマーク",
   delete: "削除",
   deleteConfirm: "削除しますか？",

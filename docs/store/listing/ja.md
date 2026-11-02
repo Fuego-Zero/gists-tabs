@@ -17,7 +17,8 @@ Gists Tabs は、Chrome の新しいタブを自分で並べる作業台にし�
 • tabs と activeTab — 表示中のタブを読み、ワンクリックで保存する
 • alarms — クラウド同期をオンにしたあと、再試行をスケジュールする
 • bookmarks — 任意。Chrome のブックマークを読み込むときだけ
+• https://echo.fuego.site/* — 自分で送ったフィードバックを送信する
 
-Token は拡張機能のローカルストレージだけに保存され、あなたの GitHub アカウントの Gist を読み書きするためだけに使います。クラシックな個人アクセス Token には gist スコープが必要です。Fine-grained Token には Gist の読み書き権限が必要です。拡張機能の作者のサーバーには送られません。
+Token は拡張機能のローカルストレージだけに保存され、あなたの GitHub アカウントの Gist を読み書きするためだけに使います。クラシックな個人アクセス Token には gist スコープが必要です。Fine-grained Token には Gist の読み書き権限が必要です。ブックマークと Token は作者に送られません。送ったフィードバックと任意の画像は https://echo.fuego.site に送信されます。
 
 ソースコード: https://github.com/Fuego-Zero/gists-tabs

@@ -25,6 +25,7 @@ export const ru: Record<MessageKey, string> = {
   copyOk: "Скопировано",
   copyPage: "Копировать страницу",
   dark: "Тёмная",
+  feedback: "Обратная связь",
   defaultBookmark: "Закладка без названия",
   delete: "Удалить",
   deleteConfirm: "Удалить?",
