@@ -17,7 +17,8 @@ Permissions
 • tabs and activeTab — read the current tab so you can save it in one click
 • alarms — retry sync on a schedule after you turn cloud sync on
 • bookmarks — optional, only when you import Chrome bookmark folders
+• https://echo.fuego.site/* — send feedback you choose to submit
 
-The token is stored only in the extension's local storage. It is used to read and write Gists on your GitHub account. A classic personal access token needs the gist scope. A fine-grained token needs read and write access to Gists. Nothing is sent to the extension author's server.
+The token is stored only in the extension's local storage. It is used to read and write Gists on your GitHub account. A classic personal access token needs the gist scope. A fine-grained token needs read and write access to Gists. Bookmarks and the token are not sent to the extension author. Feedback you submit, including optional images, is sent to https://echo.fuego.site.
 
 Source code: https://github.com/Fuego-Zero/gists-tabs

@@ -9,7 +9,7 @@ import useGistsTabs from '@/hooks/useGistsTabs';
 import { useLocale } from '@/hooks/useLocale';
 import { pageTitle, setActiveLocale, t } from '@/i18n/translate';
 import { sendMessage } from '@/messaging';
-import withTheme from '@/theme/withTheme';
+import { withTheme } from '@/theme/withTheme';
 import type { Page, Widget } from '@/types';
 
 import ContentArea from './components/ContentArea';

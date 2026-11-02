@@ -2,7 +2,7 @@ import React, { memo, useEffect, useRef } from 'react';
 
 import RC from '../RC';
 import { DEFAULT_Z_INDEX } from './constant';
-import useContextmenuHandle from './hooks/useContextmenuHandle';
+import createContextMenuHandler from './hooks/useContextmenuHandle';
 import type { ContextMenuProps } from './types';
 
 export * from './hook';
@@ -22,7 +22,7 @@ function ContextMenu<T = any>(props: ContextMenuProps<T>) {
 
   const elRef = useRef<HTMLDivElement>(null);
 
-  const onContextmenuHandle = useContextmenuHandle(items, zIndex, onSelect, onCancel, onChoose);
+  const onContextmenuHandle = createContextMenuHandler(items, zIndex, onSelect, onCancel, onChoose);
 
   useEffect(() => {
     const el = elRef.current;

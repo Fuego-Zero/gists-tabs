@@ -20,7 +20,7 @@ The new tab, arranged by you. Bookmark groups and world clocks on a multi-page c
 
 </div>
 
-Gists Tabs replaces Chrome's new tab with a workspace you lay out yourself. Work, study, and the rest of the day get their own pages. Each page is three columns of bookmark groups and clocks. Nothing is uploaded, and there is no account to create, unless you turn on sync.
+Gists Tabs replaces Chrome's new tab with a workspace you lay out yourself. Work, study, and the rest of the day get their own pages. Each page is three columns of bookmark groups and clocks. There is no account to create. The canvas stays on this device unless you turn on sync.
 
 The interface follows your browser language when you have not chosen one. You can switch among English, 简体中文, 繁體中文, 日本語, 한국어, Español, Português, Deutsch, Français, and Русский in Settings.
 
@@ -28,7 +28,7 @@ The interface follows your browser language when you have not chosen one. You ca
 
 The built-in new tab is a search box and a few shortcuts. The bookmarks bar is one long row. Most dashboard extensions want their own account, and the layout lives on their server.
 
-Gists Tabs is the opposite. The layout is yours. The file, if you sync, is a private Gist in your GitHub account. The extension author does not run a server and does not see your bookmarks.
+Gists Tabs is the opposite. The layout is yours. The file, if you sync, is a private Gist in your GitHub account. The extension author does not see your bookmarks. Feedback you choose to send goes to https://echo.fuego.site.
 
 | | Chrome new tab | Bookmarks bar | Account-based dashboards | Gists Tabs |
 | --- | --- | --- | --- | --- |
@@ -109,8 +109,9 @@ GitHub may rate-limit writes. The extension waits and retries. The status line i
 | `tabs`, `activeTab` | Install | Read the current tab so the toolbar button can save it |
 | `alarms` | Install | Retry sync on a schedule after you turn cloud sync on |
 | `bookmarks` | Only when you import | Read Chrome bookmark folders. Not requested at install |
+| `https://echo.fuego.site/*` | Install | Send feedback you choose to submit |
 
-There is no analytics, no ad network, and no server run by the extension author.
+There is no analytics and no ad network. Bookmarks, the canvas, and the GitHub token stay on this device or in your private Gist. Feedback you submit is sent to https://echo.fuego.site.
 
 ## Questions
 

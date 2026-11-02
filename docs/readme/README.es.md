@@ -20,7 +20,7 @@ La nueva pestaña, organizada por ti. Grupos de marcadores y relojes mundiales e
 
 </div>
 
-Gists Tabs sustituye la nueva pestaña de Chrome por un espacio que organizas tú. Trabajo, estudio y el resto del día tienen su página. Cada página son tres columnas de grupos y relojes. No hay cuenta que crear ni nada que subir, salvo que actives la sincronización.
+Gists Tabs sustituye la nueva pestaña de Chrome por un espacio que organizas tú. Trabajo, estudio y el resto del día tienen su página. Cada página son tres columnas de grupos y relojes. No hay cuenta que crear. El lienzo se queda en este dispositivo salvo que actives la sincronización.
 
 Si no has elegido idioma, la interfaz sigue al navegador. En Ajustes puedes cambiar a English, 简体中文, 繁體中文, 日本語, 한국어, Español, Português, Deutsch, Français o Русский.
 
@@ -28,7 +28,7 @@ Si no has elegido idioma, la interfaz sigue al navegador. En Ajustes puedes camb
 
 La nueva pestaña del navegador es un buscador y unos pocos accesos. La barra de marcadores es una fila larga. La mayoría de los paneles piden su propia cuenta y guardan el diseño en su servidor.
 
-Gists Tabs hace lo contrario. El diseño es tuyo. Si sincronizas, el archivo es un Gist privado de tu cuenta de GitHub. Quien hizo la extensión no tiene servidor y no ve tus marcadores.
+Gists Tabs hace lo contrario. El diseño es tuyo. Si sincronizas, el archivo es un Gist privado de tu cuenta de GitHub. Quien hizo la extensión no ve tus marcadores. Los comentarios que envías van a https://echo.fuego.site.
 
 | | Nueva pestaña de Chrome | Barra de marcadores | Paneles con cuenta | Gists Tabs |
 | --- | --- | --- | --- | --- |
@@ -107,8 +107,9 @@ GitHub puede limitar las escrituras. La extensión espera y reintenta, hasta 10 
 | `tabs`, `activeTab` | Al instalar | Leer la pestaña actual para que el botón pueda guardarla |
 | `alarms` | Al instalar | Reintentar la sincronización después de activar la nube |
 | `bookmarks` | Solo al importar | Leer carpetas de Chrome. No se pide al instalar |
+| `https://echo.fuego.site/*` | Al instalar | Enviar los comentarios que tú decides mandar |
 
-No hay analítica, ni anuncios, ni un servidor del autor de la extensión.
+No hay analítica ni anuncios. Los marcadores, el lienzo y el token de GitHub se quedan en este dispositivo o en tu Gist privado. Los comentarios que envías van a https://echo.fuego.site.
 
 ## Preguntas
 

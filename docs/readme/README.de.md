@@ -20,7 +20,7 @@ Der neue Tab, von dir angeordnet. Lesezeichengruppen und Weltuhren auf einer Fl�
 
 </div>
 
-Gists Tabs ersetzt den neuen Tab in Chrome durch einen Arbeitsplatz, den du selbst anordnest. Arbeit, Lernen und der Rest des Tages bekommen eigene Seiten. Jede Seite hat drei Spalten aus Gruppen und Uhren. Es gibt kein Konto und nichts wird hochgeladen, bis du die Synchronisierung einschaltest.
+Gists Tabs ersetzt den neuen Tab in Chrome durch einen Arbeitsplatz, den du selbst anordnest. Arbeit, Lernen und der Rest des Tages bekommen eigene Seiten. Jede Seite hat drei Spalten aus Gruppen und Uhren. Es gibt kein Konto. Die Fläche bleibt auf diesem Gerät, bis du die Synchronisierung einschaltest.
 
 Wenn du noch keine Sprache gewählt hast, folgt die Oberfläche dem Browser. In den Einstellungen kannst du English, 简体中文, 繁體中文, 日本語, 한국어, Español, Português, Deutsch, Français oder Русский wählen.
 
@@ -28,7 +28,7 @@ Wenn du noch keine Sprache gewählt hast, folgt die Oberfläche dem Browser. In 
 
 Der eingebaute neue Tab ist ein Suchfeld und ein paar Verknüpfungen. Die Lesezeichenleiste ist eine lange Zeile. Die meisten Dashboard-Erweiterungen wollen ein eigenes Konto, und das Layout liegt auf deren Server.
 
-Gists Tabs ist das Gegenteil. Das Layout gehört dir. Wenn du synchronisierst, ist die Datei ein privates Gist in deinem GitHub-Konto. Die Autoren der Erweiterung betreiben keinen Server und sehen deine Lesezeichen nicht.
+Gists Tabs ist das Gegenteil. Das Layout gehört dir. Wenn du synchronisierst, ist die Datei ein privates Gist in deinem GitHub-Konto. Die Autoren der Erweiterung sehen deine Lesezeichen nicht. Rückmeldungen, die du sendest, gehen an https://echo.fuego.site.
 
 | | Neuer Tab von Chrome | Lesezeichenleiste | Dashboards mit Konto | Gists Tabs |
 | --- | --- | --- | --- | --- |
@@ -107,8 +107,9 @@ GitHub kann Schreibvorgänge begrenzen. Die Erweiterung wartet und versucht es e
 | `tabs`, `activeTab` | Bei der Installation | Den aktuellen Tab lesen, damit die Schaltfläche ihn sichern kann |
 | `alarms` | Bei der Installation | Die Synchronisierung nach dem Einschalten der Cloud erneut versuchen |
 | `bookmarks` | Nur beim Import | Chrome-Lesezeichenordner lesen. Bei der Installation nicht verlangt |
+| `https://echo.fuego.site/*` | Bei der Installation | Rückmeldungen senden, die du selbst abschickst |
 
-Keine Analyse, keine Werbung, kein Server der Erweiterungsautoren.
+Keine Analyse und keine Werbung. Lesezeichen, Fläche und GitHub-Token bleiben auf diesem Gerät oder in deinem privaten Gist. Rückmeldungen, die du sendest, gehen an https://echo.fuego.site.
 
 ## Fragen
 

@@ -17,7 +17,8 @@
 • tabs 和 activeTab：读取当前标签页，方便一键收藏
 • alarms：打开云同步之后，按计划重试同步
 • bookmarks：可选，只有从 Chrome 书签导入时才申请
+• https://echo.fuego.site/*：发送你主动提交的反馈
 
-Token 只存在扩展的本地存储里，只用来读写你 GitHub 账号下的 Gist。经典个人访问令牌需要 gist 权限；细粒度令牌需要对 Gist 的读写权限。数据不会发到扩展作者的服务器。
+Token 只存在扩展的本地存储里，只用来读写你 GitHub 账号下的 Gist。经典个人访问令牌需要 gist 权限；细粒度令牌需要对 Gist 的读写权限。书签和 Token 不会发到扩展作者这里。你提交的反馈，包括可选图片，会发到 https://echo.fuego.site。
 
 源代码：https://github.com/Fuego-Zero/gists-tabs

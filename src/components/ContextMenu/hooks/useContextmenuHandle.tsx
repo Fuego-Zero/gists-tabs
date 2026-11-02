@@ -8,7 +8,7 @@ import type { ContextMenuItems, Instance, MenuBoxProps, OnCancel, OnChoose, OnSe
 
 let instance: Instance = null;
 
-export default function useContextmenuHandle<T>(
+export default function createContextMenuHandler<T>(
   items: ContextMenuItems<T>,
   zIndex: number,
   onSelect?: OnSelect<T>,

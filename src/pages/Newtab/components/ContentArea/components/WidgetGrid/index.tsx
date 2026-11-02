@@ -3,7 +3,6 @@ import { Button, Col, Dropdown, Row, Space } from 'antd';
 import React from 'react';
 
 import { t } from '@/i18n/translate';
-
 import type { Widget } from '@/types';
 
 import type { SortModeWidget, WidgetInsertPosition, WidgetsHandler } from '../../../../types';
@@ -48,6 +47,9 @@ const isBookmarkWidget = (widget: SortModeWidget): widget is Extract<Widget, { t
 const isClockWidget = (widget: SortModeWidget): widget is Extract<Widget, { type: 'clocks' }> =>
   widget.type === 'clocks';
 
+// 画布固定三栏，栏位本身就是稳定身份，不用数组下标当 key。
+const COLUMN_IDS = [0, 1, 2] as const;
+
 const WidgetGrid = (props: Props) => {
   const {
     addWidget,
@@ -63,8 +65,11 @@ const WidgetGrid = (props: Props) => {
 
   return (
     <Row className="px-[8px] py-[16px] !mx-0" gutter={[16, 16]}>
-      {columns.map((column, index) => (
-        <Col key={index} span={8}>
+      {COLUMN_IDS.map((columnId) => {
+        const column = columns[columnId] ?? [];
+
+        return (
+        <Col key={columnId} span={8}>
           <Row gutter={[16, 8]}>
             {column.map((widget) => {
               const { id, name } = widget;
@@ -155,7 +160,7 @@ const WidgetGrid = (props: Props) => {
             {isSortMode && column.length === 0 && (
               <Col span={24}>
                 {/* 空列需要预留承接区，否则跨列拖拽无法进入没有卡片的列。 */}
-                <EmptyColumnDropZone col={index} onHover={sortDnd.onEmptyColumnHover} />
+                <EmptyColumnDropZone col={columnId} onHover={sortDnd.onEmptyColumnHover} />
               </Col>
             )}
             {!isSortMode && (
@@ -165,7 +170,7 @@ const WidgetGrid = (props: Props) => {
                     style={{ flex: 1 }}
                     type="dashed"
                     onClick={() => {
-                      addWidget('bookmarks', index, column.length);
+                      addWidget('bookmarks', columnId, column.length);
                     }}
                   >
                     {t('newWidget')}
@@ -174,20 +179,21 @@ const WidgetGrid = (props: Props) => {
                     menu={{
                       items: [{ key: 'clocks', label: t('newClock') }],
                       onClick: () => {
-                        addWidget('clocks', index, column.length);
+                        addWidget('clocks', columnId, column.length);
                       },
                     }}
                     placement="bottomRight"
                     trigger={['hover']}
                   >
-                    <Button aria-label={t('newClock')} icon={<EllipsisOutlined />} type="dashed" />
+                    <Button icon={<EllipsisOutlined />} type="dashed" aria-label={t('newClock')} />
                   </Dropdown>
                 </Space.Compact>
               </Col>
             )}
           </Row>
         </Col>
-      ))}
+        );
+      })}
     </Row>
   );
 };

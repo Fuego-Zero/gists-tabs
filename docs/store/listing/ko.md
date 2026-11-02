@@ -17,7 +17,8 @@ Gists Tabs는 Chrome 새 탭을 직접 배치하는 작업 공간으로 바꿉�
 • tabs와 activeTab — 현재 탭을 읽어 한 번에 저장합니다
 • alarms — 클라우드 동기화를 켠 뒤 재시도를 예약합니다
 • bookmarks — 선택 사항. Chrome 북마크를 가져올 때만 요청합니다
+• https://echo.fuego.site/* — 직접 제출한 피드백을 보냅니다
 
-Token은 확장 프로그램의 로컬 저장소에만 있으며, 내 GitHub 계정의 Gist를 읽고 쓰는 데만 쓰입니다. 클래식 개인용 액세스 토큰에는 gist 범위가 필요합니다. 세분화된 토큰에는 Gist 읽기 및 쓰기 권한이 필요합니다. 확장 프로그램 작성자의 서버로는 전송되지 않습니다.
+Token은 확장 프로그램의 로컬 저장소에만 있으며, 내 GitHub 계정의 Gist를 읽고 쓰는 데만 쓰입니다. 클래식 개인용 액세스 토큰에는 gist 범위가 필요합니다. 세분화된 토큰에는 Gist 읽기 및 쓰기 권한이 필요합니다. 북마크와 Token은 작성자에게 전송되지 않습니다. 제출한 피드백과 선택 이미지는 https://echo.fuego.site 로 전송됩니다.
 
 소스 코드: https://github.com/Fuego-Zero/gists-tabs

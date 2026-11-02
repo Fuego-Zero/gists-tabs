@@ -25,6 +25,7 @@ export const en: Record<MessageKey, string> = {
   copyOk: "Copied",
   copyPage: "Copy page",
   dark: "Dark",
+  feedback: "Feedback",
   defaultBookmark: "Untitled bookmark",
   delete: "Delete",
   deleteConfirm: "Delete this?",

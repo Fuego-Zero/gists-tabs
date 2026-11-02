@@ -99,9 +99,9 @@ function MenuBox<T>(props: MenuBoxProps<T>) {
 
   return (
     <PageCard ref={elRef} className={style.MenuBox} style={menuBoxStyle}>
-      {items.map((item, index) => (
+      {items.map((item) => (
         <div
-          key={index}
+          key={String(item.value)}
           className={classNames('menuItem', {
             disabled: item.disabled,
           })}

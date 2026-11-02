@@ -3,7 +3,6 @@ import { App, Button, Col, Divider, Drawer, Form, Input, Row, Space } from 'antd
 import React, { useEffect } from 'react';
 
 import { t } from '@/i18n/translate';
-
 import type { Bookmark } from '@/types/widget/bookmark';
 
 import type { BookmarkHandler } from '../../types';

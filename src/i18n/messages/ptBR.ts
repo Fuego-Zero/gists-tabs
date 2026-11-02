@@ -25,6 +25,7 @@ export const ptBR: Record<MessageKey, string> = {
   copyOk: "Copiado",
   copyPage: "Copiar página",
   dark: "Escuro",
+  feedback: "Feedback",
   defaultBookmark: "Favorito sem título",
   delete: "Excluir",
   deleteConfirm: "Excluir?",

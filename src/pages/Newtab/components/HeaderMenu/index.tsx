@@ -9,17 +9,18 @@ import {
   ExclamationCircleFilled,
   HolderOutlined,
   MenuOutlined,
+  MessageOutlined,
   MoonOutlined,
   PlusOutlined,
   ReloadOutlined,
   SunOutlined,
 } from '@ant-design/icons';
 import { App, Button, Dropdown, Menu, type MenuProps, Space, Tooltip  } from 'antd';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 import Storage from '@/classes/Storage';
+import { useEchoFeedback } from '@/hooks/useEchoFeedback';
 import useGistsTabs from '@/hooks/useGistsTabs';
-import { useLocale } from '@/hooks/useLocale';
 import { useStorageItem } from '@/hooks/useStorageItem';
 import useSyncState from '@/hooks/useSyncState';
 import { pageTitle, t } from '@/i18n/translate';
@@ -40,26 +41,21 @@ const HeaderMenu = (props: Props) => {
   const [gistsTabs, setGistsTabs] = useGistsTabs();
   const syncState = useSyncState();
   const mode = useStorageItem(themeItem, 'light');
-  const locale = useLocale();
+  const openFeedback = useEchoFeedback();
 
   const { activePageId, setActivePageId, pages, addPage, copyPage, delPage, editPage, onSortModeStart } = props;
 
-  const menus = useMemo(
-    () =>
-      pages.map((page) => ({
-        key: page.id,
-        label: pageTitle(page),
-      })),
-    [locale, pages],
-  );
+  const menus = pages.map((page) => ({
+    key: page.id,
+    label: pageTitle(page),
+  }));
 
   const { message, modal } = App.useApp();
   useSyncErrorNotice(message);
   const [isOpen, setIsOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
-  const dropdowns: MenuProps['items'] = useMemo(
-    () => [
+  const dropdowns: MenuProps['items'] = [
       {
         key: 'edit',
         label: <span className="select-none">{t('editName')}</span>,
@@ -218,17 +214,10 @@ const HeaderMenu = (props: Props) => {
           });
         },
       },
-    ],
-    [activePageId, copyPage, delPage, gistsTabs, locale, message, modal, pages.length, setGistsTabs, syncState.status],
-  );
+  ];
 
-  const currentPageName = useMemo(
-    () => {
-      const page = pages.find((item) => item.id === activePageId);
-      return page ? pageTitle(page) : undefined;
-    },
-    [activePageId, locale, pages],
-  );
+  const currentPage = pages.find((item) => item.id === activePageId);
+  const currentPageName = currentPage ? pageTitle(currentPage) : undefined;
 
   return (
     <>
@@ -274,6 +263,16 @@ const HeaderMenu = (props: Props) => {
             onSortModeStart('manual');
           }}
         />
+        <Tooltip title={t('feedback')}>
+          <Button
+            icon={<MessageOutlined />}
+            shape="circle"
+            size="small"
+            type="text"
+            aria-label={t('feedback')}
+            onClick={openFeedback}
+          />
+        </Tooltip>
         <Dropdown menu={{ items: dropdowns }} trigger={['click']}>
           <Button icon={<MenuOutlined />} shape="circle" size="small" type="text" />
         </Dropdown>

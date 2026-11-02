@@ -17,7 +17,8 @@
 • tabs 和 activeTab：讀取目前的分頁，方便一鍵收藏
 • alarms：打開雲端同步之後，依排程重試同步
 • bookmarks：可選，只有從 Chrome 書籤匯入時才申請
+• https://echo.fuego.site/*：送出你主動提交的回饋
 
-Token 只存在擴充功能的本機儲存裡，只用來讀寫你 GitHub 帳號下的 Gist。經典個人存取權杖需要 gist 權限；細粒度權杖需要對 Gist 的讀寫權限。資料不會送到擴充功能作者的伺服器。
+Token 只存在擴充功能的本機儲存裡，只用來讀寫你 GitHub 帳號下的 Gist。經典個人存取權杖需要 gist 權限；細粒度權杖需要對 Gist 的讀寫權限。書籤和 Token 不會送到擴充功能作者這裡。你送出的回饋，包括可選圖片，會發到 https://echo.fuego.site。
 
 原始碼：https://github.com/Fuego-Zero/gists-tabs

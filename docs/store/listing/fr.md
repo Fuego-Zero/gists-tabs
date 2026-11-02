@@ -17,7 +17,8 @@ Autorisations
 • tabs et activeTab — lire l’onglet ouvert pour l’enregistrer en un clic
 • alarms — réessayer la synchronisation après l’activation du cloud
 • bookmarks — facultative, seulement pour importer les marque-pages Chrome
+• https://echo.fuego.site/* — envoyer les retours que vous choisissez de soumettre
 
-Le jeton est stocké uniquement dans le stockage local de l’extension. Il sert à lire et écrire les Gists de votre compte GitHub. Un jeton classique a besoin du scope gist. Un jeton affiné a besoin d’un accès en lecture et en écriture aux Gists. Rien n’est envoyé au serveur de l’auteur de l’extension.
+Le jeton est stocké uniquement dans le stockage local de l’extension. Il sert à lire et écrire les Gists de votre compte GitHub. Un jeton classique a besoin du scope gist. Un jeton affiné a besoin d’un accès en lecture et en écriture aux Gists. Les marque-pages et le jeton ne sont pas envoyés à l’auteur. Les retours que vous envoyez, images facultatives comprises, vont à https://echo.fuego.site.
 
 Code source : https://github.com/Fuego-Zero/gists-tabs
